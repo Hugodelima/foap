@@ -1,5 +1,5 @@
-import React from 'react';
-import { Text, TouchableOpacity, View, Image, TextInput, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
+import React, { useState } from 'react';
+import { Text, TouchableOpacity, View, Image, TextInput, KeyboardAvoidingView, Platform, ScrollView, Alert } from 'react-native';
 
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ArrowLeftIcon } from 'react-native-heroicons/solid';
@@ -9,11 +9,49 @@ import {NavigationProps} from '../navigation/types'
 
 import {useHandleGoogleOAuth} from '../hooks/handleGoogleOAuth'
 
+import { useSQLiteContext } from 'expo-sqlite';
+import * as Crypto from 'expo-crypto';
+
 export default function LoginScreen() {
 
     const navigation = useNavigation<NavigationProps>();
-
     const {onPress} = useHandleGoogleOAuth();
+
+    const db = useSQLiteContext()
+    const [email,setEmail] =  useState('')
+    const [password,setPassword] = useState('')
+
+    const handleRegister = async() =>{
+        if(email.length === 0 || password.length === 0){
+            Alert.alert("Preencha todos os campos corretamente")
+            return;
+        }
+        try {
+            
+            const existingEmail = await db.getFirstAsync('SELECT email FROM usuarios WHERE email = ?',[email])
+            
+            if (!existingEmail) {
+                Alert.alert("Email ou senha não conferem")
+                return
+            }
+
+            const hash = await Crypto.digestStringAsync(
+                Crypto.CryptoDigestAlgorithm.SHA512,password
+            );
+            console.log("hashlogin: "+hash);
+            
+            const validUser = await db.getFirstAsync('SELECT * FROM usuarios WHERE email = ? AND senha = ?',[email,hash])
+            
+            if (validUser) {
+                Alert.alert("Logado com sucesso");
+                navigation.navigate("AppNavigation")
+            }
+            
+        } catch (error) {
+            console.log("Erro durante o login",error);
+            
+        }
+    }
     return (
         <KeyboardAvoidingView
             style={{ flex: 1 }}
@@ -42,14 +80,16 @@ export default function LoginScreen() {
                             <Text className='text-gray-700 ml-4'>E-mail</Text>
                             <TextInput
                                 className='p-4 bg-gray-100 text-gray-700 rounded-2xl mb-3'
-                                value="teste@gmail.com"
+                                value={email}
+                                onChangeText={setEmail}
                                 placeholder="Entre com e-mail aqui"
                                 keyboardType="email-address"
                             />
                             <Text className='text-gray-700 ml-4'>Senha</Text>
                             <TextInput
                                 className='p-4 bg-gray-100 text-gray-700 rounded-2xl'
-                                value="12345"
+                                value={password}
+                                onChangeText={setPassword}
                                 placeholder="Entre com a senha aqui"
                                 secureTextEntry
                             />
@@ -58,6 +98,7 @@ export default function LoginScreen() {
                                 <Text className='text-gray-700'>Esqueceu a Senha?</Text>
                             </TouchableOpacity>
                             <TouchableOpacity
+                                onPress={handleRegister}
                                 className='py-3 bg-yellow-400 rounded-xl'
                             >
                                 <Text className='font-bold text-center text-gray-700'>

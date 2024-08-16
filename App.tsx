@@ -15,7 +15,7 @@ import TabNavigation from './src/navigation/AppNavigation'
 const publishableKey = process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY!
 
 const App = () => {
-
+  //token que serve apenas para autenticação do google 
   const tokenCache = {
     async getToken(key: string){
         try {
@@ -36,18 +36,17 @@ const App = () => {
 }
 
   return (
+    //este return serve apenas para autenticação com o google
     <ClerkProvider tokenCache={tokenCache}  publishableKey={publishableKey}>
       <SignedIn>
         <NavigationContainer>
-          <TabNavigation />
+          <TabNavigation/>
         </NavigationContainer>
       </SignedIn>
       <SignedOut>
         <AppNavigation/>
-
       </SignedOut>
     </ClerkProvider>
-
   )
     
 };

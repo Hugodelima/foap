@@ -16,7 +16,7 @@ export const useHandleGoogleOAuth=()=>{
             if (createdSessionId && typeof setActive === 'function'){
                 setActive({session:createdSessionId})
             } else{
-                //signup
+                //void
             }
             
         } catch (error) {
