@@ -4,7 +4,7 @@ export type RootStackParamList = {
     Welcome: undefined;
     Login: undefined;
     SignUp: undefined;
-    AppNavigation: any;
+    BottomNavigation: any;
 
 };
 

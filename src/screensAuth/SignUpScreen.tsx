@@ -51,9 +51,8 @@ export default function SignUpScreen() {
             const validUser = await db.getFirstAsync('SELECT * FROM usuarios WHERE email = ? AND senha = ?',[email,hash])
 
             Alert.alert("Registrado com sucesso")
-            navigation.navigate('AppNavigation', {
-                screen: 'HomeScreen',
-                params: { UserBD: validUser },
+            navigation.navigate('BottomNavigation', {
+                screen: 'HomeScreen'
             });
             
             

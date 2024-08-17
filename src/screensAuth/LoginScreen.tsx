@@ -5,14 +5,18 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { ArrowLeftIcon } from 'react-native-heroicons/solid';
 
 import { useNavigation } from '@react-navigation/native';
-import {NavigationProps} from '../navigation/types'
+import {NavigationProps, UserBD} from '../navigation/types'
 
 import {useHandleGoogleOAuth} from '../hooks/handleGoogleOAuth'
 
 import { useSQLiteContext } from 'expo-sqlite';
 import * as Crypto from 'expo-crypto';
 
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as SecureStore from 'expo-secure-store';
+
 export default function LoginScreen() {
+
 
     const navigation = useNavigation<NavigationProps>();
     const {onPress} = useHandleGoogleOAuth();
@@ -27,7 +31,6 @@ export default function LoginScreen() {
             return;
         }
         try {
-            
             const existingEmail = await db.getFirstAsync('SELECT email FROM usuarios WHERE email = ?',[email])
             
             if (!existingEmail) {
@@ -39,15 +42,20 @@ export default function LoginScreen() {
                 Crypto.CryptoDigestAlgorithm.SHA512,password
             );
             
-            const validUser = await db.getFirstAsync('SELECT * FROM usuarios WHERE email = ? AND senha = ?',[email,hash])
+            const validUser: UserBD | null = await db.getFirstAsync('SELECT * FROM usuarios WHERE email = ? AND senha = ?',[email,hash])
+            const userID = validUser?.id
+            
             
             if (validUser) {
-                Alert.alert("Logado com sucesso");
+                await AsyncStorage.setItem('isLoggedIn',JSON.stringify(true))
+                //await SecureStore.setItemAsync('userStorageID', '2');
 
-                navigation.navigate('AppNavigation', {
-                    screen: 'HomeScreen',
-                    params: { UserBD: validUser },
+                Alert.alert("Logado com sucesso");
+                navigation.navigate('BottomNavigation', {
+                    screen: 'HomeScreen'
                 });
+
+                
                 
 
             }

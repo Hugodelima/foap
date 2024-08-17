@@ -1,8 +1,7 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import {} from 'react-native/Libraries/NewAppScreen';
 import { Text } from 'react-native';
 
-import AppNavigation from './src/navigation/AuthNavigation';
 
 import { ClerkProvider, ClerkLoaded } from '@clerk/clerk-expo'
 import { Slot } from 'expo-router'
@@ -11,7 +10,10 @@ import { SignedIn, SignedOut, useUser } from '@clerk/clerk-expo'
 import * as SecureStore from 'expo-secure-store';
 import { NavigationContainer } from '@react-navigation/native';
 
-import TabNavigation from './src/navigation/AppNavigation'
+import BottomNavigation from './src/navigation/BottomNavigation';
+import AuthNavigation from './src/navigation/AuthNavigation';
+
+import AsyncStorage from '@react-native-async-storage/async-storage';
 const publishableKey = process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY!
 
 const App = () => {
@@ -34,21 +36,33 @@ const App = () => {
     }
 
 }
+const [isLoggedIn,setIsLoggedIn] = useState('')
+
+
+async function getDataFromStatusLogin() {
+  const data:any = await AsyncStorage.getItem("isLoggedIn")
+  setIsLoggedIn(data)
+}
+
+useEffect(() => {
+  getDataFromStatusLogin();
+}, []);
+  console.log('async do cadastro'+isLoggedIn);
 
   return (
-    //este return serve apenas para autenticação com o google
+  <NavigationContainer>
     <ClerkProvider tokenCache={tokenCache}  publishableKey={publishableKey}>
-      <SignedIn>
-        <NavigationContainer>
-          <TabNavigation/>
-        </NavigationContainer>
-      </SignedIn>
-      <SignedOut>
-        <AppNavigation/>
-      </SignedOut>
+        <SignedIn>
+          <BottomNavigation/>
+        </SignedIn>
+        <SignedOut>
+          {isLoggedIn ? 
+          <BottomNavigation/> : <AuthNavigation/>}
+        </SignedOut>
     </ClerkProvider>
+
+  </NavigationContainer>
   )
-    
 };
 
 export default App;
