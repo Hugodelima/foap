@@ -39,14 +39,15 @@ const App = () => {
 const [isLoggedIn,setIsLoggedIn] = useState('')
 
 
-async function getDataFromStatusLogin() {
+async function setDataFromStatusLogin() {
   const data:any = await AsyncStorage.getItem("isLoggedIn")
   setIsLoggedIn(data)
 }
 
 useEffect(() => {
-  getDataFromStatusLogin();
+  setDataFromStatusLogin();
 }, []);
+
   console.log('async do cadastro'+isLoggedIn);
 
   return (
@@ -56,8 +57,7 @@ useEffect(() => {
           <BottomNavigation/>
         </SignedIn>
         <SignedOut>
-          {isLoggedIn ? 
-          <BottomNavigation/> : <AuthNavigation/>}
+          {isLoggedIn ? <BottomNavigation/> : <AuthNavigation/>}
         </SignedOut>
     </ClerkProvider>
 
