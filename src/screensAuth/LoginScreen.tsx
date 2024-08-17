@@ -38,15 +38,20 @@ export default function LoginScreen() {
             const hash = await Crypto.digestStringAsync(
                 Crypto.CryptoDigestAlgorithm.SHA512,password
             );
-            console.log("hashlogin: "+hash);
             
             const validUser = await db.getFirstAsync('SELECT * FROM usuarios WHERE email = ? AND senha = ?',[email,hash])
             
             if (validUser) {
                 Alert.alert("Logado com sucesso");
-                navigation.navigate("AppNavigation")
+
+                navigation.navigate('AppNavigation', {
+                    screen: 'HomeScreen',
+                    params: { UserBD: validUser },
+                });
+                
+
             }
-            
+
         } catch (error) {
             console.log("Erro durante o login",error);
             

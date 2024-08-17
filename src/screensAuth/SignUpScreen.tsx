@@ -45,11 +45,16 @@ export default function SignUpScreen() {
             const hash = await Crypto.digestStringAsync(
                 Crypto.CryptoDigestAlgorithm.SHA512,password
             );
-            console.log("hashcadastro: "+hash);
             
             await db.runAsync('INSERT INTO usuarios (nome_usuario,email,senha) VALUES (?,?,?)',[username,email,hash])
+
+            const validUser = await db.getFirstAsync('SELECT * FROM usuarios WHERE email = ? AND senha = ?',[email,hash])
+
             Alert.alert("Registrado com sucesso")
-            navigation.navigate("AppNavigation")
+            navigation.navigate('AppNavigation', {
+                screen: 'HomeScreen',
+                params: { UserBD: validUser },
+            });
             
             
 

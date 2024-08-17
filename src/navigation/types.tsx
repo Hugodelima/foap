@@ -4,8 +4,17 @@ export type RootStackParamList = {
     Welcome: undefined;
     Login: undefined;
     SignUp: undefined;
-    AppNavigation: undefined;
+    AppNavigation: any;
+
 };
-  
+
+export type UserBD = {
+    data_criacao: string;
+    email: string;
+    id: number | null;
+    nome_usuario: string;
+    senha: string;
+}
+
 export type NavigationProps = NativeStackNavigationProp<RootStackParamList>;
   
