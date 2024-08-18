@@ -18,22 +18,26 @@ export default function HomeScreen(){
     await AsyncStorage.setItem('isLoggedIn','')
     DevSettings.reload()
   }
-  async function getIDUser(){
-    return await SecureStore.getItemAsync('userStorageID')
-  }
+  
   const navigation = useNavigation<NavigationProps>();
 
+  //do google
   const {signOut} = useAuth()
   const { user } = useUser()
-
-  
-
   const loggedGoogle = useAuth().isSignedIn
 
-  console.log("id do usuario", getIDUser()); /////////////////////////////////////////////////
-  
-  
+  //do login normal
+  const [userID, setUserID] = useState('')
 
+  useEffect(() => {
+    async function getIDUser(){
+      const userID:any = await SecureStore.getItemAsync('userStorageID')
+      setUserID(userID)
+    }
+    getIDUser()
+
+  }, []);
+  
     return (
       <View>
         <Text> textInComponent </Text>

@@ -48,16 +48,12 @@ export default function LoginScreen() {
             
             if (validUser) {
                 await AsyncStorage.setItem('isLoggedIn',JSON.stringify(true))
-                //await SecureStore.setItemAsync('userStorageID', '2');
+                await SecureStore.setItemAsync('userStorageID', JSON.stringify(userID));
 
                 Alert.alert("Logado com sucesso");
                 navigation.navigate('BottomNavigation', {
                     screen: 'HomeScreen'
                 });
-
-                
-                
-
             }
 
         } catch (error) {
