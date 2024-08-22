@@ -26,21 +26,24 @@ export default function LoginScreen() {
     const [password,setPassword] = useState('')
 
     const handleRegister = async() =>{
+        const hash = await Crypto.digestStringAsync(
+            Crypto.CryptoDigestAlgorithm.SHA512,password
+        );
+
         if(email.length === 0 || password.length === 0){
             Alert.alert("Preencha todos os campos corretamente")
             return;
         }
         try {
             const existingEmail = await db.getFirstAsync('SELECT email FROM usuarios WHERE email = ?',[email])
+            const existingAccount = await db.getFirstAsync('SELECT * FROM usuarios WHERE email = ? AND senha = ?',[email,hash])
             
-            if (!existingEmail) {
+            if (!existingEmail || !existingAccount) {
                 Alert.alert("Email ou senha não conferem")
                 return
             }
 
-            const hash = await Crypto.digestStringAsync(
-                Crypto.CryptoDigestAlgorithm.SHA512,password
-            );
+            
             
             const validUser: UserBD | null = await db.getFirstAsync('SELECT * FROM usuarios WHERE email = ? AND senha = ?',[email,hash])
             const userID = validUser?.id
