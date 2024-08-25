@@ -1,71 +1,64 @@
 import React, { useState } from 'react';
-import { Text, TouchableOpacity, View, Image, TextInput, KeyboardAvoidingView, Platform, ScrollView, Alert} from 'react-native';
+import { Text, TouchableOpacity, View, Image, TextInput, KeyboardAvoidingView, Platform, ScrollView, Alert } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import {NavigationProps} from '../navigation/types'
+import { NavigationProps } from '../navigation/types';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ArrowLeftIcon } from 'react-native-heroicons/solid';
-
-import {useHandleGoogleOAuth} from '../hooks/handleGoogleOAuth'
-
-import { useSQLiteContext } from 'expo-sqlite';
-import * as Crypto from 'expo-crypto';
-
+import axios from 'axios';
+import { useHandleGoogleOAuth } from '../hooks/handleGoogleOAuth';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as SecureStore from 'expo-secure-store';
 
 export default function SignUpScreen() {
     const navigation = useNavigation<NavigationProps>();
+    const { onPress } = useHandleGoogleOAuth(); // Função para login com Google
 
-    const {onPress} = useHandleGoogleOAuth();
+    const [username, setUsername] = useState('');
+    const [email, setEmail] = useState('');
+    const [password, setPassword] = useState('');
+    const [confirmPassword, setConfirmPassword] = useState('');
 
-    const db = useSQLiteContext()
-    const [username,setUsername] =  useState('')
-    const [email,setEmail] =  useState('')
-    const [password,setPassword] = useState('')
-    const [confirmPassword,setConfirmPassword] = useState('')
-
-    
-    const handleRegister = async() =>{
-
-        if(username.length === 0 || email.length === 0 || password.length === 0 || confirmPassword.length === 0){
-            Alert.alert("Preencha todos os campos corretamente")
+    const handleRegister = async () => {
+        if (username.length === 0 || email.length === 0 || password.length === 0 || confirmPassword.length === 0) {
+            Alert.alert("Preencha todos os campos corretamente");
             return;
-        }else if(password !== confirmPassword){
-            Alert.alert("Senha não conferem")
-            return
+        } else if (password !== confirmPassword) {
+            Alert.alert("As senhas não conferem");
+            return;
         }
         try {
-            const existingUser = await db.getFirstAsync('SELECT nome_usuario FROM usuarios WHERE nome_usuario = ?',[username])
-            const existingEmail = await db.getFirstAsync('SELECT email FROM usuarios WHERE email = ?',[email])
+            const response = await axios.post('http://192.168.0.105:3000/register', {
+                username,
+                email,
+                password
+            });
 
-            if (existingUser){
-                Alert.alert("Já existe usuário com este nome")
-            }else if(existingEmail){
-                Alert.alert("Este e-mail já existe cadastrado")
+            if (response.status === 200) {
+                const { userID } = response.data;
+                await AsyncStorage.setItem('isLoggedIn', JSON.stringify(true));
+                await SecureStore.setItemAsync('userStorageID', JSON.stringify(userID));
+                Alert.alert("Registrado com sucesso! Verifique seu e-mail para o código de verificação.");
+                navigation.navigate('VerificationScreen');
+            } else {
+                Alert.alert("Erro ao registrar, tente novamente.");
             }
 
-            const hash = await Crypto.digestStringAsync(
-                Crypto.CryptoDigestAlgorithm.SHA512,password
-            );
-            
-            await db.runAsync('INSERT INTO usuarios (nome_usuario,email,senha) VALUES (?,?,?)',[username,email,hash])
-
-            const validUser = await db.getFirstAsync('SELECT * FROM usuarios WHERE email = ? AND senha = ?',[email,hash])
-
-            Alert.alert("Registrado com sucesso")
-            navigation.navigate('BottomNavigation', {
-                screen: 'HomeScreen'
-            });
-            
-            
-
         } catch (error) {
-            console.log("erro durante o cadastro"),error;
-            
+            if (error.response && error.response.data) {
+                const errorMessage = error.response.data;
+                if (errorMessage.includes('nome de usuário')) {
+                    Alert.alert("Nome de usuário já está em uso. Por favor, escolha outro.");
+                } else if (errorMessage.includes('e-mail')) {
+                    Alert.alert("E-mail já está em uso. Por favor, escolha outro.");
+                } else {
+                    Alert.alert("Erro durante o cadastro, tente novamente.");
+                }
+            } else {
+                Alert.alert("Erro durante o cadastro, tente novamente.");
+            }
         }
     }
-    
-    
-    
-    
+
     return (
         <KeyboardAvoidingView
             style={{ flex: 1 }}
@@ -99,7 +92,6 @@ export default function SignUpScreen() {
                                 onChangeText={setUsername}
                             />
 
-
                             <Text className='text-gray-700 ml-4'>E-mail:</Text>
                             <TextInput
                                 className='p-4 bg-gray-100 text-gray-700 rounded-2xl mb-3'
@@ -107,7 +99,6 @@ export default function SignUpScreen() {
                                 onChangeText={setEmail}
                                 placeholder="Entre com e-mail aqui"
                                 keyboardType="email-address"
-                                
                             />
                             <Text className='text-gray-700 ml-4'>Senha:</Text>
                             <TextInput
@@ -126,13 +117,12 @@ export default function SignUpScreen() {
                                 secureTextEntry
                             />
 
-                            
                             <TouchableOpacity
                                 className='py-3 bg-yellow-400 rounded-xl'
                                 onPress={handleRegister}
                             >
                                 <Text className='font-bold text-center text-gray-700'>
-                                  Cadastrar
+                                    Cadastrar
                                 </Text>
                             </TouchableOpacity>
                         </View>
@@ -145,17 +135,17 @@ export default function SignUpScreen() {
                                     className='w-10 h-10 rounded-full' />
                             </TouchableOpacity>
                         </View>
-                        
+
                         <View className='flex-row justify-center mb-10 mt-4'>
                             <Text className='text-gray-500 font-semibold'>Já tem uma Conta? </Text>
-                            <TouchableOpacity onPress={()=> navigation.navigate('Login')}>
-                              <Text className='font-bold text-blue-500'>Entrar</Text>
+                            <TouchableOpacity onPress={() => navigation.navigate('Login')}>
+                                <Text className='font-bold text-blue-500'>Entrar</Text>
                             </TouchableOpacity>
                         </View>
-                       
+
                     </View>
                 </View>
             </ScrollView>
         </KeyboardAvoidingView>
-    )
+    );
 }
