@@ -26,15 +26,16 @@ export default function SignUpScreen() {
             Alert.alert("As senhas não conferem");
             return;
         }
+    
         try {
             const response = await axios.post('http://192.168.0.105:3000/register', {
                 username,
                 email,
                 password
             });
-
+    
             if (response.status === 200) {
-                const { userID } = response.data;
+                const { userID } = response.data;  // Certifique-se de que 'userID' está correto
                 await AsyncStorage.setItem('isLoggedIn', JSON.stringify(true));
                 await SecureStore.setItemAsync('userStorageID', JSON.stringify(userID));
                 Alert.alert("Registrado com sucesso! Verifique seu e-mail para o código de verificação.");
@@ -42,22 +43,13 @@ export default function SignUpScreen() {
             } else {
                 Alert.alert("Erro ao registrar, tente novamente.");
             }
-
+    
         } catch (error) {
-            if (error.response && error.response.data) {
-                const errorMessage = error.response.data;
-                if (errorMessage.includes('nome de usuário')) {
-                    Alert.alert("Nome de usuário já está em uso. Por favor, escolha outro.");
-                } else if (errorMessage.includes('e-mail')) {
-                    Alert.alert("E-mail já está em uso. Por favor, escolha outro.");
-                } else {
-                    Alert.alert("Erro durante o cadastro, tente novamente.");
-                }
-            } else {
-                Alert.alert("Erro durante o cadastro, tente novamente.");
-            }
+            Alert.alert("Erro durante o cadastro, tente novamente.");
+            console.log(error);
         }
-    }
+    };
+    
 
     return (
         <KeyboardAvoidingView

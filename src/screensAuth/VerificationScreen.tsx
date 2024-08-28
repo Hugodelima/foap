@@ -28,26 +28,12 @@ export default function VerificationScreen() {
         async function getIDUser() {
             const userID: any = await SecureStore.getItemAsync('userStorageID');
             setUserID(userID);
-
+            
             try {
-                const response = await axios.get(`http://localhost:3000/users/${userID}`);
+                const response = await axios.get(`http://192.168.0.105:3000/users/${userID}`);
                 setUser(response.data);
-
-                // Enviar código de verificação automaticamente
-                if (response.status === 200 && response.data) {
-                    try {
-                        const emailResponse = await axios.post('http://localhost:3000/send-verification-email', {
-                            email: response.data.email
-                        });
-                        if (emailResponse.status === 200) {
-                            Alert.alert("Código enviado com sucesso! Verifique seu e-mail.");
-                        } else {
-                            Alert.alert("Erro ao enviar código, tente novamente.");
-                        }
-                    } catch (error) {
-                        console.error("Erro ao enviar o código:", error);
-                    }
-                }
+                
+               
             } catch (error) {
                 console.error("Erro ao obter usuário:", error);
             }
@@ -89,10 +75,13 @@ export default function VerificationScreen() {
         }
 
         try {
-            const response = await axios.post('http://localhost:3000/verify', {
+            console.log('fdsf'+userID,verificationCode);
+            
+            const response = await axios.post('http://192.168.0.105:3000/verify', {
                 userID,
                 verificationCode
             });
+            
 
             if (response.status === 200) {
                 Alert.alert("Email verificado com sucesso!");
@@ -116,7 +105,7 @@ export default function VerificationScreen() {
         setNextInputIndex(newInputIndex);
     }
 
-    const submitOTP = async () => {
+    const submitOTP = () => {
         Keyboard.dismiss();
     
         if (isObjValid(OTP)) {
@@ -126,27 +115,14 @@ export default function VerificationScreen() {
             });
     
             setVerificationCode(val);
-    
-            try {
-                const response = await axios.post('http://localhost:3000/send-verification-email', {
-                    email: user?.email
-                });
-    
-                if (response.status === 200) {
-                    Alert.alert("Código enviado com sucesso! Verifique seu e-mail.");
-                } else {
-                    Alert.alert("Erro ao enviar código, tente novamente.");
-                }
-            } catch (error) {
-                console.error("Erro ao enviar o código:", error);
-            }
+            handleVerification();
         }
     };
 
     const resendCode = async () => {
         if (user) {
             try {
-                const response = await axios.post('http://localhost:3000/resend-verification-code', {
+                const response = await axios.post('http://192.168.0.105:3000/resend-verification-code', {
                     email: user.email
                 });
 

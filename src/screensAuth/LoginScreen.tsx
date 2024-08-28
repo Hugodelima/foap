@@ -9,7 +9,6 @@ import {NavigationProps, UserBD} from '../navigation/types'
 
 import {useHandleGoogleOAuth} from '../hooks/handleGoogleOAuth'
 
-import { useSQLiteContext } from 'expo-sqlite';
 import * as Crypto from 'expo-crypto';
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -21,7 +20,6 @@ export default function LoginScreen() {
     const navigation = useNavigation<NavigationProps>();
     const {onPress} = useHandleGoogleOAuth();
 
-    const db = useSQLiteContext()
     const [email,setEmail] =  useState('')
     const [password,setPassword] = useState('')
 
