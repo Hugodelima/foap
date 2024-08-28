@@ -5,6 +5,7 @@ const cors = require('cors');
 const nodemailer = require('nodemailer');
 
 const sequelize = require('../models/database'); // Importa a instância do Sequelize
+const { Op } = require('sequelize');
 const User = require('../models/user');
 const Verification = require('../models/verification');
 
@@ -40,7 +41,7 @@ app.post('/register', async (req, res) => {
         const userId = newUser.id;
         const verificationCode = generateVerificationCode();
         const expiration = new Date();
-        expiration.setMinutes(expiration.getMinutes() + 10);
+        expiration.setMinutes(expiration.getMinutes() + 2);
 
         await Verification.create({ user_id: userId, codigo: verificationCode, expiracao: expiration });
 
@@ -73,9 +74,13 @@ app.post('/send-verification-email', async (req, res) => {
         }
 
         const userId = user.id;
+
+        // Remover códigos de verificação antigos
+        await Verification.destroy({ where: { user_id: userId } });
+
         const verificationCode = generateVerificationCode();
         const expiration = new Date();
-        expiration.setMinutes(expiration.getMinutes() + 10);
+        expiration.setMinutes(expiration.getMinutes() + 2); // 2 minutos de validade
 
         await Verification.create({ user_id: userId, codigo: verificationCode, expiracao: expiration });
 
@@ -83,7 +88,7 @@ app.post('/send-verification-email', async (req, res) => {
             from: process.env.EMAIL_USER,
             to: email,
             subject: 'Código de Verificação de Email',
-            text: `Seu código de verificação é: ${verificationCode}. Este código expira em 10 minutos.`
+            text: `Seu código de verificação é: ${verificationCode}. Este código expira em 2 minutos.`
         };
 
         transporter.sendMail(mailOptions, (err, info) => {
@@ -97,35 +102,34 @@ app.post('/send-verification-email', async (req, res) => {
     }
 });
 
+
 // Rota para verificar o código de verificação
 app.post('/verify', async (req, res) => {
     const { userID, verificationCode } = req.body;
 
     try {
-        console.log('Verificando código de verificação...', { userID, verificationCode });
+        const verification = await Verification.findOne({
+            where: {
+                user_id: userID,
+                codigo: verificationCode,
+                expiracao: { [Op.gt]: new Date() } // Certifica que o código ainda não expirou
+            }
+        });
 
-        const verification = await Verification.findOne({ where: { user_id: userID, codigo: verificationCode } });
         if (!verification) {
-            console.log('Código de verificação não encontrado.');
-            return res.status(400).json({ message: 'Código inválido.' });
-        }
-
-        console.log('Código de verificação encontrado:', verification);
-
-        const expiration = new Date(verification.expiracao);
-        if (expiration < new Date()) {
-            console.log('Código de verificação expirado.');
-            return res.status(400).json({ message: 'Código expirado.' });
+            return res.status(400).json({ message: 'Código inválido ou expirado.' });
         }
 
         await User.update({ verificado: true }, { where: { id: userID } });
+
+        // Código utilizado com sucesso, removê-lo da base
+        await Verification.destroy({ where: { user_id: userID } });
+
         res.status(200).json({ message: 'Email verificado com sucesso!' });
     } catch (error) {
-        console.error('Erro ao verificar o código:', error);
         res.status(500).json({ message: 'Erro ao verificar o código.', error: error.message });
     }
 });
-
 
 // Rota para reenviar o código de verificação
 app.post('/resend-verification-code', async (req, res) => {
@@ -140,7 +144,7 @@ app.post('/resend-verification-code', async (req, res) => {
         const userId = user.id;
         const verificationCode = generateVerificationCode();
         const expiration = new Date();
-        expiration.setMinutes(expiration.getMinutes() + 10);
+        expiration.setMinutes(expiration.getMinutes() + 2); // Define a expiração para 2 minutos
 
         await Verification.create({ user_id: userId, codigo: verificationCode, expiracao: expiration });
 
@@ -148,7 +152,7 @@ app.post('/resend-verification-code', async (req, res) => {
             from: process.env.EMAIL_USER,
             to: email,
             subject: 'Código de Verificação de Email',
-            text: `Seu código de verificação é: ${verificationCode}. Este código expira em 10 minutos.`
+            text: `Seu código de verificação é: ${verificationCode}. Este código expira em 2 minutos.`
         };
 
         transporter.sendMail(mailOptions, (err, info) => {
@@ -161,6 +165,8 @@ app.post('/resend-verification-code', async (req, res) => {
         res.status(500).json({ message: 'Erro ao buscar usuário.', error: error.message });
     }
 });
+
+
 
 // Função para gerar código de verificação
 const generateVerificationCode = () => {

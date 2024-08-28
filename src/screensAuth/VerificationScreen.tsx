@@ -21,7 +21,7 @@ export default function VerificationScreen() {
     const [OTP, setOTP] = useState<{ [key: number]: string }>({0:'', 1:'', 2:'', 3:''});
     const [nextInputIndex, setNextInputIndex] = useState<number>(0);
     const [verificationCode, setVerificationCode] = useState<string>('');
-    const [timeLeft, setTimeLeft] = useState<number>(60000); // 1 minuto em milissegundos
+    const [timeLeft, setTimeLeft] = useState<number>(120000); // 2 minuto em milissegundos
     const [timer, setTimer] = useState<NodeJS.Timeout | null>(null);
 
     useEffect(() => {
@@ -69,11 +69,6 @@ export default function VerificationScreen() {
             return;
         }
         
-        if (verificationCode.length === 0) {
-            Alert.alert("Digite o código de verificação");
-            return;
-        }
-
         try {
             console.log('fdsf'+userID,verificationCode);
             
@@ -89,7 +84,9 @@ export default function VerificationScreen() {
             } else {
                 Alert.alert("Código de verificação inválido ou expirado.");
             }
-        } catch (error) {
+        } catch (error: any) {
+            const errorMessage = error.response.data?.message || "Erro durante a verificação.";
+            Alert.alert("Erro", errorMessage);
             console.error("Erro durante a verificação:", error);
         }
     };
@@ -125,11 +122,11 @@ export default function VerificationScreen() {
                 const response = await axios.post('http://192.168.0.105:3000/resend-verification-code', {
                     email: user.email
                 });
-
+    
                 if (response.status === 200) {
                     Alert.alert("Código reenviado com sucesso! Verifique seu e-mail.");
-                    // Resetar o tempo do cronômetro para 1 minuto
-                    setTimeLeft(60000);
+                    // Resetar o tempo do cronômetro para 2 minutos
+                    setTimeLeft(120000); // 2 minutos
                 } else {
                     Alert.alert("Erro ao reenviar código, tente novamente.");
                 }
@@ -138,6 +135,7 @@ export default function VerificationScreen() {
             }
         }
     };
+    
 
     return (
         <KeyboardAvoidingView className='flex-1 justify-center'>
