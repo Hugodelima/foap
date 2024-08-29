@@ -36,7 +36,7 @@ export default function SignUpScreen() {
     
             if (response.status === 200) {
                 const { userID } = response.data;  // Certifique-se de que 'userID' está correto
-                await AsyncStorage.setItem('isLoggedIn', JSON.stringify(true));
+                //await AsyncStorage.setItem('isLoggedIn', JSON.stringify(true));
                 await SecureStore.setItemAsync('userStorageID', JSON.stringify(userID));
                 Alert.alert("Registrado com sucesso! Verifique seu e-mail para o código de verificação.");
                 navigation.navigate('VerificationScreen');

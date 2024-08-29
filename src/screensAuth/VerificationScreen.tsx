@@ -20,8 +20,7 @@ export default function VerificationScreen() {
     const [user, setUser] = useState<UserBD | null>(null);
     const [OTP, setOTP] = useState<{ [key: number]: string }>({0:'', 1:'', 2:'', 3:''});
     const [nextInputIndex, setNextInputIndex] = useState<number>(0);
-    const [verificationCode, setVerificationCode] = useState<string>('');
-    const [timeLeft, setTimeLeft] = useState<number>(120000); // 2 minuto em milissegundos
+    const [timeLeft, setTimeLeft] = useState<number>(120000); // 2 minutos em milissegundos
     const [timer, setTimer] = useState<NodeJS.Timeout | null>(null);
 
     useEffect(() => {
@@ -33,7 +32,6 @@ export default function VerificationScreen() {
                 const response = await axios.get(`http://192.168.0.105:3000/users/${userID}`);
                 setUser(response.data);
                 
-               
             } catch (error) {
                 console.error("Erro ao obter usuário:", error);
             }
@@ -63,20 +61,19 @@ export default function VerificationScreen() {
         return () => clearInterval(interval);
     }, [timeLeft]);
 
-    const handleVerification = async () => {
+    const handleVerification = async (code: string) => {
         if (!user) {
             Alert.alert("Usuário não encontrado.");
             return;
         }
         
         try {
-            console.log('fdsf'+userID,verificationCode);
-            
+            console.log('Verificando com userID:', userID, 'e código:', code);
+
             const response = await axios.post('http://192.168.0.105:3000/verify', {
                 userID,
-                verificationCode
+                verificationCode: code
             });
-            
 
             if (response.status === 200) {
                 Alert.alert("Email verificado com sucesso!");
@@ -110,9 +107,9 @@ export default function VerificationScreen() {
             Object.values(OTP).forEach(v => {
                 val += v;
             });
-    
-            setVerificationCode(val);
-            handleVerification();
+
+            // Chamando diretamente a função handleVerification com o código gerado
+            handleVerification(val);
         }
     };
 
