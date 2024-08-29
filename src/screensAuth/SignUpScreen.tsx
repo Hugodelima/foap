@@ -5,9 +5,13 @@ import { NavigationProps } from '../navigation/types';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ArrowLeftIcon } from 'react-native-heroicons/solid';
 import axios from 'axios';
+import {API_URL} from "@env"
 import { useHandleGoogleOAuth } from '../hooks/handleGoogleOAuth';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as SecureStore from 'expo-secure-store';
+
+
+
 
 export default function SignUpScreen() {
     const navigation = useNavigation<NavigationProps>();
@@ -28,12 +32,11 @@ export default function SignUpScreen() {
         }
     
         try {
-            const response = await axios.post('http://192.168.0.105:3000/register', {
+            const response = await axios.post(`${API_URL}/register`, {
                 username,
                 email,
                 password
             });
-    
             if (response.status === 200) {
                 const { userID } = response.data;  // Certifique-se de que 'userID' está correto
                 //await AsyncStorage.setItem('isLoggedIn', JSON.stringify(true));

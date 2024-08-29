@@ -33,6 +33,8 @@ const hashPassword = (password, salt) => {
     return hash.digest('hex');
 };
 
+
+
 // Rota para registrar novo usuário
 app.post('/register', async (req, res) => {
     const { username, email, password } = req.body;
@@ -199,6 +201,6 @@ app.get('/users/:userID', async (req, res) => {
     }
 });
 
-app.listen(3000, () => {
-    console.log('Servidor rodando na porta 3000');
+app.listen(process.env.PORT, () => {
+    console.log(`Servidor rodando na porta ${process.env.PORT}`);
 });

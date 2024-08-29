@@ -4,6 +4,7 @@ import { useNavigation } from '@react-navigation/native';
 import { NavigationProps, UserBD } from '../navigation/types';
 import * as SecureStore from 'expo-secure-store';
 import axios from 'axios';
+import {API_URL} from "@env"
 
 const inputs = Array(4).fill('');
 let newInputIndex = 0;
@@ -29,7 +30,7 @@ export default function VerificationScreen() {
             setUserID(userID);
             
             try {
-                const response = await axios.get(`http://192.168.0.105:3000/users/${userID}`);
+                const response = await axios.get(`${API_URL}/users/${userID}`);
                 setUser(response.data);
                 
             } catch (error) {
@@ -70,7 +71,7 @@ export default function VerificationScreen() {
         try {
             console.log('Verificando com userID:', userID, 'e código:', code);
 
-            const response = await axios.post('http://192.168.0.105:3000/verify', {
+            const response = await axios.post(`${API_URL}/verify`, {
                 userID,
                 verificationCode: code
             });
@@ -116,7 +117,7 @@ export default function VerificationScreen() {
     const resendCode = async () => {
         if (user) {
             try {
-                const response = await axios.post('http://192.168.0.105:3000/resend-verification-code', {
+                const response = await axios.post(`${API_URL}/resend-verification-code`, {
                     email: user.email
                 });
     
