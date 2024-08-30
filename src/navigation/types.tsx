@@ -19,4 +19,4 @@ export type UserBD = {
 }
 
 export type NavigationProps = NativeStackNavigationProp<RootStackParamList>;
-  
+

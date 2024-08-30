@@ -5,13 +5,10 @@ import { NavigationProps } from '../navigation/types';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ArrowLeftIcon } from 'react-native-heroicons/solid';
 import axios from 'axios';
-import {API_URL} from "@env"
+import { API_URL } from "@env";
 import { useHandleGoogleOAuth } from '../hooks/handleGoogleOAuth';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as SecureStore from 'expo-secure-store';
-
-
-
 
 export default function SignUpScreen() {
     const navigation = useNavigation<NavigationProps>();
@@ -24,10 +21,10 @@ export default function SignUpScreen() {
 
     const handleRegister = async () => {
         if (username.length === 0 || email.length === 0 || password.length === 0 || confirmPassword.length === 0) {
-            Alert.alert("Preencha todos os campos corretamente");
+            Alert.alert("Erro", "Preencha todos os campos corretamente");
             return;
         } else if (password !== confirmPassword) {
-            Alert.alert("As senhas não conferem");
+            Alert.alert("Erro", "As senhas não conferem");
             return;
         }
     
@@ -37,22 +34,22 @@ export default function SignUpScreen() {
                 email,
                 password
             });
+            
             if (response.status === 200) {
-                const { userID } = response.data;  // Certifique-se de que 'userID' está correto
-                //await AsyncStorage.setItem('isLoggedIn', JSON.stringify(true));
+                const { userID } = response.data;
                 await SecureStore.setItemAsync('userStorageID', JSON.stringify(userID));
-                Alert.alert("Registrado com sucesso! Verifique seu e-mail para o código de verificação.");
+                Alert.alert("Sucesso", "Registrado com sucesso! Verifique seu e-mail para o código de verificação.");
                 navigation.navigate('VerificationScreen');
             } else {
-                Alert.alert("Erro ao registrar, tente novamente.");
+                Alert.alert("Erro", "Erro ao registrar, tente novamente.");
             }
     
-        } catch (error) {
-            Alert.alert("Erro durante o cadastro, tente novamente.");
+        } catch (error: any) {
+            const errorMessage = error.response?.data?.message || "Erro durante o cadastro, tente novamente.";
+            Alert.alert("Erro", errorMessage);
             console.log(error);
         }
     };
-    
 
     return (
         <KeyboardAvoidingView

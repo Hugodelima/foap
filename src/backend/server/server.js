@@ -3,7 +3,7 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const cors = require('cors');
 const nodemailer = require('nodemailer');
-const crypto = require('crypto'); // Importa a biblioteca crypto
+const crypto = require('crypto');
 
 const sequelize = require('../models/database');
 const { Op } = require('sequelize');
@@ -26,33 +26,38 @@ const transporter = nodemailer.createTransport({
     }
 });
 
-// Função para gerar o hash da senha com SHA-256 e sal
 const hashPassword = (password, salt) => {
     const hash = crypto.createHmac('sha256', salt);
     hash.update(password);
     return hash.digest('hex');
 };
 
-
-
-// Rota para registrar novo usuário
 app.post('/register', async (req, res) => {
     const { username, email, password } = req.body;
 
     try {
-        const existingUser = await User.findOne({ where: { email } });
+        const existingUser = await User.findOne({ 
+            where: {
+                [Op.or]: [{ nome_usuario: username }, { email }]
+            }
+        });
+
         if (existingUser) {
-            return res.status(400).json({ message: 'E-mail já cadastrado.' });
+            if (existingUser.nome_usuario === username) {
+                return res.status(400).json({ message: 'Nome de usuário já cadastrado.' });
+            } else if (existingUser.email === email) {
+                return res.status(400).json({ message: 'E-mail já cadastrado.' });
+            }
         }
 
-        const salt = crypto.randomBytes(16).toString('hex'); // Gera um sal aleatório
-        const hashedPassword = hashPassword(password, salt); // Hash da senha
+        const salt = crypto.randomBytes(16).toString('hex');
+        const hashedPassword = hashPassword(password, salt);
 
         const newUser = await User.create({ 
             nome_usuario: username, 
             email, 
             senha: hashedPassword, 
-            salt // Sal armazenado no banco de dados
+            salt 
         });
 
         const userId = newUser.id;
@@ -66,7 +71,7 @@ app.post('/register', async (req, res) => {
             from: process.env.EMAIL_USER,
             to: email,
             subject: 'Código de Verificação de Email',
-            text: `Seu código de verificação é: ${verificationCode}. Este código expira em 10 minutos.`
+            text: `Seu código de verificação é: ${verificationCode}. Este código expira em 2 minutos.`
         };
 
         transporter.sendMail(mailOptions, (err, info) => {
@@ -80,7 +85,6 @@ app.post('/register', async (req, res) => {
     }
 });
 
-// Rota para enviar código de verificação por e-mail
 app.post('/send-verification-email', async (req, res) => {
     const { email } = req.body;
 
@@ -91,12 +95,11 @@ app.post('/send-verification-email', async (req, res) => {
         }
 
         const userId = user.id;
-
         await Verification.destroy({ where: { user_id: userId } });
 
         const verificationCode = generateVerificationCode();
         const expiration = new Date();
-        expiration.setMinutes(expiration.getMinutes() + 2); // 2 minutos de validade
+        expiration.setMinutes(expiration.getMinutes() + 2);
 
         await Verification.create({ user_id: userId, codigo: verificationCode, expiracao: expiration });
 
@@ -118,7 +121,6 @@ app.post('/send-verification-email', async (req, res) => {
     }
 });
 
-// Rota para verificar o código de verificação
 app.post('/verify', async (req, res) => {
     const { userID, verificationCode } = req.body;
 
@@ -127,7 +129,7 @@ app.post('/verify', async (req, res) => {
             where: {
                 user_id: userID,
                 codigo: verificationCode,
-                expiracao: { [Op.gt]: new Date() } // Certifica que o código ainda não expirou
+                expiracao: { [Op.gt]: new Date() }
             }
         });
 
@@ -136,7 +138,6 @@ app.post('/verify', async (req, res) => {
         }
 
         await User.update({ verificado: true }, { where: { id: userID } });
-
         await Verification.destroy({ where: { user_id: userID } });
 
         res.status(200).json({ message: 'Email verificado com sucesso!' });
@@ -145,7 +146,6 @@ app.post('/verify', async (req, res) => {
     }
 });
 
-// Rota para reenviar o código de verificação
 app.post('/resend-verification-code', async (req, res) => {
     const { email } = req.body;
 
@@ -158,7 +158,7 @@ app.post('/resend-verification-code', async (req, res) => {
         const userId = user.id;
         const verificationCode = generateVerificationCode();
         const expiration = new Date();
-        expiration.setMinutes(expiration.getMinutes() + 2); // Define a expiração para 2 minutos
+        expiration.setMinutes(expiration.getMinutes() + 2);
 
         await Verification.create({ user_id: userId, codigo: verificationCode, expiracao: expiration });
 
@@ -180,13 +180,11 @@ app.post('/resend-verification-code', async (req, res) => {
     }
 });
 
-// Função para gerar código de verificação
 const generateVerificationCode = () => {
-    const code = Math.floor(1000 + Math.random() * 9000); // Gera um código de 4 dígitos
+    const code = Math.floor(1000 + Math.random() * 9000);
     return code.toString();
 };
 
-// Rota para obter informações do usuário pelo userID
 app.get('/users/:userID', async (req, res) => {
     const { userID } = req.params;
 
