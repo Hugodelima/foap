@@ -7,4 +7,7 @@
     "esModuleInterop": true,
     "noImplicitAny": false
   },
+  "paths": {
+    "@env": ["env.d.ts"]
+  },
 }

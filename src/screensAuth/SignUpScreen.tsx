@@ -59,12 +59,6 @@ export default function SignUpScreen() {
             <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
                 <View className='flex-1 bg-gray-500'>
                     <SafeAreaView className='flex'>
-                        <View className='flex-row justify-start'>
-                            <TouchableOpacity onPress={() => navigation.goBack()} className='bg-yellow-400 p-2 rounded-tr-2xl rounded-bl-2x1 ml-4 mt-4 absolute'>
-                                <ArrowLeftIcon size='20' color='black' />
-                            </TouchableOpacity>
-                        </View>
-
                         <View className='flex-row justify-center'>
                             <Image source={{ uri: 'https://portal.longitude.com.br/resource/1676002128000/BannerLogin' }}
                                 style={{ width: 200, height: 200 }}

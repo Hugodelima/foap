@@ -13,9 +13,14 @@ import ResetPasswordScreen from '../screensAuth/ResetPasswordScreen'
 import { SQLiteProvider ,useSQLiteContext} from 'expo-sqlite';
 import BottomNavigation from './BottomNavigation';
 
+import {useBackButtonHandler} from '../hooks/useBackButtonHandler'
+
 const Stack = createNativeStackNavigator();
 
 export default function AuthNavigation() {
+
+    useBackButtonHandler();
+
     return (
         <NavigationContainer independent={true}>
           <Stack.Navigator initialRouteName='Welcome'>
