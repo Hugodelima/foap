@@ -1,8 +1,11 @@
+
 import React, { useEffect, useRef, useState } from 'react';
 import { Text, TouchableOpacity, View, TextInput, KeyboardAvoidingView, Alert, Keyboard } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { NavigationProps, UserBD } from '../navigation/types';
 import * as SecureStore from 'expo-secure-store';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
 import axios from 'axios';
 import {API_URL} from "@env"
 
@@ -77,6 +80,7 @@ export default function VerificationScreen() {
             });
 
             if (response.status === 200) {
+                await AsyncStorage.setItem('emailVerificationStatus', '')
                 Alert.alert("Email verificado com sucesso!");
                 navigation.navigate('Login');
             } else {

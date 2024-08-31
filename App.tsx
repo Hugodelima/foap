@@ -14,6 +14,7 @@ import BottomNavigation from './src/navigation/BottomNavigation';
 import AuthNavigation from './src/navigation/AuthNavigation';
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import VerificationScreen from './src/screensAuth/VerificationScreen';
 const publishableKey = process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY!
 
 const App = () => {
@@ -38,10 +39,9 @@ const App = () => {
 }
 const [isLoggedIn,setIsLoggedIn] = useState('')
 
-
 async function setDataFromStatusLogin() {
-  const data:any = await AsyncStorage.getItem("isLoggedIn")
-  setIsLoggedIn(data)
+  const data_logged:any = await AsyncStorage.getItem("isLoggedIn")
+  setIsLoggedIn(data_logged)
 }
 
 useEffect(() => {
@@ -49,7 +49,7 @@ useEffect(() => {
 }, []);
 
   console.log('async do cadastro'+isLoggedIn);
-
+  
   return (
   <NavigationContainer>
     <ClerkProvider tokenCache={tokenCache}  publishableKey={publishableKey}>
@@ -57,7 +57,15 @@ useEffect(() => {
           <BottomNavigation/>
         </SignedIn>
         <SignedOut>
-          {isLoggedIn ? <BottomNavigation/> : <AuthNavigation/>}
+          {
+            (() =>{
+              if (isLoggedIn){
+                return <BottomNavigation/>
+              }else{
+                return <AuthNavigation />
+              }
+            })()
+          }
         </SignedOut>
     </ClerkProvider>
 
