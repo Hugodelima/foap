@@ -1,13 +1,11 @@
-
 import React, { useEffect, useRef, useState } from 'react';
 import { Text, TouchableOpacity, View, TextInput, KeyboardAvoidingView, Alert, Keyboard } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { NavigationProps, UserBD } from '../navigation/types';
 import * as SecureStore from 'expo-secure-store';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-
 import axios from 'axios';
-import {API_URL} from "@env"
+import { API_URL } from "@env"
 
 const inputs = Array(4).fill('');
 let newInputIndex = 0;
@@ -22,7 +20,7 @@ export default function VerificationScreen() {
 
     const [userID, setUserID] = useState<string>('');
     const [user, setUser] = useState<UserBD | null>(null);
-    const [OTP, setOTP] = useState<{ [key: number]: string }>({0:'', 1:'', 2:'', 3:''});
+    const [OTP, setOTP] = useState<{ [key: number]: string }>({ 0: '', 1: '', 2: '', 3: '' });
     const [nextInputIndex, setNextInputIndex] = useState<number>(0);
     const [timeLeft, setTimeLeft] = useState<number>(120000); // 2 minutos em milissegundos
     const [timer, setTimer] = useState<NodeJS.Timeout | null>(null);
@@ -31,13 +29,17 @@ export default function VerificationScreen() {
         async function getIDUser() {
             const userID: any = await SecureStore.getItemAsync('userStorageID');
             setUserID(userID);
-            
+            console.log('verification id: '+userID)
+
             try {
                 const response = await axios.get(`${API_URL}/users/${userID}`);
                 setUser(response.data);
-                
+
+                const expirationResponse = await axios.get(`${API_URL}/verification-expiration/${userID}`);
+                setTimeLeft(expirationResponse.data.timeLeft);
+
             } catch (error) {
-                console.error("Erro ao obter usuário:", error);
+                console.error("Erro ao obter usuário ou expiração:", error);
             }
         }
         getIDUser();
@@ -49,7 +51,7 @@ export default function VerificationScreen() {
 
     useEffect(() => {
         if (timeLeft <= 0) return;
-        
+
         const interval = setInterval(() => {
             setTimeLeft(prevTime => {
                 if (prevTime <= 0) {
@@ -70,7 +72,7 @@ export default function VerificationScreen() {
             Alert.alert("Usuário não encontrado.");
             return;
         }
-        
+
         try {
             console.log('Verificando com userID:', userID, 'e código:', code);
 
@@ -81,8 +83,12 @@ export default function VerificationScreen() {
 
             if (response.status === 200) {
                 await AsyncStorage.setItem('emailVerificationStatus', '')
+                await SecureStore.setItemAsync('userStorageID', '');
                 Alert.alert("Email verificado com sucesso!");
                 navigation.navigate('Login');
+                // Limpar os inputs após a verificação bem-sucedida
+                setOTP({ 0: '', 1: '', 2: '', 3: '' });
+                
             } else {
                 Alert.alert("Código de verificação inválido ou expirado.");
             }
@@ -94,7 +100,7 @@ export default function VerificationScreen() {
     };
 
     const handleChangeText = (text: string, index: number) => {
-        const newOTP = { ...OTP }; 
+        const newOTP = { ...OTP };
         newOTP[index] = text;
         setOTP(newOTP);
 
@@ -106,15 +112,16 @@ export default function VerificationScreen() {
 
     const submitOTP = () => {
         Keyboard.dismiss();
-    
+
         if (isObjValid(OTP)) {
             let val = '';
             Object.values(OTP).forEach(v => {
                 val += v;
             });
 
-            // Chamando diretamente a função handleVerification com o código gerado
             handleVerification(val);
+        }else {
+            Alert.alert("Erro", "Por favor, preencha todos os campos.");
         }
     };
 
@@ -124,10 +131,9 @@ export default function VerificationScreen() {
                 const response = await axios.post(`${API_URL}/resend-verification-code`, {
                     email: user.email
                 });
-    
+
                 if (response.status === 200) {
                     Alert.alert("Código reenviado com sucesso! Verifique seu e-mail.");
-                    // Resetar o tempo do cronômetro para 2 minutos
                     setTimeLeft(120000); // 2 minutos
                 } else {
                     Alert.alert("Erro ao reenviar código, tente novamente.");
@@ -137,7 +143,6 @@ export default function VerificationScreen() {
             }
         }
     };
-    
 
     return (
         <KeyboardAvoidingView className='flex-1 justify-center'>
@@ -147,15 +152,15 @@ export default function VerificationScreen() {
             <View className='flex-row justify-between pl-14 pr-14 mt-9'>
                 {inputs.map((inp, index) => (
                     <View className='text-center w-14 border border-yellow-400 items-center justify-center h-20' key={index.toString()}>
-                        <TextInput 
+                        <TextInput
                             onChangeText={(text) => handleChangeText(text, index)}
                             value={OTP[index]}
-                            placeholder='0' 
-                            keyboardType='numeric' 
+                            placeholder='0'
+                            keyboardType='numeric'
                             maxLength={1}
                             ref={nextInputIndex === index ? input : null}
                         />
-                    </View> 
+                    </View>
                 ))}
             </View>
             <TouchableOpacity

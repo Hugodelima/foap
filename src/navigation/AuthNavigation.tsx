@@ -14,7 +14,7 @@ import { useBackButtonHandler } from '../hooks/useBackButtonHandler';
 const Stack = createNativeStackNavigator();
 
 const AuthNavigation = () => {
-    useBackButtonHandler()
+    
     const [initialRoute, setInitialRoute] = useState<string | undefined>(undefined);
 
     useEffect(() => {
@@ -34,11 +34,14 @@ const AuthNavigation = () => {
 
         checkVerificationStatus();
     }, []);
+    
+    useBackButtonHandler()
 
     if (initialRoute === undefined) {
         return null; // Mostrar um indicador de carregamento enquanto a verificação está em andamento
     }
 
+    
     return (
         <NavigationContainer independent={true}>
         <Stack.Navigator initialRouteName={initialRoute}>

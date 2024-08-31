@@ -37,12 +37,20 @@ export default function SignUpScreen() {
       if (response.status === 200) {
         const { userID } = response.data;
 
+        console.log('signup id: '+userID)
+
         await SecureStore.setItemAsync('userStorageID', JSON.stringify(userID));
         await AsyncStorage.setItem('emailVerificationStatus', 'true'); // Marca a verificação como pendente
 
         Alert.alert("Sucesso", "Registrado com sucesso! Verifique seu e-mail para o código de verificação.");
         
         navigation.navigate('VerificationScreen');
+        // Limpar os inputs após a verificação bem-sucedida
+        setUsername('');
+        setEmail('');
+        setPassword('');
+        setConfirmPassword('');
+
       } else {
         Alert.alert("Erro", "Erro ao registrar, tente novamente.");
       }

@@ -1,67 +1,43 @@
 import React, { useState } from 'react';
 import { Text, TouchableOpacity, View, Image, TextInput, KeyboardAvoidingView, Platform, ScrollView, Alert } from 'react-native';
-
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { ArrowLeftIcon } from 'react-native-heroicons/solid';
-
 import { useNavigation } from '@react-navigation/native';
-import {NavigationProps, UserBD} from '../navigation/types'
-
-import {useHandleGoogleOAuth} from '../hooks/handleGoogleOAuth'
-
-import * as Crypto from 'expo-crypto';
+import { NavigationProps } from '../navigation/types';
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as SecureStore from 'expo-secure-store';
+import axios from 'axios';
+import { API_URL } from "@env"; // Certifique-se de ter configurado o API_URL corretamente
 
 export default function LoginScreen() {
-
-
     const navigation = useNavigation<NavigationProps>();
-    const {onPress} = useHandleGoogleOAuth();
+    const [email, setEmail] = useState('');
+    const [password, setPassword] = useState('');
 
-    const [email,setEmail] =  useState('')
-    const [password,setPassword] = useState('')
-
-    const handleRegister = async() =>{
-        const hash = await Crypto.digestStringAsync(
-            Crypto.CryptoDigestAlgorithm.SHA512,password
-        );
-
-        if(email.length === 0 || password.length === 0){
-            Alert.alert("Preencha todos os campos corretamente")
+    const handleLogin = async () => {
+        if (email.length === 0 || password.length === 0) {
+            Alert.alert("Preencha todos os campos corretamente");
             return;
         }
+
         try {
-            const existingEmail = await db.getFirstAsync('SELECT email FROM usuarios WHERE email = ?',[email])
-            const existingAccount = await db.getFirstAsync('SELECT * FROM usuarios WHERE email = ? AND senha = ?',[email,hash])
-            
-            if (!existingEmail || !existingAccount) {
-                Alert.alert("Email ou senha não conferem")
-                return
-            }
+            const response = await axios.post(`${API_URL}/login`, { email, password });
+            const { token, userID } = response.data;
 
-            
-            
-            const validUser: UserBD | null = await db.getFirstAsync('SELECT * FROM usuarios WHERE email = ? AND senha = ?',[email,hash])
-            const userID = validUser?.id
-            
-            
-            if (validUser) {
-                await AsyncStorage.setItem('isLoggedIn',JSON.stringify(true))
-                await SecureStore.setItemAsync('userStorageID', JSON.stringify(userID));
+            await AsyncStorage.setItem('isLoggedIn', JSON.stringify(true));
+            await SecureStore.setItemAsync('userStorageID', JSON.stringify(userID));
+            await SecureStore.setItemAsync('userToken', token);
 
-                Alert.alert("Logado com sucesso");
-                navigation.navigate('BottomNavigation', {
-                    screen: 'HomeScreen'
-                });
-            }
-
-        } catch (error) {
-            console.log("Erro durante o login",error);
-            
+            Alert.alert("Logado com sucesso");
+            navigation.navigate('BottomNavigation', {
+                screen: 'HomeScreen',
+            });
+        } catch (error:any) {
+            console.error("Erro durante o login", error);
+            Alert.alert("Erro durante o login", error.response?.data?.message || 'Erro ao tentar logar.');
         }
-    }
+    };
+
     return (
         <KeyboardAvoidingView
             style={{ flex: 1 }}
@@ -70,7 +46,6 @@ export default function LoginScreen() {
             <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
                 <View className='flex-1 bg-gray-500'>
                     <SafeAreaView className='flex'>
-
                         <View className='flex-row justify-center'>
                             <Image source={{ uri: 'https://portal.longitude.com.br/resource/1676002128000/BannerLogin' }}
                                 style={{ width: 200, height: 200 }}
@@ -103,7 +78,7 @@ export default function LoginScreen() {
                                 <Text className='text-gray-700'>Esqueceu a Senha?</Text>
                             </TouchableOpacity>
                             <TouchableOpacity
-                                onPress={handleRegister}
+                                onPress={handleLogin}
                                 className='py-3 bg-yellow-400 rounded-xl'
                             >
                                 <Text className='font-bold text-center text-gray-700'>
@@ -115,7 +90,7 @@ export default function LoginScreen() {
                             Ou
                         </Text>
                         <View className='flex-row justify-center'>
-                            <TouchableOpacity onPress={onPress} className='p-2 bg-gray-100 rounded-2xl'>
+                            <TouchableOpacity className='p-2 bg-gray-100 rounded-2xl'>
                                 <Image source={{ uri: 'https://static-00.iconduck.com/assets.00/google-icon-2048x2048-pks9lbdv.png' }}
                                     className='w-10 h-10 rounded-full' />
                             </TouchableOpacity>
@@ -123,7 +98,7 @@ export default function LoginScreen() {
                         
                         <View className='flex-row justify-center mb-10 mt-4'>
                             <Text className='text-gray-500 font-semibold'>Não tem uma conta? </Text>
-                            <TouchableOpacity onPress={()=> navigation.navigate('SignUp')}>
+                            <TouchableOpacity onPress={() => navigation.navigate('SignUp')}>
                               <Text className='font-bold text-blue-500'>Cadastrar</Text>
                             </TouchableOpacity>
                         </View>
@@ -132,5 +107,5 @@ export default function LoginScreen() {
                 </View>
             </ScrollView>
         </KeyboardAvoidingView>
-    )
+    );
 }

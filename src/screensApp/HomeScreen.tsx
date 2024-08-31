@@ -18,9 +18,9 @@ export default function HomeScreen(){
     await AsyncStorage.setItem('isLoggedIn','')
     DevSettings.reload()
   }
-  
-  const navigation = useNavigation<NavigationProps>();
-
+  /*
+  <Text> Hello {user?.emailAddresses[0].emailAddress ===null}{user?.fullName} </Text>
+  */
   //do google
   const {signOut} = useAuth()
   const { user } = useUser()
@@ -28,6 +28,8 @@ export default function HomeScreen(){
 
   //do login normal
   const [userID, setUserID] = useState('')
+
+
 
   useEffect(() => {
     async function getIDUser(){
@@ -38,13 +40,15 @@ export default function HomeScreen(){
 
   }, []);
   
+  const navigation = useNavigation<NavigationProps>();
     return (
       <View>
         <Text> textInComponent </Text>
         <TouchableOpacity onPress={() => loggedGoogle === true ? signOut(): signOutBD()} className='bg-slate-600'>
           <Text>Sair - Logout</Text>
         </TouchableOpacity>
-        <Text> Hello {user?.emailAddresses[0].emailAddress ===null}{user?.fullName} </Text>
+        
+        <Text> Hello {userID} </Text>
       </View>
     )
 }
