@@ -70,7 +70,7 @@ app.post('/register', async (req, res) => {
                 [Op.or]: [{ nome_usuario: username }, { email }]
             }
         });
-
+        
         if (existingUser) {
             if (existingUser.nome_usuario === username) {
                 return res.status(400).json({ message: 'Nome de usuário já cadastrado.' });
@@ -79,6 +79,7 @@ app.post('/register', async (req, res) => {
             }
         }
 
+
         const hashedPassword = hashPassword(password);
 
         const newUser = await User.create({ 
@@ -86,6 +87,7 @@ app.post('/register', async (req, res) => {
             email, 
             senha: hashedPassword 
         });
+
 
         const userId = newUser.id;
         const verificationCode = generateVerificationCode();
@@ -101,14 +103,13 @@ app.post('/register', async (req, res) => {
             text: `Seu código de verificação é: ${verificationCode}. Este código expira em 2 minutos.`
         };
 
-        // Use async/await para enviar o e-mail
-        await new Promise((resolve, reject) => {
-            transporter.sendMail(mailOptions, (err, info) => {
-                if (err) {
-                    return reject(err);
-                }
-                resolve(info);
-            });
+        // Enviar e-mail usando a função assíncrona se deixar como sincrona vai demorar para ir para tela de login
+        transporter.sendMail(mailOptions, (err, info) => {
+            if (err) {
+                return reject(err);
+            }
+            resolve(info);
+            console.log('enviando o emial');
         });
 
         res.status(200).json({ message: 'Usuário registrado e e-mail de verificação enviado!', userID: userId });
