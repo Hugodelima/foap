@@ -107,7 +107,7 @@ export default function SignUpScreen() {
               />
               <Text className='text-gray-700 ml-4'>Repetir Senha:</Text>
               <TextInput
-                className='p-4 bg-gray-100 text-gray-700 rounded-2xl'
+                className='p-4 bg-gray-100 text-gray-700 rounded-2xl mb-4'
                 value={confirmPassword}
                 onChangeText={setConfirmPassword}
                 placeholder="Entre com a senha aqui"

@@ -38,6 +38,10 @@ export default function LoginScreen() {
         }
     };
 
+    const handleRegister = () =>{
+        navigation.navigate('ResetPasswordScreen')
+    }
+
     return (
         <KeyboardAvoidingView
             style={{ flex: 1 }}
@@ -74,7 +78,7 @@ export default function LoginScreen() {
                                 secureTextEntry
                             />
 
-                            <TouchableOpacity className='flex items-end mb-5'>
+                            <TouchableOpacity className='flex items-end mb-5' onPress={handleRegister}>
                                 <Text className='text-gray-700'>Esqueceu a Senha?</Text>
                             </TouchableOpacity>
                             <TouchableOpacity

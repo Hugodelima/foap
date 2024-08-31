@@ -50,6 +50,7 @@ const AuthNavigation = () => {
             <Stack.Screen name='SignUp' options={{ headerShown: false }} component={SignUpScreen} />
             <Stack.Screen name='VerificationScreen' options={{ headerShown: false }} component={VerificationScreen} />
             <Stack.Screen name='ResetPasswordScreen' options={{ headerShown: false }} component={ResetPasswordScreen} />
+            
             <Stack.Screen name='BottomNavigation' options={{ headerShown: false }} component={BottomNavigation} />
         </Stack.Navigator>
         </NavigationContainer>

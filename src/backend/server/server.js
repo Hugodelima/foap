@@ -101,16 +101,22 @@ app.post('/register', async (req, res) => {
             text: `Seu código de verificação é: ${verificationCode}. Este código expira em 2 minutos.`
         };
 
-        transporter.sendMail(mailOptions, (err, info) => {
-            if (err) {
-                return res.status(500).json({ message: 'Erro ao enviar o e-mail de verificação.' });
-            }
-            res.status(200).json({ message: 'Usuário registrado e e-mail de verificação enviado!', userID: userId });
+        // Use async/await para enviar o e-mail
+        await new Promise((resolve, reject) => {
+            transporter.sendMail(mailOptions, (err, info) => {
+                if (err) {
+                    return reject(err);
+                }
+                resolve(info);
+            });
         });
+
+        res.status(200).json({ message: 'Usuário registrado e e-mail de verificação enviado!', userID: userId });
     } catch (error) {
         res.status(500).json({ message: 'Erro ao registrar o usuário.', error: error.message });
     }
 });
+
 
 app.post('/send-verification-email', async (req, res) => {
     const { email } = req.body;
@@ -257,6 +263,11 @@ app.post('/login', async (req, res) => {
             return res.status(400).json({ message: 'Email não encontrado.' });
         }
 
+        // Verifica se o usuário está verificado
+        if (!user.verificado) {
+            return res.status(403).json({ message: 'Conta não verificada. Verifique seu e-mail para ativar sua conta.' });
+        }
+
         // Verifica a senha
         const isPasswordValid = verifyPassword(password, user.senha);
         if (!isPasswordValid) {
@@ -272,6 +283,7 @@ app.post('/login', async (req, res) => {
         res.status(500).json({ message: 'Erro no servidor.' });
     }
 });
+
 
 
 app.listen(process.env.PORT, () => {
