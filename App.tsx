@@ -17,7 +17,10 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import VerificationScreen from './src/screensAuth/VerificationScreen';
 const publishableKey = process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY!
 
+
+
 const App = () => {
+
   //token que serve apenas para autenticação do google 
   const tokenCache = {
     async getToken(key: string){
@@ -47,8 +50,6 @@ async function setDataFromStatusLogin() {
 useEffect(() => {
   setDataFromStatusLogin();
 }, []);
-
-  console.log('async do cadastro'+isLoggedIn);
   
   return (
   <NavigationContainer>

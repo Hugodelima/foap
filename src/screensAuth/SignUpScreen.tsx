@@ -8,6 +8,8 @@ import { API_URL } from '@env';
 import { useHandleGoogleOAuth } from '../hooks/handleGoogleOAuth';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as SecureStore from 'expo-secure-store';
+import { useBackButtonHandler } from '../hooks/useBackButtonHandler';
+
 
 export default function SignUpScreen() {
   const navigation = useNavigation<NavigationProps>();
@@ -18,11 +20,20 @@ export default function SignUpScreen() {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
 
+  useBackButtonHandler()
+
+  const isValidEmail = (email: string) => {
+    const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailPattern.test(email);
+  };
   const handleRegister = async () => {
     if (username.length === 0 || email.length === 0 || password.length === 0 || confirmPassword.length === 0) {
       Alert.alert("Erro", "Preencha todos os campos corretamente");
       return;
-    } else if (password !== confirmPassword) {
+    }else if (!isValidEmail(email)) {
+      Alert.alert("Erro", "O e-mail fornecido não é válido.");
+      return;
+    }else if (password !== confirmPassword) {
       Alert.alert("Erro", "As senhas não conferem");
       return;
     }

@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 import { BackHandler, Alert } from 'react-native';
 
-export const useBackButtonHandler=()=>{
+export const useBackButtonHandler = () =>{
     useEffect(() => {
         const backAction = () => {
           Alert.alert("Sair", "Você deseja sair do aplicativo?", [

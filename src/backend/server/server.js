@@ -5,9 +5,9 @@ const cors = require('cors');
 const nodemailer = require('nodemailer');
 const crypto = require('crypto');
 const jwt = require('jsonwebtoken');
+const { Op } = require('sequelize');
 
 const sequelize = require('../models/database');
-const { Op } = require('sequelize');
 const User = require('../models/user');
 const Verification = require('../models/verification');
 
@@ -16,7 +16,7 @@ app.use(cors());
 app.use(bodyParser.json());
 
 const dbFuso = process.env.DB_FUSO || 'America/Cuiaba';
-const jwtSecret = crypto.randomBytes(64).toString('hex');
+const jwtSecret = process.env.JWT_SECRET || crypto.randomBytes(64).toString('hex');
 const FIXED_SALT = 'fixedsalt1234567890'; // Exemplo de salt fixo
 
 sequelize.sync({ alter: true })
@@ -53,24 +53,25 @@ const authenticateToken = (req, res, next) => {
     const token = req.headers['authorization'];
     if (!token) return res.status(401).json({ message: 'Token não fornecido.' });
 
-    jwt.verify(token, process.env.jwtSecret || 'sua_chave_secreta_aqui', (err, user) => {
+    jwt.verify(token, jwtSecret, (err, user) => {
         if (err) return res.status(403).json({ message: 'Token inválido.' });
         req.user = user;
         next();
     });
 };
 
-//Rotas
+// Rotas
+
 app.post('/register', async (req, res) => {
     const { username, email, password } = req.body;
 
     try {
-        const existingUser = await User.findOne({ 
+        const existingUser = await User.findOne({
             where: {
                 [Op.or]: [{ nome_usuario: username }, { email }]
             }
         });
-        
+
         if (existingUser) {
             if (existingUser.nome_usuario === username) {
                 return res.status(400).json({ message: 'Nome de usuário já cadastrado.' });
@@ -79,22 +80,20 @@ app.post('/register', async (req, res) => {
             }
         }
 
-
         const hashedPassword = hashPassword(password);
 
-        const newUser = await User.create({ 
-            nome_usuario: username, 
-            email, 
-            senha: hashedPassword 
+        const newUser = await User.create({
+            nome_usuario: username,
+            email,
+            senha: hashedPassword
         });
-
 
         const userId = newUser.id;
         const verificationCode = generateVerificationCode();
         const expiration = new Date();
         expiration.setMinutes(expiration.getMinutes() + 2);
 
-        await Verification.create({ user_id: userId, codigo: verificationCode, expiracao: expiration });
+        await Verification.create({ user_id: userId, codigo: verificationCode, expiracao: expiration, tipo: 'email_verification' });
 
         const mailOptions = {
             from: process.env.EMAIL_USER,
@@ -118,7 +117,6 @@ app.post('/register', async (req, res) => {
     }
 });
 
-
 app.post('/send-verification-email', async (req, res) => {
     const { email } = req.body;
 
@@ -129,13 +127,13 @@ app.post('/send-verification-email', async (req, res) => {
         }
 
         const userId = user.id;
-        await Verification.destroy({ where: { user_id: userId } });
+        await Verification.destroy({ where: { user_id: userId, tipo: 'email_verification' } });
 
         const verificationCode = generateVerificationCode();
         const expiration = new Date();
         expiration.setMinutes(expiration.getMinutes() + 2);
 
-        await Verification.create({ user_id: userId, codigo: verificationCode, expiracao: expiration });
+        await Verification.create({ user_id: userId, codigo: verificationCode, expiracao: expiration, tipo: 'email_verification' });
 
         const mailOptions = {
             from: process.env.EMAIL_USER,
@@ -144,12 +142,16 @@ app.post('/send-verification-email', async (req, res) => {
             text: `Seu código de verificação é: ${verificationCode}. Este código expira em 2 minutos.`
         };
 
+        // Enviar e-mail usando a função assíncrona se deixar como sincrona vai demorar para ir para tela de login
         transporter.sendMail(mailOptions, (err, info) => {
             if (err) {
-                return res.status(500).json({ message: 'Erro ao enviar o e-mail de verificação.' });
+                return reject(err);
             }
-            res.status(200).json({ message: 'Código enviado com sucesso!' });
+            resolve(info);
+            console.log('enviando o emial');
         });
+
+        res.status(200).json({ message: 'Código enviado com sucesso!' });
     } catch (error) {
         res.status(500).json({ message: 'Erro ao buscar usuário.', error: error.message });
     }
@@ -163,7 +165,8 @@ app.post('/verify', async (req, res) => {
             where: {
                 user_id: userID,
                 codigo: verificationCode,
-                expiracao: { [Op.gt]: new Date() }
+                expiracao: { [Op.gt]: new Date() },
+                tipo: 'email_verification'
             }
         });
 
@@ -172,7 +175,7 @@ app.post('/verify', async (req, res) => {
         }
 
         await User.update({ verificado: true }, { where: { id: userID } });
-        await Verification.destroy({ where: { user_id: userID } });
+        await Verification.destroy({ where: { user_id: userID, tipo: 'email_verification' } });
 
         res.status(200).json({ message: 'Email verificado com sucesso!' });
     } catch (error) {
@@ -190,11 +193,23 @@ app.post('/resend-verification-code', async (req, res) => {
         }
 
         const userId = user.id;
+
+        // Apagar códigos de verificação antigos do tipo 'email_verification'
+        await Verification.destroy({
+            where: { user_id: userId, tipo: 'email_verification' }
+        });
+
         const verificationCode = generateVerificationCode();
         const expiration = new Date();
         expiration.setMinutes(expiration.getMinutes() + 2);
 
-        await Verification.create({ user_id: userId, codigo: verificationCode, expiracao: expiration });
+        // Criar um novo código de verificação
+        await Verification.create({
+            user_id: userId,
+            codigo: verificationCode,
+            expiracao: expiration,
+            tipo: 'email_verification'
+        });
 
         const mailOptions = {
             from: process.env.EMAIL_USER,
@@ -205,12 +220,15 @@ app.post('/resend-verification-code', async (req, res) => {
 
         transporter.sendMail(mailOptions, (err, info) => {
             if (err) {
+                console.error("Erro ao enviar o e-mail:", err);
                 return res.status(500).json({ message: 'Erro ao enviar o e-mail de verificação.' });
             }
-            res.status(200).json({ message: 'Código reenviado com sucesso!' });
         });
+
+        res.status(200).json({ message: 'Código reenviado com sucesso!' });
     } catch (error) {
-        res.status(500).json({ message: 'Erro ao buscar usuário.', error: error.message });
+        console.error("Erro ao reenviar o código de verificação:", error);
+        res.status(500).json({ message: 'Erro no servidor.', error: error.message });
     }
 });
 
@@ -234,7 +252,8 @@ app.get('/verification-expiration/:userID', async (req, res) => {
     try {
         const verification = await Verification.findOne({
             where: {
-                user_id: userID
+                user_id: userID,
+                tipo: 'email_verification'
             },
             order: [['expiracao', 'DESC']]
         });
@@ -252,8 +271,6 @@ app.get('/verification-expiration/:userID', async (req, res) => {
     }
 });
 
-
-// Rota de Login
 app.post('/login', async (req, res) => {
     const { email, password } = req.body;
 
@@ -285,8 +302,197 @@ app.post('/login', async (req, res) => {
     }
 });
 
+app.post('/forgot-password', async (req, res) => {
+    const { email } = req.body;
 
+    try {
+        const user = await User.findOne({ where: { email } });
+        if (!user) {
+            return res.status(404).json({ message: 'Usuário não encontrado.' });
+        }
 
-app.listen(process.env.PORT, () => {
-    console.log(`Servidor rodando na porta ${process.env.PORT}`);
+        const userId = user.id;
+        await Verification.destroy({ where: { user_id: userId, tipo: 'reset_password' } });
+
+        const verificationCode = generateVerificationCode();
+        const expiration = new Date();
+        expiration.setMinutes(expiration.getMinutes() + 2);
+
+        await Verification.create({
+            user_id: userId,
+            codigo: verificationCode,
+            expiracao: expiration,
+            tipo: 'reset_password'
+        });
+
+        const mailOptions = {
+            from: process.env.EMAIL_USER,
+            to: email,
+            subject: 'Código de Redefinição de Senha',
+            text: `Seu código de redefinição de senha é: ${verificationCode}. Este código expira em 2 minutos.`
+        };
+
+        // Enviar e-mail usando a função assíncrona se deixar como sincrona vai demorar para ir para tela de login
+        transporter.sendMail(mailOptions, (err, info) => {
+            if (err) {
+                return reject(err);
+            }
+            resolve(info);
+            console.log('enviando o emial');
+        });
+
+        res.status(200).json({ message: 'Código de redefinição de senha enviado com sucesso!' });
+    } catch (error) {
+        res.status(500).json({ message: 'Erro ao enviar o código de redefinição de senha.', error: error.message });
+    }
+});
+
+app.post('/verify-forgot-password', async (req, res) => {
+    const { email, verificationCode } = req.body;
+
+    try {
+        const user = await User.findOne({ where: { email } });
+        if (!user) {
+            return res.status(404).json({ message: 'Usuário não encontrado.' });
+        }
+
+        const verification = await Verification.findOne({
+            where: {
+                user_id: user.id,
+                codigo: verificationCode,
+                expiracao: { [Op.gt]: new Date() },
+                tipo: 'reset_password'
+            }
+        });
+
+        if (!verification) {
+            return res.status(400).json({ message: 'Código inválido ou expirado.' });
+        }
+
+        res.status(200).json({ message: 'Validado as Informações com sucesso' });
+        await Verification.destroy({ where: { user_id: user.id, tipo: 'reset_password' } });
+        
+    } catch (error) {
+        console.error("Erro ao verificar o código:", error);
+        res.status(400).send({ message: 'Código inválido ou expirado.' });
+    }
+});
+
+app.post('/reset-password', async (req, res) => {
+    const { email, newPassword } = req.body;
+
+    try {
+        const user = await User.findOne({ where: { email } });
+        if (!user) {
+            return res.status(404).send({ message: 'Usuário não encontrado.' });
+        }
+
+        user.senha = hashPassword(newPassword); // Hash a senha antes de salvar
+        await user.save();
+
+        res.status(200).send();
+    } catch (error) {
+        console.error("Erro ao redefinir a senha:", error);
+        res.status(500).send({ message: 'Erro no servidor.' });
+    }
+});
+
+app.post('/find-user', async (req, res) => {
+    const { email } = req.body;
+
+    try {
+        const user = await User.findOne({ where: { email, verificado: true } });
+
+        if (user) {
+            // Gera o código de verificação
+            const verificationCode = generateVerificationCode();
+
+            // Armazena o código no banco de dados para verificação futura
+            await Verification.destroy({
+                where: { user_id: user.id, tipo: 'reset_password' }
+            });
+
+            await Verification.create({ user_id: user.id, codigo: verificationCode, expiracao: new Date(new Date().getTime() + 2 * 60000), tipo: 'reset_password' }); // 2 minutos de expiração
+
+            
+
+            // Configura o e-mail
+            const mailOptions = {
+                from: process.env.EMAIL_USER,
+                to: email,
+                subject: 'Código de Redefinição de Senha',
+                text: `Seu código de verificação é: ${verificationCode}. Este código expira em 2 minutos.`,
+            };
+
+            // Envia o e-mail
+            transporter.sendMail(mailOptions, (err, info) => {
+                if (err) {
+                    console.error("Erro ao enviar o e-mail:", err);
+                    return res.status(500).json({ message: 'Erro ao enviar o e-mail de verificação.' });
+                }
+                
+            });
+            res.status(200).json({ message: 'E-mail encontrado com sucesso.' });
+        } else {
+            res.status(404).json({ message: 'E-mail não encontrado ou não está verificado.' });
+        }
+    } catch (error) {
+        console.error("Erro ao encontrar o usuário:", error);
+        res.status(500).json({ message: 'Erro no servidor.' });
+    }
+});
+
+app.post('/resend-forgot-password-code', async (req, res) => {
+    const { email } = req.body;
+
+    try {
+        const user = await User.findOne({ where: { email, verificado: true } });
+        if (!user) {
+            return res.status(404).json({ message: 'Usuário não encontrado ou não verificado.' });
+        }
+
+        const userId = user.id;
+
+        // Apagar códigos de redefinição de senha antigos do tipo 'reset_password'
+        await Verification.destroy({
+            where: { user_id: userId, tipo: 'reset_password' }
+        });
+
+        const verificationCode = generateVerificationCode();
+        const expiration = new Date();
+        expiration.setMinutes(expiration.getMinutes() + 2);
+
+        // Criar um novo código de redefinição de senha
+        await Verification.create({
+            user_id: userId,
+            codigo: verificationCode,
+            expiracao: expiration,
+            tipo: 'reset_password'
+        });
+
+        const mailOptions = {
+            from: process.env.EMAIL_USER,
+            to: email,
+            subject: 'Código de Redefinição de Senha',
+            text: `Seu código de redefinição de senha é: ${verificationCode}. Este código expira em 2 minutos.`
+        };
+
+        transporter.sendMail(mailOptions, (err, info) => {
+            if (err) {
+                console.error("Erro ao enviar o e-mail:", err);
+                return res.status(500).json({ message: 'Erro ao enviar o e-mail de redefinição de senha.' });
+            }
+        });
+
+        res.status(200).json({ message: 'Código reenviado com sucesso!' });
+    } catch (error) {
+        console.error("Erro ao reenviar o código de redefinição de senha:", error);
+        res.status(500).json({ message: 'Erro no servidor.', error: error.message });
+    }
+});
+
+// Inicia o servidor
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+    console.log(`Servidor rodando na porta ${PORT}`);
 });

@@ -6,7 +6,9 @@ export type RootStackParamList = {
     SignUp: undefined;
     BottomNavigation: any;
     VerificationScreen: any;
-    ResetPasswordScreen: undefined;
+    ResetPasswordScreen: any;
+    FindUserScreen: any;
+    VerificationForgotPassword: any;
 
 };
 

@@ -8,11 +8,14 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as SecureStore from 'expo-secure-store';
 import axios from 'axios';
 import { API_URL } from "@env"; // Certifique-se de ter configurado o API_URL corretamente
+import { useBackButtonHandler } from '../hooks/useBackButtonHandler';
 
 export default function LoginScreen() {
     const navigation = useNavigation<NavigationProps>();
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+
+    useBackButtonHandler()
 
     const handleLogin = async () => {
         if (email.length === 0 || password.length === 0) {
@@ -39,7 +42,7 @@ export default function LoginScreen() {
     };
 
     const handleRegister = () =>{
-        navigation.navigate('ResetPasswordScreen')
+        navigation.navigate('FindUserScreen')
     }
 
     return (

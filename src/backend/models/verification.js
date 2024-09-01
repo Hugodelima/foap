@@ -18,6 +18,10 @@ const Verification = sequelize.define('Verification', {
   expiracao: {
     type: DataTypes.DATE,
     allowNull: false
+  },
+  tipo: { // Campo adicional para diferenciar o tipo de verificação
+    type: DataTypes.STRING,
+    allowNull: false
   }
 }, {
   tableName: 'Verifications',

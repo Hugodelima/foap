@@ -9,7 +9,10 @@ import SignUpScreen from '../screensAuth/SignUpScreen';
 import VerificationScreen from '../screensAuth/VerificationScreen';
 import ResetPasswordScreen from '../screensAuth/ResetPasswordScreen';
 import BottomNavigation from './BottomNavigation';
-import { useBackButtonHandler } from '../hooks/useBackButtonHandler';
+import FindUserScreen from  '../screensAuth/FindUserScreen'
+import VerificationForgotPassword from '../screensAuth/VerificationForgotPassword'
+
+
 
 const Stack = createNativeStackNavigator();
 
@@ -21,11 +24,10 @@ const AuthNavigation = () => {
         const checkVerificationStatus = async () => {
         try {
             const emailVerificationStatus = await AsyncStorage.getItem('emailVerificationStatus');
-            
             if (emailVerificationStatus === 'true') {
-            setInitialRoute('VerificationScreen');
+                setInitialRoute('VerificationScreen');
             } else {
-            setInitialRoute('Welcome'); // Ou 'Login', conforme a lógica que você deseja
+                setInitialRoute('Welcome'); // Ou 'Login', conforme a lógica que você deseja
             }
         } catch (error) {
             console.error("Erro ao verificar o status do e-mail:", error);
@@ -33,9 +35,9 @@ const AuthNavigation = () => {
         };
 
         checkVerificationStatus();
+        
     }, []);
     
-    useBackButtonHandler()
 
     if (initialRoute === undefined) {
         return null; // Mostrar um indicador de carregamento enquanto a verificação está em andamento
@@ -43,16 +45,21 @@ const AuthNavigation = () => {
 
     
     return (
+    
         <NavigationContainer independent={true}>
-        <Stack.Navigator initialRouteName={initialRoute}>
-            <Stack.Screen name='Welcome' options={{ headerShown: false }} component={WelcomeScreen} />
-            <Stack.Screen name='Login' options={{ headerShown: false }} component={LoginScreen} />
-            <Stack.Screen name='SignUp' options={{ headerShown: false }} component={SignUpScreen} />
-            <Stack.Screen name='VerificationScreen' options={{ headerShown: false }} component={VerificationScreen} />
-            <Stack.Screen name='ResetPasswordScreen' options={{ headerShown: false }} component={ResetPasswordScreen} />
-            
-            <Stack.Screen name='BottomNavigation' options={{ headerShown: false }} component={BottomNavigation} />
-        </Stack.Navigator>
+            <Stack.Navigator initialRouteName={initialRoute}>
+                <Stack.Screen name='Welcome' options={{ headerShown: false }} component={WelcomeScreen} />
+
+                <Stack.Screen name='Login' options={{ headerShown: false }} component={LoginScreen} />
+                <Stack.Screen name='SignUp' options={{ headerShown: false }} component={SignUpScreen} />
+
+                <Stack.Screen name='VerificationScreen' options={{ headerShown: false }} component={VerificationScreen} />
+                <Stack.Screen name='ResetPasswordScreen' options={{ headerShown: false }} component={ResetPasswordScreen} />
+                <Stack.Screen name='FindUserScreen' options={{ headerShown: false }} component={FindUserScreen} />
+                <Stack.Screen name='VerificationForgotPassword' options={{ headerShown: false }} component={VerificationForgotPassword} />
+                
+                <Stack.Screen name='BottomNavigation' options={{ headerShown: false }} component={BottomNavigation} />
+            </Stack.Navigator>
         </NavigationContainer>
     );
 };

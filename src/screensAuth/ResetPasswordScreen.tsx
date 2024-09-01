@@ -1,82 +1,68 @@
+// ResetPasswordScreen.tsx
 import React, { useState } from 'react';
-import { Text, TouchableOpacity, View, TextInput, Alert, KeyboardAvoidingView, Platform } from 'react-native';
+import { Text, TextInput, TouchableOpacity, View, Alert } from 'react-native';
 import axios from 'axios';
-import { useNavigation } from '@react-navigation/native';
-import { NavigationProps, UserBD } from '../navigation/types';
+import { useNavigation, useRoute } from '@react-navigation/native';
+import { API_URL } from '@env';
+import { NavigationProps } from '../navigation/types';
 
 export default function ResetPasswordScreen() {
     const navigation = useNavigation<NavigationProps>();
-
-    const [email, setEmail] = useState('');
-    const [newPassword, setNewPassword] = useState('');
-    const [verificationCode, setVerificationCode] = useState('');
-    
-    const handleRequestCode = async () => {
-        try {
-            const response = await axios.post('http://localhost:3000/send-verification-email', {
-                email
-            });
-            if (response.status === 200) {
-                Alert.alert('Código de verificação enviado para seu e-mail.');
-            } else {
-                Alert.alert('Erro ao enviar o código.');
-            }
-        } catch (error) {
-            console.error('Erro ao solicitar o código:', error);
-        }
-    };
+    const route = useRoute();
+    const { email } = route.params as { email: string };
+    const [password, setPassword] = useState<string>('');
+    const [confirmPassword, setConfirmPassword] = useState<string>('');
 
     const handleResetPassword = async () => {
+        if(password.trim() === '' || confirmPassword.trim() ===''){
+            Alert.alert("Erro", "O campo de senha ou confirma senha não pode estar vazio.");
+            return;
+        }
+        else if (password !== confirmPassword) {
+            Alert.alert("Erro", "As senhas não coincidem.");
+            return;
+        }
+
         try {
-            const response = await axios.post('http://localhost:3000/reset-password', {
+            const response = await axios.post(`${API_URL}/reset-password`, {
                 email,
-                newPassword,
-                verificationCode
+                newPassword: password
             });
             if (response.status === 200) {
-                Alert.alert('Senha redefinida com sucesso!');
+                Alert.alert("Sucesso", "Senha redefinida com sucesso!");
                 navigation.navigate('Login');
             } else {
-                Alert.alert('Erro ao redefinir a senha.');
+                Alert.alert("Erro", "Não foi possível redefinir a senha. Tente novamente.");
             }
         } catch (error) {
-            console.error('Erro ao redefinir a senha:', error);
+            console.error("Erro ao redefinir a senha:", error);
+            Alert.alert("Erro", "Ocorreu um erro ao redefinir a senha.");
         }
     };
 
     return (
-        <KeyboardAvoidingView
-            style={{ flex: 1 }}
-            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        >
-            <View style={{ flex: 1, justifyContent: 'center', padding: 20 }}>
-                <Text>Email</Text>
-                <TextInput
-                    value={email}
-                    onChangeText={setEmail}
-                    placeholder="Digite seu e-mail"
-                    keyboardType="email-address"
-                />
-                <TouchableOpacity onPress={handleRequestCode} style={{ backgroundColor: 'yellow', padding: 10, marginTop: 10 }}>
-                    <Text>Enviar Código</Text>
-                </TouchableOpacity>
-                <Text>Código de Verificação</Text>
-                <TextInput
-                    value={verificationCode}
-                    onChangeText={setVerificationCode}
-                    placeholder="Digite o código recebido"
-                />
-                <Text>Nova Senha</Text>
-                <TextInput
-                    value={newPassword}
-                    onChangeText={setNewPassword}
-                    placeholder="Digite sua nova senha"
-                    secureTextEntry
-                />
-                <TouchableOpacity onPress={handleResetPassword} style={{ backgroundColor: 'yellow', padding: 10, marginTop: 10 }}>
-                    <Text>Redefinir Senha</Text>
-                </TouchableOpacity>
-            </View>
-        </KeyboardAvoidingView>
+        <View className='flex-1 justify-center bg-white px-8'>
+            <Text className='text-lg font-bold mb-4'>Redefinir Senha</Text>
+            <TextInput
+                value={password}
+                onChangeText={setPassword}
+                placeholder="Digite sua nova senha"
+                secureTextEntry
+                className='border border-gray-300 p-2 rounded mb-4'
+            />
+            <TextInput
+                value={confirmPassword}
+                onChangeText={setConfirmPassword}
+                placeholder="Confirme sua nova senha"
+                secureTextEntry
+                className='border border-gray-300 p-2 rounded mb-4'
+            />
+            <TouchableOpacity onPress={handleResetPassword} className='py-3 bg-yellow-400 rounded-xl'>
+                <Text className='font-bold text-center text-gray-700'>Redefinir Senha</Text>
+            </TouchableOpacity>
+        </View>
     );
 }
+
+
+           

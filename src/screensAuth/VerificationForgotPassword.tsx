@@ -1,12 +1,10 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Text, TouchableOpacity, View, TextInput, KeyboardAvoidingView, Alert, Keyboard, SafeAreaView,Image, ScrollView, Platform } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
-import { NavigationProps, UserBD } from '../navigation/types';
-import * as SecureStore from 'expo-secure-store';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Text, TouchableOpacity, View, TextInput, Alert, Keyboard, SafeAreaView, Image, ScrollView, Platform, KeyboardAvoidingView } from 'react-native';
+import { useNavigation, useRoute } from '@react-navigation/native';
 import axios from 'axios';
-import { API_URL } from "@env"
-import { useBackButtonHandler } from '../hooks/useBackButtonHandler';
+import { API_URL } from '@env';
+import { NavigationProps } from '../navigation/types';
+import { ArrowLeftIcon } from 'react-native-heroicons/solid';
 
 const inputs = Array(4).fill('');
 let newInputIndex = 0;
@@ -15,38 +13,17 @@ const isObjValid = (obj: { [key: number]: string }) => {
     return Object.values(obj).every(val => val.trim());
 }
 
-export default function VerificationScreen() {
+export default function VerificationForgotPasswordScreen() {
     const navigation = useNavigation<NavigationProps>();
+    const route = useRoute();
+    const { email } = route.params as { email: string };
+    
     const input = useRef<TextInput>(null);
 
-    const [userID, setUserID] = useState<string>('');
-    const [user, setUser] = useState<UserBD | null>(null);
     const [OTP, setOTP] = useState<{ [key: number]: string }>({ 0: '', 1: '', 2: '', 3: '' });
     const [nextInputIndex, setNextInputIndex] = useState<number>(0);
     const [timeLeft, setTimeLeft] = useState<number>(120000); // 2 minutos em milissegundos
     const [timer, setTimer] = useState<NodeJS.Timeout | null>(null);
-
-    useBackButtonHandler()
-    
-    useEffect(() => {
-        async function getIDUser() {
-            const userID: any = await SecureStore.getItemAsync('userStorageID');
-            setUserID(userID);
-            console.log('verification id: '+userID)
-
-            try {
-                const response = await axios.get(`${API_URL}/users/${userID}`);
-                setUser(response.data);
-
-                const expirationResponse = await axios.get(`${API_URL}/verification-expiration/${userID}`);
-                setTimeLeft(expirationResponse.data.timeLeft);
-
-            } catch (error) {
-                console.error("Erro ao obter usuário ou expiração:", error);
-            }
-        }
-        getIDUser();
-    }, []);
 
     useEffect(() => {
         input.current?.focus();
@@ -71,27 +48,17 @@ export default function VerificationScreen() {
     }, [timeLeft]);
 
     const handleVerification = async (code: string) => {
-        if (!user) {
-            Alert.alert("Usuário não encontrado.");
-            return;
-        }
-
         try {
-            console.log('Verificando com userID:', userID, 'e código:', code);
-
-            const response = await axios.post(`${API_URL}/verify`, {
-                userID,
+            const response = await axios.post(`${API_URL}/verify-forgot-password`, {
+                email,
                 verificationCode: code
             });
 
             if (response.status === 200) {
-                await AsyncStorage.setItem('emailVerificationStatus', '')
-                await SecureStore.setItemAsync('userStorageID', '');
-                Alert.alert("Email verificado com sucesso!");
-                navigation.navigate('Login');
-                // Limpar os inputs após a verificação bem-sucedida
-                setOTP({ 0: '', 1: '', 2: '', 3: '' });
+                console.log(response.data);
                 
+                Alert.alert(response.data.message);
+                navigation.navigate('ResetPasswordScreen', { email });
             } else {
                 Alert.alert("Código de verificação inválido ou expirado.");
             }
@@ -123,27 +90,26 @@ export default function VerificationScreen() {
             });
 
             handleVerification(val);
-        }else {
+        } else {
             Alert.alert("Erro", "Por favor, preencha todos os campos.");
         }
     };
 
     const resendCode = async () => {
-        if (user) {
-            try {
-                const response = await axios.post(`${API_URL}/resend-verification-code`, {
-                    email: user.email
-                });
+        try {
+            const response = await axios.post(`${API_URL}/resend-forgot-password-code`, {
+                email
+            });
 
-                if (response.status === 200) {
-                    Alert.alert("Código reenviado com sucesso! Verifique seu e-mail.");
-                    setTimeLeft(120000); // 2 minutos
-                } else {
-                    Alert.alert("Erro ao reenviar código, tente novamente.");
-                }
-            } catch (error) {
-                console.error("Erro ao reenviar o código:", error);
+            if (response.status === 200) {
+                Alert.alert("Código reenviado com sucesso! Verifique seu e-mail.");
+                setTimeLeft(120000); // 2 minutos
+            } else {
+                Alert.alert("Erro ao reenviar código, tente novamente.");
             }
+        } catch (error) {
+            console.error("Erro ao reenviar o código:", error);
+            Alert.alert("Erro", "Não foi possível reenviar o código. Tente novamente.");
         }
     };
 
@@ -154,10 +120,17 @@ export default function VerificationScreen() {
         >
             <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
                 <View className='flex-1 bg-gray-500'>
+                    <SafeAreaView className='absolute top-8'>
+                        <View>
+                            <TouchableOpacity onPress={() => navigation.goBack()} className='bg-yellow-400 p-2 rounded-tr-2xl rounded-bl-2x1 ml-4 mt-4 absolute'>
+                                <ArrowLeftIcon size='35' color='black' />
+                            </TouchableOpacity>
+                        </View>
+                    </SafeAreaView>
                     <SafeAreaView className='flex'>
                         <View className='flex-row justify-center'>
                             <Image source={{ uri: 'https://ds9xi3hub5xxi.cloudfront.net/cdn/farfuture/otEn1mSO8Tk3mLVPFxYMCMwRn-qtie_ueonsviYMy0w/mtime:1608563955/sites/default/files/nodeicon/plugins_email-verification-plugin.png' }}
-                                style={{ width: 200, height: 200, marginTop: 50}}
+                                style={{ width: 200, height: 200, marginTop: 50 }}
                             />
                         </View>
                     </SafeAreaView>
@@ -192,7 +165,7 @@ export default function VerificationScreen() {
                                 className='py-3 bg-yellow-400 rounded-xl mb-4'
                                 onPress={submitOTP}
                             >
-                                <Text className='font-bold text-center text-gray-700 '>
+                                <Text className='font-bold text-center text-gray-700'>
                                     Verificar
                                 </Text>
                             </TouchableOpacity>
