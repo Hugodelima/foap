@@ -15,11 +15,19 @@ import AuthNavigation from './src/navigation/AuthNavigation';
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import VerificationScreen from './src/screensAuth/VerificationScreen';
+
 const publishableKey = process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY!
 
-
+import { useFonts } from 'expo-font';
 
 const App = () => {
+
+  let [fontsLoaded] = useFonts({
+    'VT323': require('./src/assets/fonts/VT323-Regular.ttf')
+  }) 
+  if(!fontsLoaded){
+    console.log("fontes não carregadas localmente");
+  }
 
   //token que serve apenas para autenticação do google 
   const tokenCache = {
@@ -38,18 +46,18 @@ const App = () => {
             return;
         }
     }
+  }
 
-}
-const [isLoggedIn,setIsLoggedIn] = useState('')
+  const [isLoggedIn,setIsLoggedIn] = useState('')
 
-async function setDataFromStatusLogin() {
-  const data_logged:any = await AsyncStorage.getItem("isLoggedIn")
-  setIsLoggedIn(data_logged)
-}
+  async function setDataFromStatusLogin() {
+    const data_logged:any = await AsyncStorage.getItem("isLoggedIn")
+    setIsLoggedIn(data_logged)
+  }
 
-useEffect(() => {
-  setDataFromStatusLogin();
-}, []);
+  useEffect(() => {
+    setDataFromStatusLogin();
+  }, []);
   
   return (
   <NavigationContainer>

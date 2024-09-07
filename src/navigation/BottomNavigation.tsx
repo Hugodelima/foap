@@ -7,6 +7,7 @@ import ConfigScreen from '../screensApp/ConfigScreen';
 import ReportScreen from '../screensApp/ReportScreen';
 
 import {useBackButtonHandler} from '../hooks/useBackButtonHandler'
+import { Header } from 'react-native/Libraries/NewAppScreen';
 
 const Tab = createBottomTabNavigator();
 
@@ -15,10 +16,10 @@ export default function BottomNavigation() {
   useBackButtonHandler();
 
   return (
-    <Tab.Navigator>
-      <Tab.Screen name="HomeScreen" component={HomeScreen} />
-      <Tab.Screen name="ConfigScreen" component={ConfigScreen} />
-      <Tab.Screen name="ReportScreen" component={ReportScreen} />
+    <Tab.Navigator >
+      <Tab.Screen name="HomeScreen" options={{ headerShown: false }} component={HomeScreen} />
+      <Tab.Screen name="ConfigScreen" options={{ headerShown: false }} component={ConfigScreen} />
+      <Tab.Screen name="ReportScreen" options={{ headerShown: false }} component={ReportScreen} />
     </Tab.Navigator>
   );
 }

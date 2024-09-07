@@ -1,35 +1,17 @@
 import React, { Component, useEffect, useState } from 'react'
-import { DevSettings, Text, TouchableOpacity, View } from 'react-native'
-
-import {useAuth, useUser} from '@clerk/clerk-expo'
-
-import { useRoute } from '@react-navigation/native';
-import { UserBD } from '../navigation/types';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { DevSettings, Text, TouchableOpacity, View, Image } from 'react-native'
 
 import { useNavigation } from '@react-navigation/native';
 import {NavigationProps} from '../navigation/types'
 
 import * as SecureStore from 'expo-secure-store';
+import { SafeAreaView } from 'react-native-safe-area-context';
+
 
 export default function HomeScreen(){
-
-  async function signOutBD(){
-    await AsyncStorage.setItem('isLoggedIn','')
-    DevSettings.reload()
-  }
-  /*
-  <Text> Hello {user?.emailAddresses[0].emailAddress ===null}{user?.fullName} </Text>
-  */
-  //do google
-  const {signOut} = useAuth()
-  const { user } = useUser()
-  const loggedGoogle = useAuth().isSignedIn
-
+  
   //do login normal
   const [userID, setUserID] = useState('')
-
-
 
   useEffect(() => {
     async function getIDUser(){
@@ -39,16 +21,24 @@ export default function HomeScreen(){
     getIDUser()
 
   }, []);
+
   
   const navigation = useNavigation<NavigationProps>();
     return (
-      <View>
-        <Text> textInComponent </Text>
-        <TouchableOpacity onPress={() => loggedGoogle === true ? signOut(): signOutBD()} className='bg-slate-600'>
-          <Text>Sair - Logout</Text>
-        </TouchableOpacity>
-        
-        <Text> Hello {userID} </Text>
-      </View>
+      <SafeAreaView>
+        <View className='bg-neutral-800 rounded-b-lg border-b-8 border-cyan-500 flex-row items-center p-4'>
+          <Image 
+            source={{ uri: 'https://static-00.iconduck.com/assets.00/user-icon-1024x1024-dtzturco.png' }} 
+            style={{ width: 50, height: 50, marginRight: 10 }} 
+          />
+          <View>
+            <Text className='text-white font-vt323'> Rank: {userID} </Text>
+            <Text className='text-white font-vt323'> Nível: {userID} </Text>
+            <Text className='text-white font-vt323'> Próximo Nível: {userID} </Text>
+            <Text className='text-white font-vt323'> Ouro: {userID} </Text>
+          </View>
+        </View>
+
+      </SafeAreaView>
     )
 }
