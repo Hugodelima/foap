@@ -24,7 +24,7 @@ export default function LoginScreen() {
         }
 
         try {
-            const response = await axios.post(`${API_URL}/login`, { email, password });
+            const response = await axios.post(`${API_URL}/api/userapi/login`, { email, password });
             const { token, userID } = response.data;
 
             await AsyncStorage.setItem('isLoggedIn', JSON.stringify(true));

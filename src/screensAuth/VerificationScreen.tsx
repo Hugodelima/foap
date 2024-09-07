@@ -35,10 +35,10 @@ export default function VerificationScreen() {
             console.log('verification id: '+userID)
 
             try {
-                const response = await axios.get(`${API_URL}/users/${userID}`);
+                const response = await axios.get(`${API_URL}/api/userapi/users/${userID}`);
                 setUser(response.data);
 
-                const expirationResponse = await axios.get(`${API_URL}/verification-expiration/${userID}`);
+                const expirationResponse = await axios.get(`${API_URL}/api/userapi/verification-expiration/${userID}`);
                 setTimeLeft(expirationResponse.data.timeLeft);
 
             } catch (error) {
@@ -79,7 +79,7 @@ export default function VerificationScreen() {
         try {
             console.log('Verificando com userID:', userID, 'e código:', code);
 
-            const response = await axios.post(`${API_URL}/verify`, {
+            const response = await axios.post(`${API_URL}/api/userapi/verify`, {
                 userID,
                 verificationCode: code
             });
@@ -131,7 +131,7 @@ export default function VerificationScreen() {
     const resendCode = async () => {
         if (user) {
             try {
-                const response = await axios.post(`${API_URL}/resend-verification-code`, {
+                const response = await axios.post(`${API_URL}/api/userapi/resend-verification-code`, {
                     email: user.email
                 });
 

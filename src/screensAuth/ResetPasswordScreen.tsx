@@ -24,7 +24,7 @@ export default function ResetPasswordScreen() {
         }
 
         try {
-            const response = await axios.post(`${API_URL}/reset-password`, {
+            const response = await axios.post(`${API_URL}/api/userapi/reset-password`, {
                 email,
                 newPassword: password
             });

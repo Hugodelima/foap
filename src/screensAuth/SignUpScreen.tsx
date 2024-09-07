@@ -39,7 +39,7 @@ export default function SignUpScreen() {
     }
 
     try {
-      const response = await axios.post(`${API_URL}/register`, {
+      const response = await axios.post(`${API_URL}/api/userapi/register`, {
         username,
         email,
         password

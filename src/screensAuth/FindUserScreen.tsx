@@ -18,7 +18,7 @@ export default function FindUserScreen() {
             return;
         }
         try {
-            const response = await axios.post(`${API_URL}/find-user`, { email });
+            const response = await axios.post(`${API_URL}/api/userapi/find-user`, { email });
 
             if (response.status === 200) {
                 Alert.alert(response.data.message);

@@ -49,7 +49,7 @@ export default function VerificationForgotPasswordScreen() {
 
     const handleVerification = async (code: string) => {
         try {
-            const response = await axios.post(`${API_URL}/verify-forgot-password`, {
+            const response = await axios.post(`${API_URL}/api/userapi/verify-forgot-password`, {
                 email,
                 verificationCode: code
             });
@@ -97,7 +97,7 @@ export default function VerificationForgotPasswordScreen() {
 
     const resendCode = async () => {
         try {
-            const response = await axios.post(`${API_URL}/resend-forgot-password-code`, {
+            const response = await axios.post(`${API_URL}/api/userapi/resend-forgot-password-code`, {
                 email
             });
 
