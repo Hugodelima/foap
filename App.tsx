@@ -25,9 +25,6 @@ const App = () => {
   let [fontsLoaded] = useFonts({
     'VT323': require('./src/assets/fonts/VT323-Regular.ttf')
   }) 
-  if(!fontsLoaded){
-    console.log("fontes não carregadas localmente");
-  }
 
   //token que serve apenas para autenticação do google 
   const tokenCache = {
