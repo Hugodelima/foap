@@ -2,10 +2,10 @@ import React, { useEffect } from 'react';
 import { BackHandler, Alert, Image } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 
-import HomeScreen from '../screensApp/HomeScreen';
-import MissionScreen from '../screensApp/MissionScreen'
-import ReportScreen from '../screensApp/ReportScreen';
-import LeaderboardScreen from '../screensApp/LeaderboardScreen';
+import HomeScreen from '../screensBottom/HomeScreen';
+import MissionScreen from '../screensBottom/MissionScreen'
+import ReportScreen from '../screensBottom/ReportScreen';
+import LeaderboardScreen from '../screensBottom/LeaderboardScreen';
 
 import {useBackButtonHandler} from '../hooks/useBackButtonHandler'
 import { Header } from 'react-native/Libraries/NewAppScreen';
@@ -33,8 +33,8 @@ export default function BottomNavigation() {
     >                                                                       
       <Tab.Screen name="Início" options={{ headerShown: false, tabBarIcon:({color, size})=> <Image source={menu_imagem} style={{ width: size, height: size, tintColor: color }}/>}} component={HomeScreen} />
       <Tab.Screen name="Missões" options={{ headerShown: false, tabBarIcon:({color, size})=> <Image source={missao_imagem} style={{ width: 16, height: 20, tintColor: color }}/>}} component={MissionScreen} />
-      <Tab.Screen name="Relatório" options={{ headerShown: false , tabBarIcon:({color, size})=> <Image source={classificacao_imagem} style={{ width: 18, height: 20, tintColor: color }}/>}} component={ReportScreen} />
-      <Tab.Screen name="Classificação" options={{ headerShown: false , tabBarIcon:({color, size})=> <Image source={relatorio_imagem} style={{ width: size, height: size, tintColor: color }}/>}} component={LeaderboardScreen} />
+      <Tab.Screen name="Relatório" options={{ headerShown: false , tabBarIcon:({color, size})=> <Image source={relatorio_imagem} style={{ width: size, height: size, tintColor: color }}/>}} component={ReportScreen} />
+      <Tab.Screen name="Classificação" options={{ headerShown: false , tabBarIcon:({color, size})=> <Image source={classificacao_imagem} style={{ width: 18, height: 20, tintColor: color }}/>}} component={LeaderboardScreen} />
     </Tab.Navigator>
   );
 }

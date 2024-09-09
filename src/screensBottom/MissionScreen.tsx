@@ -34,11 +34,11 @@ export default function MissionScreen(){
         <View className='flex-1'>
           <Text>sgfdgfg</Text>
           <FlatList>
-            
+
           </FlatList>
         </View>
         <TouchableOpacity 
-          className='bg-cyan-500 rounded-full p-3 absolute bottom-4 right-4'
+          className='bg-cyan-500 rounded-full p-3 absolute bottom-4 right-5 left-5'
           onPress={handlePress}
         >
           <Text className='text-white text-center font-vt323'>Criar Nova Missão</Text>

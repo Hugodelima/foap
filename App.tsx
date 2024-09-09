@@ -11,6 +11,7 @@ import * as SecureStore from 'expo-secure-store';
 import { NavigationContainer } from '@react-navigation/native';
 
 import BottomNavigation from './src/navigation/BottomNavigation';
+import MainNavigation from './src/navigation/MainNavigation'
 import AuthNavigation from './src/navigation/AuthNavigation';
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -60,13 +61,13 @@ const App = () => {
   <NavigationContainer>
     <ClerkProvider tokenCache={tokenCache}  publishableKey={publishableKey}>
         <SignedIn>
-          <BottomNavigation/>
+          <MainNavigation/>
         </SignedIn>
         <SignedOut>
           {
             (() =>{
               if (isLoggedIn){
-                return <BottomNavigation/>
+                return <MainNavigation/>
               }else{
                 return <AuthNavigation />
               }
