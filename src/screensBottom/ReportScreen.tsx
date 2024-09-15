@@ -1,9 +1,7 @@
 import React, { PureComponent, useState } from 'react'
-import { Text, TouchableOpacity, View, DevSettings, Image } from 'react-native'
+import { Text, TouchableOpacity, View, Image } from 'react-native'
 
-import AsyncStorage from '@react-native-async-storage/async-storage';
 
-import {useAuth, useUser} from '@clerk/clerk-expo'
 
 import { NavigationProps } from '../navigation/types';
 import { useNavigation } from '@react-navigation/native';
@@ -14,17 +12,8 @@ import moreOptions_image from '../assets/images/home/more_options.png';
 
 export default function ReportScreen(){
 
-  async function signOutBD(){
-    await AsyncStorage.setItem('isLoggedIn','')
-    DevSettings.reload()
-  }
-  /*
-  <Text> Hello {user?.emailAddresses[0].emailAddress ===null}{user?.fullName} </Text>
-  */
-  //do google
-  const {signOut} = useAuth()
-  const { user } = useUser()
-  const loggedGoogle = useAuth().isSignedIn
+  
+  
   const [modalVisible, setModalVisible] = useState(false);
   
   const navigation = useNavigation<NavigationProps>();
@@ -55,16 +44,6 @@ export default function ReportScreen(){
           <TouchableOpacity onPress={() => console.log('5')} className='bg-cyan-500 rounded-full p-3 font-vt323'>
             <Text className='font-vt323'>Relatório de Atributos</Text>
           </TouchableOpacity> 
-
-
-
-
-          <TouchableOpacity onPress={() => loggedGoogle === true ? signOut(): signOutBD()} className='bg-cyan-500 rounded-full p-3'>
-            <Text className='font-vt323'>Sair - Logout</Text>
-          </TouchableOpacity>
-
-          
-        
         </SafeAreaView>
         <TouchableOpacity
             className="absolute right-4 top-12"

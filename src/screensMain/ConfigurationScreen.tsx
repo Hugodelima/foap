@@ -33,7 +33,7 @@ export default function ConfigurationScreen(){
             source={{ uri: 'https://static-00.iconduck.com/assets.00/user-icon-1024x1024-dtzturco.png' }} 
             className="w-14 h-14 mr-3"
           />
-          <TouchableOpacity onPress={() => console.log('4')} className='bg-cyan-500 rounded-full p-3 font-vt323'>
+          <TouchableOpacity onPress={() => navigation.navigate('ChangeUserDataScreen')} className='bg-cyan-500 rounded-full p-3 font-vt323'>
             <Text className='font-vt323 text-white'>Dados Cadastrais</Text>
             <Text className='font-vt323 text-neutral-300'>Email, Senha</Text>
           </TouchableOpacity>
