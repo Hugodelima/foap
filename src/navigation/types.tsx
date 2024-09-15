@@ -10,6 +10,7 @@ export type RootStackParamList = {
     FindUserScreen: any;
     VerificationForgotPassword: any;
     
+    MainNavigation: any;
     AttributesScreen: undefined;
     ConfigurationScreen: undefined;
     ExperienceScreen: undefined;

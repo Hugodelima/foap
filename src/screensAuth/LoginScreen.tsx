@@ -7,7 +7,7 @@ import { NavigationProps } from '../navigation/types';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as SecureStore from 'expo-secure-store';
 import axios from 'axios';
-import { API_URL } from "@env"; // Certifique-se de ter configurado o API_URL corretamente
+import { API_URL } from "@env";
 import { useBackButtonHandler } from '../hooks/useBackButtonHandler';
 
 export default function LoginScreen() {
@@ -22,24 +22,43 @@ export default function LoginScreen() {
             Alert.alert("Preencha todos os campos corretamente");
             return;
         }
-
+    
         try {
+            // Faz a requisição de login
             const response = await axios.post(`${API_URL}/api/userapi/login`, { email, password });
             const { token, userID } = response.data;
-
+    
+            // Tenta buscar o status do usuário
+            let statusResponse;
+            try {
+                statusResponse = await axios.get(`${API_URL}/api/statusapi/${userID}`);
+                console.log('Status encontrado:', statusResponse.data);
+            } catch (statusError: any) {
+                // Se o erro for 404, cria um novo status
+                if (statusError.response && statusError.response.status === 404) {
+                    console.log('Status não encontrado, criando um novo...');
+                    statusResponse = await axios.post(`${API_URL}/api/statusapi/create`, { userID });
+                    console.log('Novo status criado:', statusResponse.data);
+                } else {
+                    throw statusError; // Lança outros erros
+                }
+            }
+    
+            // Armazena os tokens e navega para a próxima tela
             await AsyncStorage.setItem('isLoggedIn', JSON.stringify(true));
             await SecureStore.setItemAsync('userStorageID', JSON.stringify(userID));
             await SecureStore.setItemAsync('userToken', token);
-
+    
             Alert.alert("Logado com sucesso");
-            navigation.navigate('BottomNavigation', {
-                screen: 'HomeScreen',
-            });
-        } catch (error:any) {
+    
+            navigation.navigate('MainNavigation');
+        } catch (error: any) {
             console.error("Erro durante o login", error);
             Alert.alert("Erro durante o login", error.response?.data?.message || 'Erro ao tentar logar.');
         }
     };
+    
+    
 
     const handleRegister = () =>{
         navigation.navigate('FindUserScreen')

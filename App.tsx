@@ -57,6 +57,7 @@ const App = () => {
     setDataFromStatusLogin();
   }, []);
   
+  console.log('status de logado: '+isLoggedIn)
   return (
   <NavigationContainer>
     <ClerkProvider tokenCache={tokenCache}  publishableKey={publishableKey}>
@@ -69,7 +70,7 @@ const App = () => {
               if (isLoggedIn){
                 return <MainNavigation/>
               }else{
-                return <AuthNavigation />
+                return <AuthNavigation/>
               }
             })()
           }

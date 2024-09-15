@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Text, TouchableOpacity, View, Image } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import * as SecureStore from 'expo-secure-store';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import ModalComponent from '../modal/moreOptions';
 
@@ -10,19 +9,15 @@ import levelUp_image from '../assets/images/home/levelUp_home.png';
 import nivel_image from '../assets/images/home/nivel_home.png';
 import rank_image from '../assets/images/home/rank_home.png';
 import moreOptions_image from '../assets/images/home/more_options.png';
+
 import { NavigationProps } from '../navigation/types';
 
-export default function HomeScreen(){
-  const [userID, setUserID] = useState('');
-  const [modalVisible, setModalVisible] = useState(false); 
+import { useFetchUserData } from '../hooks/useFetchDataUser';
 
-  useEffect(() => {
-    async function getIDUser(){
-      const userID:any = await SecureStore.getItemAsync('userStorageID')
-      setUserID(userID)
-    }
-    getIDUser();
-  }, []);
+export default function HomeScreen(){
+  const { userData, error } = useFetchUserData();
+
+  const [modalVisible, setModalVisible] = useState(false); 
 
   const navigation = useNavigation<NavigationProps>();
 
@@ -40,19 +35,19 @@ export default function HomeScreen(){
         <View>
           <View className="flex-row items-center mb-2">
             <Image source={rank_image} className="w-9 h-8" />
-            <Text className="text-white font-vt323 ml-2">Rank: {userID}</Text>
+            <Text className="text-white font-vt323 ml-2">Rank: {userData?.rank}</Text>
           </View>
           <View className="flex-row items-center mb-2">
             <Image source={nivel_image} className="w-7 h-7 mr-1" />
-            <Text className="text-white font-vt323">Nível: {userID}</Text>
+            <Text className="text-white font-vt323">Nível: {userData?.nivel}</Text>
           </View>
           <View className="flex-row items-center mb-2">
             <Image source={levelUp_image} className="w-7 h-7 mr-1" />
-            <Text className="text-white font-vt323">Próximo Nível: {userID}</Text>
+            <Text className="text-white font-vt323">Próximo Nível: {userData?.proximo_nivel}</Text>
           </View>
           <View className="flex-row items-center">
             <Image source={gold_image} className="w-7 h-7 mr-1" />
-            <Text className="text-white font-vt323">Ouro: {userID}</Text>
+            <Text className="text-white font-vt323">Ouro: {userData?.ouro}</Text>
           </View>
         </View>
 
@@ -66,7 +61,7 @@ export default function HomeScreen(){
           />
         </TouchableOpacity>
       </SafeAreaView>
-
+    
       <ModalComponent 
         visible={modalVisible} 
         onClose={() => setModalVisible(false)} 

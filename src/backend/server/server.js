@@ -1,8 +1,13 @@
-require('dotenv').config();
 const express = require('express');
 const bodyParser = require('body-parser');
 const cors = require('cors');
-const routerUser = require('../routes/routerUser'); // Ajuste o caminho conforme a estrutura do seu projeto
+
+const routerUser = require('../routes/routerUser');
+const routerPenalty = require('../routes/routerPenalty');
+const routerReward = require('../routes/routerReward');
+const routerMission = require('../routes/routerMission');
+const routerCategory = require('../routes/routerCategory');
+const routerStatus = require('../routes/routerStatus')
 
 const app = express();
 
@@ -10,14 +15,16 @@ const app = express();
 app.use(cors());
 app.use(bodyParser.json());
 
-// Configura a porta a partir da variável de ambiente ou usa a porta 3000 por padrão
-const PORT = process.env.PORT || 3000;
-
-
-// Usar o roteador definido em routerUser.js
-app.use('/api/userapi', routerUser); // Prefixo para todas as rotas definidas no roteador
+// Roteadores
+app.use('/api/userapi', routerUser);
+app.use('/api/penaltyapi', routerPenalty);
+app.use('/api/rewardapi', routerReward);
+app.use('/api/missionapi', routerMission);
+app.use('/api/categoryapi', routerCategory);
+app.use('/api/statusapi', routerStatus);
 
 // Inicia o servidor
+const PORT = process.env.PORT;
 app.listen(PORT, () => {
     console.log(`Servidor rodando na porta ${PORT}`);
 });
