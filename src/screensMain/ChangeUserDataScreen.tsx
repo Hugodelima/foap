@@ -46,11 +46,11 @@ export default function ChangeUserDataScreen(){
           </TouchableOpacity>
           
         </View>
-        <Text className='font-vt323 text-white mt-4 ml-4 text-xl'>Configurações de Dados Cadastrais</Text>
+        <Text className='font-vt323 text-white mt-4 ml-4 text-xl'>Configurações Cadastrais</Text>
       </SafeAreaView>
-      <View>
-        <Text className='font-vt323 text-white border-b-8 border-sky-500'>Conta</Text>
-        <View>
+      <View className='mt-4'>
+        <Text className='font-vt323 text-white border-b-2 border-white text-2xl'>Conta</Text>
+        <View className='ml-4'>
             <View>
                 <Text className='font-vt323 text-white'>Nome de Usuário</Text>
                 <Text className='font-vt323 text-white'>XXXXXXXXXXXXXXX</Text>
@@ -64,9 +64,9 @@ export default function ChangeUserDataScreen(){
                 <Text className='font-vt323 text-white'>XXXXXXXXXXXXXXX</Text>
             </View>
         </View>
-        <Text className='font-vt323 text-white'>Sair</Text>
-        <View>
-            <TouchableOpacity onPress={() => loggedGoogle === true ? signOut(): signOutBD()} className='bg-cyan-500 rounded-full p-3'>
+        <Text className='font-vt323 text-white border-b-2 border-white text-xl'>Sair</Text>
+        <View className='ml-4'>
+            <TouchableOpacity onPress={() => loggedGoogle === true ? signOut(): signOutBD()} className='bg-cyan-500 rounded-full p-3 mt-4'>
                 <Text className='font-vt323'>Desconectar-se</Text>
             </TouchableOpacity>
         </View>
