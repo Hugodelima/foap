@@ -1,5 +1,6 @@
 const { DataTypes } = require('sequelize');
 const sequelize = require('./database');
+const User = require('./user');  // Assumindo que você tem um modelo de Usuário
 
 const Reward = sequelize.define('Reward', {
     missaoId: {
@@ -20,6 +21,13 @@ const Reward = sequelize.define('Reward', {
     pd: {
         type: DataTypes.INTEGER,
         allowNull: false
+    },
+    userId: { 
+        type: DataTypes.INTEGER,
+        references: {
+            model: 'Users', 
+            key: 'id'
+        }
     }
 }, {
     tableName: 'Rewards',

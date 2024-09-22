@@ -6,7 +6,6 @@ const routerUser = require('../routes/routerUser');
 const routerPenalty = require('../routes/routerPenalty');
 const routerReward = require('../routes/routerReward');
 const routerMission = require('../routes/routerMission');
-const routerCategory = require('../routes/routerCategory');
 const routerStatus = require('../routes/routerStatus')
 
 const app = express();
@@ -20,7 +19,6 @@ app.use('/api/userapi', routerUser);
 app.use('/api/penaltyapi', routerPenalty);
 app.use('/api/rewardapi', routerReward);
 app.use('/api/missionapi', routerMission);
-app.use('/api/categoryapi', routerCategory);
 app.use('/api/statusapi', routerStatus);
 
 // Inicia o servidor

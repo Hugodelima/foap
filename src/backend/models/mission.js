@@ -6,13 +6,6 @@ const Mission = sequelize.define('Mission', {
         type: DataTypes.STRING,
         allowNull: false
     },
-    categoriaId: {
-        type: DataTypes.INTEGER,
-        references: {
-            model: 'Categories',
-            key: 'id'
-        }
-    },
     status: {
         type: DataTypes.STRING,
         allowNull: false
