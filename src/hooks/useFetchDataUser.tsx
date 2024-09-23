@@ -9,25 +9,30 @@ export function useFetchUserData() {
   const [userData, setUserData] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    async function fetchUserData() {
-      try {
-        const userID = await SecureStore.getItemAsync('userStorageID');
-        
-        if (userID) {
-          const response = await axios.get(`${API_URL}/api/statusapi/${userID}`);
-          setUserData(response.data);
-        } else {
-          setError('ID do usuário não encontrado.');
-        }
-      } catch (err) {
-        setError('Erro ao buscar dados do usuário.');
-        console.error(err);
+  async function fetchUserData() {
+    try {
+      const userID = await SecureStore.getItemAsync('userStorageID');
+      
+      if (userID) {
+        const response = await axios.get(`${API_URL}/api/statusapi/${userID}`);
+        setUserData(response.data);
+      } else {
+        setError('ID do usuário não encontrado.');
       }
+    } catch (err) {
+      setError('Erro ao buscar dados do usuário.');
+      console.error(err);
     }
-
-    fetchUserData();
-  }, []);
+  }
+  useEffect(() =>{
+    fetchUserData()
+    const interval = setInterval(() => {
+      fetchUserData()
+    }, 10000)
+    return () => clearInterval(interval);
+    
+  },[]);
+  
 
   return { userData, error };
 }

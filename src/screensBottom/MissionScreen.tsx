@@ -11,6 +11,7 @@ import ModalComponent from '../modal/moreOptions';
 import { useFetchUserData } from '../hooks/useFetchDataUser';
 import { useNavigation } from '@react-navigation/native';
 import { NavigationProps } from '../navigation/types';
+import ModalReward from '../modal/addReward';
 
 interface Reward {
   id: number;
@@ -107,28 +108,14 @@ export default function MissionScreen() {
                 </View>
               )}
             />
-            <View className='flex-1 justify-center items-center'>
-              
-              <Modal
-                animationType="slide"
-                transparent={true}
-                visible={modalVisibleReward}
-                onRequestClose={() => {
-                  Alert.alert('Modal has been closed.');
-                  setModalVisibleReward(!modalVisibleReward);
-              }}>
-                <View>
-                  <Text>21423432324</Text>
-                </View>
-              
+            
+
+            <ModalReward 
+              visible={modalVisibleReward} 
+              onClose={() => setModalVisibleReward(false)} 
+            />
                 
-                <Pressable
-                  onPress={() => setModalVisibleReward(!modalVisibleReward)}>
-                  <Text className='text-white'>Hide Modal</Text>
-                </Pressable>
-                
-              </Modal>
-            </View>
+            
             
             
             <TouchableOpacity 
