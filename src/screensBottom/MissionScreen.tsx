@@ -160,6 +160,7 @@ export default function MissionScreen() {
                   </TouchableOpacity>
 
                   {/* Botão para Excluir Recompensa */}
+                 
                   <TouchableOpacity onPress={() => handleDeleteReward(item.id)}>
                     <Text className='text-red-400 font-vt323'>Excluir Recompensa</Text>
                   </TouchableOpacity>

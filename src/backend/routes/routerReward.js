@@ -67,6 +67,7 @@ router.put('/update/:rewardId', async (req, res) => {
 
 // Rota para deletar recompensa
 router.delete('/delete/:rewardId', async (req, res) => {
+    console.log('22323')
     try {
         const rewardId = req.params.rewardId;
         const reward = await Reward.findByPk(rewardId);
