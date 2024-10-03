@@ -6,38 +6,77 @@ const User = require('../models/user');
 // Criar recompensa
 router.post('/create', async (req, res) => {
     try {
-        const reward = await Reward.create(req.body);
+        // Define o status como "em aberto" se não for fornecido no corpo da requisição
+        const { title, gold, userId, status = 'em aberto' } = req.body;
+
+        const reward = await Reward.create({
+            titulo: title,
+            gold,
+            status,
+            userId: JSON.parse(userId)
+        });
+
         res.status(201).json(reward);
     } catch (error) {
         res.status(400).json({ error: error.message });
     }
 });
 
-// Editar recompensa
-router.put('/edit/:id', async (req, res) => {
+// Buscar todas as recompensas de um determinado usuário
+router.get('/:userId', async (req, res) => {
+    
     try {
-        const reward = await Reward.findByPk(req.params.id);
-        if (!reward) {
-            return res.status(404).json({ error: 'Recompensa não encontrada' });
+        const rewards = await Reward.findAll({
+            where: { userId: req.params.userId },
+            order: [['createdAt', 'DESC']]
+        });
+
+        if (rewards.length === 0) {
+            return res.status(404).json({ error: 'Nenhuma recompensa encontrada para esse usuário.' });
         }
 
-        await reward.update(req.body);
+        res.status(200).json(rewards);
+    } catch (error) {
+        res.status(400).json({ error: error.message });
+    }
+});
+
+// Rota para editar recompensa
+router.put('/update/:rewardId', async (req, res) => {
+    try {
+        const { title, gold, status } = req.body;
+        const rewardId = req.params.rewardId;
+
+        const reward = await Reward.findByPk(rewardId);
+
+        if (!reward) {
+            return res.status(404).json({ error: 'Recompensa não encontrada.' });
+        }
+
+        reward.titulo = title || reward.titulo;
+        reward.gold = gold || reward.gold;
+        reward.status = status || reward.status;
+
+        await reward.save();
+
         res.status(200).json(reward);
     } catch (error) {
         res.status(400).json({ error: error.message });
     }
 });
 
-// Excluir recompensa
-router.delete('/delete/:id', async (req, res) => {
+// Rota para deletar recompensa
+router.delete('/delete/:rewardId', async (req, res) => {
     try {
-        const reward = await Reward.findByPk(req.params.id);
+        const rewardId = req.params.rewardId;
+        const reward = await Reward.findByPk(rewardId);
+
         if (!reward) {
-            return res.status(404).json({ error: 'Recompensa não encontrada' });
+            return res.status(404).json({ error: 'Recompensa não encontrada.' });
         }
 
         await reward.destroy();
-        res.status(200).json({ message: 'Recompensa excluída com sucesso' });
+        res.status(200).json({ message: 'Recompensa deletada com sucesso.' });
     } catch (error) {
         res.status(400).json({ error: error.message });
     }
