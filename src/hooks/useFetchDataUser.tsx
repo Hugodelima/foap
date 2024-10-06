@@ -34,5 +34,5 @@ export function useFetchUserData() {
   },[]);
   
 
-  return { userData, error };
+  return { userData, setUserData, error };
 }

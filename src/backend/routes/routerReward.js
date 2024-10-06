@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const Reward = require('../models/reward');
 const User = require('../models/user');
+const Status = require('../models/status')
 
 // Criar recompensa
 router.post('/create', async (req, res) => {
@@ -24,16 +25,13 @@ router.post('/create', async (req, res) => {
 
 // Buscar todas as recompensas de um determinado usuário
 router.get('/:userId', async (req, res) => {
-    
     try {
         const rewards = await Reward.findAll({
             where: { userId: req.params.userId },
             order: [['createdAt', 'DESC']]
         });
 
-        if (rewards.length === 0) {
-            return res.status(404).json({ error: 'Nenhuma recompensa encontrada para esse usuário.' });
-        }
+        
 
         res.status(200).json(rewards);
     } catch (error) {
@@ -67,7 +65,6 @@ router.put('/update/:rewardId', async (req, res) => {
 
 // Rota para deletar recompensa
 router.delete('/delete/:rewardId', async (req, res) => {
-    console.log('22323')
     try {
         const rewardId = req.params.rewardId;
         const reward = await Reward.findByPk(rewardId);
@@ -87,24 +84,30 @@ router.delete('/delete/:rewardId', async (req, res) => {
 router.post('/buy/:id', async (req, res) => {
     try {
         const reward = await Reward.findByPk(req.params.id);
-        const user = await User.findByPk(req.body.userId); // Assumindo que você passa o ID do usuário no corpo da requisição
+        const status = await Status.findOne({ where: { user_id: req.body.userId } });
 
-        if (!reward || !user) {
-            return res.status(404).json({ error: 'Recompensa ou usuário não encontrado' });
+
+        if (!reward || !status) {
+            return res.status(404).json({ error: 'Recompensa ou status do usuário não encontrado' });
         }
 
-        if (user.ouro < reward.ouro) {
+        if (status.ouro < reward.gold) {
             return res.status(400).json({ error: 'Ouro insuficiente' });
         }
 
-        // Deduz o ouro do usuário
-        user.ouro -= reward.ouro;
-        await user.save();
+        // Deduzindo o ouro do status do usuário
+        status.ouro -= reward.gold;
+        await status.save();
 
-        res.status(200).json({ message: 'Recompensa comprada com sucesso', user });
+        // Atualizando o status da recompensa para comprada
+        reward.status = 'comprada';
+        await reward.save();
+
+        res.status(200).json({ message: 'Recompensa comprada com sucesso', status, reward });
     } catch (error) {
         res.status(400).json({ error: error.message });
     }
 });
+
 
 module.exports = router;

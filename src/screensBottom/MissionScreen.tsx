@@ -12,6 +12,8 @@ import gold_image from '../assets/images/home/gold.png';
 import xp_image from '../assets/images/mission/xp.png';
 import moreOptions_image from '../assets/images/home/more_options.png';
 import * as SecureStore from 'expo-secure-store';
+import filter from '../assets/images/mission/filter.png'
+import ModalFilter from '../hooks/modalFilterReward';
 
 interface Reward {
   id: number;
@@ -35,10 +37,29 @@ export default function MissionScreen() {
   const { userData, setUserData } = useFetchUserData();
   const [rewards, setRewards] = useState<Reward[]>([]);
   const navigation = useNavigation();
+  const [filterModalVisible, setFilterModalVisible] = useState(false); // Controla o modal
+  const [filterStatus, setFilterStatus] = useState<string | null>(null); // 'aberta' ou 'comprada'
+  const filteredRewards = filterStatus
+  ? rewards.filter((reward) => reward.status === filterStatus)
+  : rewards;
 
+  const handleOpenFilterModal = () => {
+    setFilterModalVisible(true);
+  };
+  
   const handleNavigate = (screen: string) => {
     navigation.navigate(screen);
   };
+
+  const handleFilterSelection = (status: string) => {
+    if (status === 'todos') {
+      setFilterStatus(null); // Define como null para mostrar todas as recompensas
+    } else {
+      setFilterStatus(status); // 'em aberto' ou 'comprada'
+    }
+    setFilterModalVisible(false); // Fecha o modal
+  };
+  
   
   const fetchRewards = async () => {
     try {
@@ -60,21 +81,30 @@ export default function MissionScreen() {
     return () => clearInterval(interval);
   }, []);
 
+ 
   const handleBuyReward = async (rewardId: number, goldCost: number) => {
     try {
-      if (userData?.ouro >= goldCost) {
-        const response = await axios.post(`${API_URL}/rewards/buy/${rewardId}`);
-        setUserData({ ...userData, ouro: userData?.ouro - goldCost });
-        Alert.alert('Compra realizada com sucesso!');
-        fetchRewards(); // Atualiza a lista de recompensas após a compra
-      } else {
-        Alert.alert('Saldo insuficiente de ouro!');
-      }
+        const userId = await getUserId(); // Obtém o ID do usuário
+        if (userData?.ouro >= goldCost) {
+            const response = await axios.post(`${API_URL}/api/rewardapi/buy/${rewardId}`, { 
+                userId, // Passa o ID do usuário
+                goldCost // Passa o custo da recompensa
+            });
+            
+            setUserData({ ...userData, ouro: userData?.ouro - goldCost });
+            Alert.alert('Compra realizada com sucesso!');
+            fetchRewards();
+        } else {
+            Alert.alert('Saldo insuficiente de ouro!');
+        }
     } catch (error) {
-      console.error('Erro ao comprar recompensa:', error);
-      Alert.alert('Erro ao comprar recompensa', error.response?.data?.message || 'Erro ao tentar comprar.');
+        console.error('Erro ao comprar recompensa:', error);
+        Alert.alert('Erro ao comprar recompensa', error.response?.data?.message || 'Erro ao tentar comprar.');
     }
   };
+
+
+
 
   const handleCreateReward = () => {
     setModalVisibleReward(true);
@@ -97,7 +127,7 @@ export default function MissionScreen() {
 
   const handleDeleteReward = async (rewardId: number) => {
     try {
-      await axios.delete(`${API_URL}/rewards/delete/${rewardId}`);
+      await axios.delete(`${API_URL}/api/rewardapi/delete/${rewardId}`);
       Alert.alert('Recompensa excluída com sucesso!');
       fetchRewards(); // Atualiza a lista de recompensas após a exclusão
     } catch (error) {
@@ -119,7 +149,10 @@ export default function MissionScreen() {
             <Text className='text-white font-vt323'>{userData?.total_xp}</Text>
           </View>
         </View>
+
         <View className='flex-row gap-4 mb-4'>
+          
+
           <TouchableOpacity onPress={() => setSelectedSection('missao')}>
             <Text className={`text-white font-vt323 p-3 rounded-2xl ${selectedSection === 'missao' ? 'bg-fuchsia-700' : 'bg-transparent'}`}>
               Missões
@@ -133,64 +166,85 @@ export default function MissionScreen() {
         </View>
       </SafeAreaView>
 
+      
+
       <TouchableOpacity className="absolute right-4 top-12" onPress={() => setModalVisibleOption(true)}>
         <Image source={moreOptions_image} className="w-7 h-7" />
       </TouchableOpacity>
 
       <View className='flex-1'>
+        
         {selectedSection === 'recompensa' && (
-          <View className='flex-1'>
-            <FlatList
-              data={rewards}
-              keyExtractor={(item) => item.id.toString()}
-              renderItem={({ item }) => (
-                <View className='p-4 border-b border-neutral-700'>
-                  <Text className='text-white font-vt323'>Titulo: {item.titulo}</Text>
-                  <Text className='text-white font-vt323'>Status: {item.status}</Text>
-                  <Text className='text-white font-vt323'>Ouro: {item.gold}</Text>
+          <>
+            <View className="flex items-end">
+              <TouchableOpacity 
+                className='mt-4 mr-4 w-12 h-12 rounded-full'  
+                onPress={handleOpenFilterModal}>
+                <Image source={filter} style={{width: 50, height: 50}} />
+              </TouchableOpacity>
+            </View>
 
-                  {/* Botão para Comprar Recompensa */}
-                  <TouchableOpacity onPress={() => handleBuyReward(item.id, item.gold)}>
-                    <Text className='text-green-400 font-vt323'>Comprar Recompensa</Text>
-                  </TouchableOpacity>
 
-                  {/* Botão para Editar Recompensa */}
-                  <TouchableOpacity onPress={() => handleEditReward(item)}>
-                    <Text className='text-orange-400 font-vt323'>Editar Recompensa</Text>
-                  </TouchableOpacity>
+            <View className='flex-1'>
+              <FlatList
+                data={filteredRewards}
+                keyExtractor={(item) => item.id.toString()}
+                renderItem={({ item }) => (
+                  <View className='p-4 border-b border-neutral-700'>
+                    <Text className='text-white font-vt323'>Titulo: {item.titulo}</Text>
+                    <Text className='text-white font-vt323'>Status: {item.status}</Text>
+                    <Text className='text-white font-vt323'>Ouro: {item.gold}</Text>
 
-                  {/* Botão para Excluir Recompensa */}
-                 
-                  <TouchableOpacity onPress={() => handleDeleteReward(item.id)}>
-                    <Text className='text-red-400 font-vt323'>Excluir Recompensa</Text>
-                  </TouchableOpacity>
-                </View>
-              )}
-            />
+                    {/* Botão para Comprar Recompensa */}
+                    <TouchableOpacity onPress={() => handleBuyReward(item.id, item.gold)}>
+                      <Text className='text-green-400 font-vt323'>Comprar Recompensa</Text>
+                    </TouchableOpacity>
 
-            {/* Modal de Criação de Recompensa */}
-            <ModalReward
-              visible={modalVisibleReward}
-              onClose={() => setModalVisibleReward(false)}
-              onSave={handleRewardCreated}
-            />
+                    {/* Botão para Editar Recompensa */}
+                    <TouchableOpacity onPress={() => handleEditReward(item)}>
+                      <Text className='text-orange-400 font-vt323'>Editar Recompensa</Text>
+                    </TouchableOpacity>
 
-            {/* Modal de Edição de Recompensa */}
-            <ModalEditReward
-              visible={modalEditVisible}
-              reward={selectedReward} // Passa a recompensa selecionada
-              onClose={() => setModalEditVisible(false)}
-              onSave={handleRewardEdited}
-            />
+                    {/* Botão para Excluir Recompensa */}
+                  
+                    <TouchableOpacity onPress={() => handleDeleteReward(item.id)}>
+                      <Text className='text-red-400 font-vt323'>Excluir Recompensa</Text>
+                    </TouchableOpacity>
+                  </View>
+                )}
+              />
 
-            <TouchableOpacity className='bg-cyan-500 rounded-full p-3 absolute bottom-4 right-5 left-5' onPress={handleCreateReward}>
-              <Text className='text-white text-center font-vt323'>Criar Nova Recompensa</Text>
-            </TouchableOpacity>
-          </View>
+              {/* Modal de Criação de Recompensa */}
+              <ModalReward
+                visible={modalVisibleReward}
+                onClose={() => setModalVisibleReward(false)}
+                onSave={handleRewardCreated}
+              />
+
+              {/* Modal de Edição de Recompensa */}
+              <ModalEditReward
+                visible={modalEditVisible}
+                reward={selectedReward} // Passa a recompensa selecionada
+                onClose={() => setModalEditVisible(false)}
+                onSave={handleRewardEdited}
+              />
+
+              <TouchableOpacity className='bg-cyan-500 rounded-full p-3 absolute bottom-4 right-5 left-5' onPress={handleCreateReward}>
+                <Text className='text-white text-center font-vt323'>Criar Nova Recompensa</Text>
+              </TouchableOpacity>
+            </View>
+          </>
         )}
       </View>
 
       <ModalComponent visible={modalVisibleOption} onClose={() => setModalVisibleOption(false)} onNavigate={handleNavigate} />
+      <ModalFilter
+        visible={filterModalVisible}
+        onClose={() => setFilterModalVisible(false)} // Fecha o modal
+        onFilter={handleFilterSelection} // Função chamada quando uma opção é selecionada
+      />
+      
+
     </View>
   );
 }
