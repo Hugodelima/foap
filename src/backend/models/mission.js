@@ -6,43 +6,44 @@ const Mission = sequelize.define('Mission', {
         type: DataTypes.STRING,
         allowNull: false
     },
-    status: {
-        type: DataTypes.STRING,
+    rank: {
+        type: DataTypes.ENUM('F', 'E', 'D', 'C', 'B', 'A', 'S', 'SS', 'SSS', 'SSS+'),
         allowNull: false
     },
     prazo: {
         type: DataTypes.DATE,
         allowNull: false
     },
-    penalidadeId: {
-        type: DataTypes.INTEGER,
-        references: {
-            model: 'Penalties',
-            key: 'id'
-        }
-    },
-    recompensaId: {
-        type: DataTypes.INTEGER,
-        references: {
-            model: 'Rewards',
-            key: 'id'
-        }
-    },
-    rank: {
-        type: DataTypes.ENUM('F', 'E', 'D', 'C', 'B', 'A', 'S', 'SS', 'SSS', 'SSS+'),
-        allowNull: false
-    },
     dificuldade: {
         type: DataTypes.ENUM('Fácil', 'Médio', 'Difícil', 'Absurdo'),
         allowNull: false
     },
-    repeticao: {
-        type: DataTypes.STRING,
+    recompensaXp: {
+        type: DataTypes.INTEGER,
         allowNull: false
+    },
+    recompensaOuro: {
+        type: DataTypes.INTEGER,
+        allowNull: false
+    },
+    recompensaPd: {
+        type: DataTypes.INTEGER,
+        allowNull: false
+    },
+    status: {
+        type: DataTypes.ENUM('Finalizada', 'Em progresso', 'Não finalizada'),
+        allowNull: false,
+        defaultValue: 'Não finalizada'
+    },
+    penalidadeId: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+        references: {
+            model: 'Penalties',
+            key: 'id'
+        }
     }
 }, {
     tableName: 'Missions',
     timestamps: true
 });
-
-module.exports = Mission;

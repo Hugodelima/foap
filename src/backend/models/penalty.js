@@ -7,23 +7,35 @@ const Penalty = sequelize.define('Penalty', {
         allowNull: false
     },
     status: {
-        type: DataTypes.STRING,
-        allowNull: false
+        type: DataTypes.ENUM('Não feita', 'Em progresso', 'Superada', 'Missão feita'),
+        allowNull: false,
+        defaultValue: 'Não feita'
     },
-    missaoId: {
+    perdaOuro: {
         type: DataTypes.INTEGER,
-        references: {
-            model: 'Missions', // Nome da tabela associada
-            key: 'id'
-        }
+        allowNull: false,
+        defaultValue: 500
+    },
+    perdaXp: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+        defaultValue: 250
     },
     dificuldade: {
-        type: DataTypes.STRING,
+        type: DataTypes.ENUM('Fácil', 'Médio', 'Difícil', 'Absurdo'),
         allowNull: false
     },
     rank: {
-        type: DataTypes.STRING,
+        type: DataTypes.ENUM('F', 'E', 'D', 'C', 'B', 'A', 'S', 'SS', 'SSS', 'SSS+'),
         allowNull: false
+    },
+    user_id: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+        references: {
+            model: 'Users', // Nome da tabela Users
+            key: 'id'
+        }
     }
 }, {
     tableName: 'Penalties',

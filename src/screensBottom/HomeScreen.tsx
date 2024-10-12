@@ -34,8 +34,8 @@ export default function HomeScreen(){
         />
         <View>
           <View className="flex-row items-center mb-2">
-            <Image source={rank_image} className="w-9 h-8" />
-            <Text className="text-white font-vt323 ml-2">Rank: {userData?.rank}</Text>
+            <Image source={rank_image} className="w-8 h-7" />
+            <Text className="text-white font-vt323">Rank: {userData?.rank}</Text>
           </View>
           <View className="flex-row items-center mb-2">
             <Image source={nivel_image} className="w-7 h-7 mr-1" />

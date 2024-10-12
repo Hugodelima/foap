@@ -39,7 +39,7 @@ export default function ModalEditReward({ visible, onClose, onSave, reward }: Mo
         } else {
           Alert.alert('Erro', 'Usuário não encontrado. Por favor, faça login novamente.');
         }
-      } catch (error) {
+      } catch (error : any) {
         console.error('Erro ao editar recompensa:', error);
         Alert.alert('Erro ao editar recompensa', error.response?.data?.message || 'Erro desconhecido.');
       }
