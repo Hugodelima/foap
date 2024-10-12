@@ -18,7 +18,7 @@ export default function ModalFilterPenalty({ visible, onClose, onFilter }: Modal
             <Text className='font-bold text-center text-white'>Somente Não Feitas</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity onPress={() => onFilter('em_progresso')} className='py-3 bg-blue-400 rounded-xl mb-4'>
+          <TouchableOpacity onPress={() => onFilter('Em progresso')} className='py-3 bg-blue-400 rounded-xl mb-4'>
             <Text className='font-bold text-center text-white'>Somente Em Progresso</Text>
           </TouchableOpacity>
 
@@ -30,7 +30,7 @@ export default function ModalFilterPenalty({ visible, onClose, onFilter }: Modal
             <Text className='font-bold text-center text-white'>Somente Missões Feitas</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity onPress={() => onFilter('todas')} className='py-3 bg-gray-600 rounded-xl mb-4'>
+          <TouchableOpacity onPress={() => onFilter('todos')} className='py-3 bg-gray-600 rounded-xl mb-4'>
             <Text className='font-bold text-center text-white'>Todas</Text>
           </TouchableOpacity>
 

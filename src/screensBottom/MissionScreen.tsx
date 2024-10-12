@@ -61,7 +61,15 @@ export default function MissionScreen() {
   const [modalVisiblePenalty, setModalVisiblePenalty] = useState(false);
   const [selectedPenalty, setSelectedPenalty] = useState<Penalty | null>(null);
   const [filterModalVisiblePenalty, setFilterModalVisiblePenalty] = useState(false);
-  const [filterStatusPenalty, setFilterStatusPenalty] = useState<string>('em aberto'); // 'aberta' ou 'concluída'
+  const [filterPenaltyStatus, setFilterPenaltyStatus] = useState<string | null>(''); 
+  const [penaltyModalVisible, setPenaltyModalVisible] = useState(false);
+  const filteredPenalties = filterPenaltyStatus
+  ? penalties.filter((penalty) => penalty.status === filterPenaltyStatus)
+  : penalties;
+
+  console.log('rewad: '+filterStatus)
+  console.log('penaltu: '+filterPenaltyStatus);
+  
 
   const handleOpenPenaltyFilterModal = () => {
     setFilterModalVisiblePenalty(true);
@@ -71,6 +79,11 @@ export default function MissionScreen() {
     setFilterStatus(status); // Atualiza o status do filtro
     setFilterModalVisible(false); // Fecha o modal após a seleção
   };
+  const handlePenaltyFilterSelection = (status: string) => {
+    setFilterPenaltyStatus(status); // Atualiza o status do filtro de penalidades
+    setFilterModalVisiblePenalty(false); // Fecha o modal após a seleção
+};
+
 
   const handleOpenFilterModal = () => {
     setFilterModalVisible(true);
@@ -237,7 +250,7 @@ export default function MissionScreen() {
               </View>
               
               <FlatList
-                data={penalties}
+                data={filteredPenalties}
                 keyExtractor={(item) => item.id.toString()}
                 renderItem={({ item }) => (
                   <View className='p-4 border-b border-neutral-700'>
@@ -356,7 +369,7 @@ export default function MissionScreen() {
       <ModalFilterPenalty
         visible={filterModalVisiblePenalty}
         onClose={() => setFilterModalVisiblePenalty(false)}
-        onFilter={handleFilterSelection}
+        onFilter={handlePenaltyFilterSelection}
       />
 
       <ModalPenalty
