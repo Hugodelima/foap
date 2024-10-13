@@ -66,9 +66,6 @@ export default function MissionScreen() {
   const filteredPenalties = filterPenaltyStatus
   ? penalties.filter((penalty) => penalty.status === filterPenaltyStatus)
   : penalties;
-
-  console.log('rewad: '+filterStatus)
-  console.log('penaltu: '+filterPenaltyStatus);
   
 
   const handleOpenPenaltyFilterModal = () => {
@@ -76,13 +73,15 @@ export default function MissionScreen() {
   };
 
   const handleFilterSelection = (status: string) => {
-    setFilterStatus(status); // Atualiza o status do filtro
+    setFilterStatus(status === 'todos' ? '' : status); // Define como vazio se for "todos"
     setFilterModalVisible(false); // Fecha o modal após a seleção
   };
+  
   const handlePenaltyFilterSelection = (status: string) => {
-    setFilterPenaltyStatus(status); // Atualiza o status do filtro de penalidades
+    setFilterPenaltyStatus(status === 'todos' ? '' : status); // Define como vazio se for "todos"
     setFilterModalVisiblePenalty(false); // Fecha o modal após a seleção
-};
+  };
+  
 
 
   const handleOpenFilterModal = () => {

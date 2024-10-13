@@ -85,7 +85,7 @@ router.post('/create', async (req, res) => {
 router.get('/:userId', async (req, res) => {
     const { userId } = req.params;
 
-    console.log('Buscando penalidades para o userId:', userId);
+   
 
     try {
         // Busca as penalidades que pertencem ao usuário
@@ -99,7 +99,7 @@ router.get('/:userId', async (req, res) => {
             return res.status(404).json({ message: 'Nenhuma penalidade encontrada para este usuário.' });
         }
 
-        console.log('Penalidades encontradas:', penalties);
+       
         res.status(200).json(penalties);
     } catch (error) {
         console.error('Erro ao buscar penalidades:', error);
