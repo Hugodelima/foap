@@ -14,10 +14,11 @@ import moreOptions_image from '../assets/images/home/more_options.png';
 import * as SecureStore from 'expo-secure-store';
 import filter from '../assets/images/mission/filter.png'
 import ModalFilter from '../hooks/modalFilterReward';
-import { PencilIcon, TrashIcon, ShoppingCartIcon } from 'react-native-heroicons/outline';
+import { PencilIcon, TrashIcon, ShoppingCartIcon, CheckIcon } from 'react-native-heroicons/outline';
 import ModalPenalty from '../modal/addPenalty'
 import { NavigationProps } from '../navigation/types';
 import ModalFilterPenalty from '../hooks/modalFilterPenalty';
+import EditPenaltyModal from '../modal/editPenalty';
 
 interface Reward {
   id: number;
@@ -32,6 +33,8 @@ interface Penalty {
   status: string;
   dificuldade: string;
   rank: string;
+  perdaOuro: number;
+  perdaXp: number;
 }
 
 
@@ -45,6 +48,7 @@ export default function MissionScreen() {
   const [modalVisibleOption, setModalVisibleOption] = useState(false);
   const [modalVisibleReward, setModalVisibleReward] = useState(false);
   const [modalEditVisible, setModalEditVisible] = useState(false); // Modal para editar
+  const [modalVisibleEditPenalty, setModalVisibleEditPenalty] = useState(false)
   const [selectedReward, setSelectedReward] = useState<Reward | null>(null); // Armazena a recompensa selecionada
   const [selectedSection, setSelectedSection] = useState<string>('missao');
   const { userData, setUserData } = useFetchUserData();
@@ -179,6 +183,17 @@ export default function MissionScreen() {
     setModalEditVisible(false);
     fetchRewards(); // Atualiza as recompensas após a edição
   };
+  const handlePenaltyEdited = () => {
+    setModalVisibleEditPenalty(false);
+    fetchPenalties(); // Atualiza as recompensas após a edição
+  };
+
+
+  const handleEditPenalty = (penalty: Penalty) => {
+    setSelectedPenalty(penalty)
+    setModalVisibleEditPenalty(true)
+  };
+  
 
   const handleDeleteReward = async (rewardId: number) => {
     try {
@@ -190,6 +205,17 @@ export default function MissionScreen() {
       Alert.alert('Erro ao excluir recompensa', error.response?.data?.message || 'Erro ao tentar excluir.');
     }
   };
+  const handleDeletePenalty = async (penaltyId: number) => {
+    try {
+      await axios.delete(`${API_URL}/api/penaltyapi/delete/${penaltyId}`);
+      Alert.alert('Penalidade excluída com sucesso!');
+      fetchPenalties(); // Atualiza a lista de penalidades após a exclusão
+    } catch (error: any) {
+      console.error('Erro ao excluir penalidade:', error);
+      Alert.alert('Erro ao excluir penalidade', error.response?.data?.message || 'Erro ao tentar excluir.');
+    }
+  };
+
 
   return (
     <View style={{ flex: 1, backgroundColor: '#1C1C1E' }}>
@@ -247,31 +273,55 @@ export default function MissionScreen() {
                   <Image source={filter} style={{width: 50, height: 50}} />
                 </TouchableOpacity>
               </View>
-              
               <FlatList
                 data={filteredPenalties}
                 keyExtractor={(item) => item.id.toString()}
                 renderItem={({ item }) => (
-                  <View className='p-4 border-b border-neutral-700'>
-                    <Text className='text-white font-vt323'>Titulo: {item.titulo}</Text>
-                    <Text className='text-white font-vt323'>Status: {item.status}</Text>
-                    <Text className='text-white font-vt323'>Dificuldade: {item.dificuldade}</Text>
-                    <Text className='text-white font-vt323'>Rank: {item.rank}</Text>
+                  <View className="p-4 border-b border-neutral-700">
+                    <Text className="text-white font-vt323">Título: {item.titulo}</Text>
+                    <Text className="text-white font-vt323">Status: {item.status}</Text>
+                    <Text className="text-white font-vt323">Dificuldade: {item.dificuldade}</Text>
+                    <Text className="text-white font-vt323">Rank: {item.rank}</Text>
+                    <Text className="text-white font-vt323 mb-4">
+                      Penalidades: {item.perdaOuro}
+                      <Image source={gold_image} style={{ width: 30, height: 30}} /> {item.perdaXp}
+                      <Image source={xp_image} style={{ width: 30, height: 30}} />
+                    </Text>
 
-                    <View className='flex-row justify-between mt-2 mb-2'>
+                    <View className="flex-row justify-between mt-2 mb-2">
                       {/* Botão para Editar Penalidade */}
-                      <TouchableOpacity onPress={() => handleEditPenalty(item)} className='mr-4'>
+                      <TouchableOpacity onPress={() => handleEditPenalty(item)} className="mr-4">
                         <PencilIcon size={30} color="orange" />
                       </TouchableOpacity>
 
                       {/* Botão para Excluir Penalidade */}
-                      <TouchableOpacity onPress={() => handleDeletePenalty(item.id)}>
+                      <TouchableOpacity onPress={() => handleDeletePenalty(item.id)} className="mr-4">
                         <TrashIcon size={30} color="red" />
                       </TouchableOpacity>
+
+                      {/* Botão para Superar Penalidade se o status for 'Não Feita' */}
+                      {item.status === 'Não Feita' && (
+                        <TouchableOpacity onPress={() => handleOvercomePenalty(item.id)}>
+                          <CheckIcon size={30} color="green" />
+                        </TouchableOpacity>
+                      )}
                     </View>
                   </View>
                 )}
               />
+
+              <EditPenaltyModal
+                visible={modalVisibleEditPenalty}
+                penalty={selectedPenalty}
+                onClose={() => setModalVisibleEditPenalty(false)}
+                onSave={handlePenaltyEdited}
+              />
+              
+
+              
+
+              
+    
 
               <TouchableOpacity className='bg-cyan-500 rounded-full p-3 absolute bottom-4 right-5 left-5' onPress={handleCreatePenalty}>
                 <Text className='text-white text-center font-vt323'>Criar Nova Penalidade</Text>

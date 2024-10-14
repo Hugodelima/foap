@@ -14,12 +14,10 @@ const Penalty = sequelize.define('Penalty', {
     perdaOuro: {
         type: DataTypes.INTEGER,
         allowNull: false,
-        defaultValue: 500
     },
     perdaXp: {
         type: DataTypes.INTEGER,
         allowNull: false,
-        defaultValue: 250
     },
     dificuldade: {
         type: DataTypes.ENUM('Fácil', 'Médio', 'Difícil', 'Absurdo'),
