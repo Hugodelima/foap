@@ -47,3 +47,5 @@ const Mission = sequelize.define('Mission', {
     tableName: 'Missions',
     timestamps: true
 });
+
+module.exports = Mission;

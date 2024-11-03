@@ -19,6 +19,9 @@ import ModalPenalty from '../modal/addPenalty'
 import { NavigationProps } from '../navigation/types';
 import ModalFilterPenalty from '../hooks/modalFilterPenalty';
 import EditPenaltyModal from '../modal/editPenalty';
+import MissionFilterModal from '../modal/handleOpenMissionFilterModal';
+import ModalMission from '../modal/addMission';
+
 
 interface Reward {
   id: number;
@@ -35,6 +38,19 @@ interface Penalty {
   rank: string;
   perdaOuro: number;
   perdaXp: number;
+}
+
+interface Mission{
+  id: number;
+  titulo: string;
+  rank: string;
+  prazo: Date;
+  dificuldade: string;
+  recompensaXp: number;
+  recompensaOuro: number;
+  recompensaPd: number;
+  status: string;
+  penalidadeId: number;
 }
 
 
@@ -70,6 +86,8 @@ export default function MissionScreen() {
   const filteredPenalties = filterPenaltyStatus
   ? penalties.filter((penalty) => penalty.status === filterPenaltyStatus)
   : penalties;
+
+  const [modalVisibleMission, setModalVisibleMission] = useState(false);
   
 
   const handleOpenPenaltyFilterModal = () => {
@@ -118,20 +136,81 @@ export default function MissionScreen() {
       console.error('Erro ao buscar penalidades:', error);
     }
   };
+
+  const fetchMissions = async () => {
+    try {
+      const userId = await getUserId();
+      const response = await axios.get(`${API_URL}/api/missionapi/${userId}`);
+      setMissions(response.data);
+    } catch (error) {
+      console.error('Erro ao buscar missões:', error);
+    }
+  };
+  
   
 
   useEffect(() => {
     fetchRewards();
     fetchPenalties();
+    fetchMissions(); // Adicionado para carregar missões
     const interval = setInterval(() => {
       fetchRewards();
       fetchPenalties();
+      fetchMissions(); // Atualiza periodicamente as missões
     }, 10000);
-
+  
     return () => clearInterval(interval);
   }, []);
+  
 
- 
+  
+
+// Adicione o estado do modal de filtro
+const [filterModalVisibleMission, setFilterModalVisibleMission] = useState(false);
+const [filterMissionStatus, setFilterMissionStatus] = useState<string | null>(null);
+
+// Função para abrir o modal de filtro de missões
+const handleOpenMissionFilterModal = () => {
+  setFilterModalVisibleMission(true);
+};
+
+// Função para selecionar o status do filtro
+const handleMissionFilterSelection = (status: string) => {
+  setFilterMissionStatus(status === 'todos' ? null : status);
+  setFilterModalVisibleMission(false);
+};
+const [missions, setMissions] = useState<Penalty[]>([]);
+// Filtra as missões com base no status selecionado
+const filteredMissions = filterMissionStatus ? missions.filter((mission) => mission.status === filterMissionStatus) : missions;
+
+const handleCreateMission = () => {
+  setModalVisibleMission(true)
+};
+
+const handleMissionCreated = () => {
+  setModalVisibleMission(false);
+  fetchMissions(); // Atualiza a lista de missões após a criação
+};
+const handleEditMission = (mission: Mission) => {
+  setSelectedMission(mission);
+  setModalEditVisibleMission(true); // abre o modal de edição de missão (caso tenha)
+};
+
+const handleMissionEdited = () => {
+  setModalEditVisibleMission(false);
+  fetchMissions(); // Atualiza a lista de missões após a edição
+};
+const handleDeleteMission = async (missionId: number) => {
+  try {
+    await axios.delete(`${API_URL}/api/missionapi/delete/${missionId}`);
+    Alert.alert('Missão excluída com sucesso!');
+    fetchMissions(); // Atualiza a lista de missões após a exclusão
+  } catch (error: any) {
+    console.error('Erro ao excluir missão:', error);
+    Alert.alert('Erro ao excluir missão', error.response?.data?.message || 'Erro ao tentar excluir.');
+  }
+};
+
   const handleBuyReward = async (rewardId: number, goldCost: number) => {
     try {
         const userId = await getUserId(); // Obtém o ID do usuário
@@ -261,8 +340,64 @@ export default function MissionScreen() {
       <View className='flex-1'>
         {selectedSection === 'missao' && (
           <>
+            <View className='flex-1'>
+              <View className="flex items-end">
+                <TouchableOpacity 
+                  className='mt-4 mr-4 w-12 h-12 rounded-full'  
+                  onPress={handleOpenMissionFilterModal}>
+                  <Image source={filter} style={{ width: 50, height: 50 }} />
+                </TouchableOpacity>
+              </View>
+              <FlatList
+                data={filteredMissions} // Aqui você vai usar a lista de missões filtradas
+                keyExtractor={(item) => item.id.toString()}
+                renderItem={({ item }) => (
+                  <View className="p-4 border-b border-neutral-700">
+                    <Text className="text-white font-vt323">Título: {item.titulo}</Text>
+                    <Text className="text-white font-vt323">Status: {item.status}</Text>
+                    <Text className="text-white font-vt323">Dificuldade: {item.dificuldade}</Text>
+                    <Text className="text-white font-vt323">Rank: {item.rank}</Text>
+                    <Text className="text-white font-vt323 mb-4">
+                      Recompensas: {item.recompensaXP} XP, {item.recompensaOuro} Ouro
+                    </Text>
+
+                    <View className="flex-row justify-between mt-2 mb-2">
+                      {/* Botão para Editar Missão */}
+                      <TouchableOpacity onPress={() => handleEditMission(item)} className="mr-4">
+                        <PencilIcon size={30} color="orange" />
+                      </TouchableOpacity>
+
+                      {/* Botão para Excluir Missão */}
+                      <TouchableOpacity onPress={() => handleDeleteMission(item.id)} className="mr-4">
+                        <TrashIcon size={30} color="red" />
+                      </TouchableOpacity>
+
+                      {/* Botão para Marcar como Feito se o status não for 'Finalizada' */}
+                      {item.status !== 'Finalizada' && (
+                        <TouchableOpacity onPress={() => handleCompleteMission(item.id)}>
+                          <CheckIcon size={30} color="green" />
+                        </TouchableOpacity>
+                      )}
+                    </View>
+                  </View>
+                )}
+              />
+
+              {/*<EditMissionModal
+                visible={modalVisibleEditMission}
+                mission={selectedMission}
+                onClose={() => setModalVisibleEditMission(false)}
+                onSave={handleMissionEdited}
+              /> */}
+
+              <TouchableOpacity className='bg-cyan-500 rounded-full p-3 absolute bottom-4 right-5 left-5' onPress={handleCreateMission}>
+                <Text className='text-white text-center font-vt323'>Criar Nova Missão</Text>
+              </TouchableOpacity>
+            </View>
           </>
         )}
+
+        
         {selectedSection === 'penalidade' && (
           <>
             <View className='flex-1'>
@@ -427,6 +562,17 @@ export default function MissionScreen() {
         onSave={handlePenaltyCreated} // Função que deve ser implementada para criar a penalidade
       />
 
+      <ModalMission
+        visible={modalVisibleMission}
+        onClose={() => setModalVisibleMission(false)}
+        onSave={handleMissionCreated}
+      />
+
+      <MissionFilterModal
+        visible={filterModalVisibleMission}
+        onClose={() => setFilterModalVisibleMission(false)}
+        onSelectStatus={handleMissionFilterSelection}
+      />
     </View>
   );
 }
