@@ -14,20 +14,28 @@ export default function ModalFilterPenalty({ visible, onClose, onFilter }: Modal
         <Pressable className="w-90 bg-neutral-800 p-6 rounded-xl" onPress={() => {}}>
           <Text className="text-white text-2xl font-semibold mb-6">Filtrar Penalidades</Text>
 
-          <TouchableOpacity onPress={() => onFilter('não_feita')} className='py-3 bg-yellow-400 rounded-xl mb-4'>
-            <Text className='font-bold text-center text-white'>Somente Não Feitas</Text>
+          <TouchableOpacity onPress={() => onFilter('Não Vinculada')} className='py-3 bg-yellow-400 rounded-xl mb-4'>
+            <Text className='font-bold text-center text-white'>Somente Não Vinculadas</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity onPress={() => onFilter('Em progresso')} className='py-3 bg-blue-400 rounded-xl mb-4'>
-            <Text className='font-bold text-center text-white'>Somente Em Progresso</Text>
+          <TouchableOpacity onPress={() => onFilter('Pendente')} className='py-3 bg-orange-400 rounded-xl mb-4'>
+            <Text className='font-bold text-center text-white'>Somente Pendentes</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity onPress={() => onFilter('superada')} className='py-3 bg-green-400 rounded-xl mb-4'>
+          <TouchableOpacity onPress={() => onFilter('Ativa')} className='py-3 bg-red-400 rounded-xl mb-4'>
+            <Text className='font-bold text-center text-white'>Somente Ativas</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity onPress={() => onFilter('Em Resolução')} className='py-3 bg-blue-400 rounded-xl mb-4'>
+            <Text className='font-bold text-center text-white'>Somente Em Resolução</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity onPress={() => onFilter('Superada')} className='py-3 bg-green-400 rounded-xl mb-4'>
             <Text className='font-bold text-center text-white'>Somente Superadas</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity onPress={() => onFilter('missao_feita')} className='py-3 bg-gray-400 rounded-xl mb-4'>
-            <Text className='font-bold text-center text-white'>Somente Missões Feitas</Text>
+          <TouchableOpacity onPress={() => onFilter('Missão Completa')} className='py-3 bg-gray-400 rounded-xl mb-4'>
+            <Text className='font-bold text-center text-white'>Somente Missões Completas</Text>
           </TouchableOpacity>
 
           <TouchableOpacity onPress={() => onFilter('todos')} className='py-3 bg-gray-600 rounded-xl mb-4'>

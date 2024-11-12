@@ -197,5 +197,22 @@ router.put('/update/:id', async (req, res) => {
     }
 });
 
+router.get('/all/:id', async (req, res) => {
+    console.log('dfffdg');
+    const {id} = req.params
+    console.log('id do banco: ', id);
+    
+    try {
+        // Busca todas as penalidades
+        const penalties = await Penalty.findAll({where: {
+            user_id:id 
+        }});
+
+        res.status(200).json({ penalties });
+    } catch (error) {
+        console.error('Erro ao buscar penalidades:', error);
+        res.status(500).json({ error: 'Erro ao buscar penalidades.' });
+    }
+});
 
 module.exports = router;

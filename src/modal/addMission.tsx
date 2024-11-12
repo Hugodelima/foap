@@ -1,9 +1,16 @@
-import React, { useState } from 'react';
-import { Modal, Pressable, View, Text, TouchableOpacity, TextInput, Alert, ScrollView } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { Modal, Pressable, View, Text, TouchableOpacity, TextInput, Alert, ScrollView, FlatList } from 'react-native';
 import axios from 'axios';
 import { API_URL } from '@env';
 import * as SecureStore from 'expo-secure-store';
-import { Picker } from '@react-native-picker/picker';
+import DateTimePicker from '@react-native-community/datetimepicker';
+import moment from 'moment';
+import {Picker} from '@react-native-picker/picker';
+
+interface Penalty {
+  id: string;
+  titulo: string;
+}
 
 interface ModalComponentProps {
   visible: boolean;
@@ -15,35 +22,51 @@ export default function ModalMission({ visible, onClose, onSave }: ModalComponen
   const [title, setTitle] = useState('');
   const [difficulty, setDifficulty] = useState('Fácil');
   const [rank, setRank] = useState('F');
-  const [xpReward, setXpReward] = useState('');
-  const [goldReward, setGoldReward] = useState('');
-  const [pdReward, setPdReward] = useState('');
-  const [deadline, setDeadline] = useState('');
+  const [deadline, setDeadline] = useState(new Date());
+  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [penalties, setPenalties] = useState<Penalty[]>([]);
+  const [selectedPenalties, setSelectedPenalties] = useState<string[]>([]);
+
+  useEffect(() => {
+    if (visible) {
+      const fetchPenalties = async () => {
+        try {
+          const userID = await SecureStore.getItemAsync('userStorageID');
+          const response = await axios.get(`${API_URL}/api/penaltyapi/all/${userID}`);
+          setPenalties(response.data.penalties);
+        } catch (error) {
+          console.error('Erro ao buscar penalidades:', error);
+          Alert.alert('Erro', 'Não foi possível carregar as penalidades.');
+        }
+      };
+      fetchPenalties();
+    }
+  }, [visible]);
+
+  const togglePenaltySelection = (penaltyId: string) => {
+    setSelectedPenalties((prevSelected) =>
+      prevSelected.includes(penaltyId)
+        ? prevSelected.filter((id) => id !== penaltyId)
+        : [...prevSelected, penaltyId]
+    );
+  };
 
   const handleCreateMission = async () => {
-    if (title && difficulty && rank && xpReward && goldReward && pdReward && deadline) {
+    if (title && difficulty && rank && selectedPenalties.length > 0) {
       try {
         const userID = await SecureStore.getItemAsync('userStorageID');
-      
         if (userID) {
           const response = await axios.post(`${API_URL}/api/missionapi/create`, {
             titulo: title,
             rank,
-            prazo: deadline,
+            prazo: moment(deadline).format('DD-MM-YYYY'),
             dificuldade: difficulty,
-            recompensa: {
-              xp: parseInt(xpReward),
-              ouro: parseInt(goldReward),
-              pd: parseInt(pdReward),
-            },
-            status: 'Em progresso', 
+            penalidadeIds: selectedPenalties,
             userId: JSON.parse(userID),
           });
 
           const { message } = response.data;
-
           Alert.alert('Missão Criada', message);
-
           onSave();
           onClose();
         } else {
@@ -54,7 +77,11 @@ export default function ModalMission({ visible, onClose, onSave }: ModalComponen
         Alert.alert('Erro ao criar missão', error.response?.data?.message || 'Erro desconhecido.');
       }
     } else {
-      Alert.alert('Erro', 'Por favor, preencha todos os campos.');
+      if (selectedPenalties.length === 0) {
+        Alert.alert('Erro', 'Nenhuma penalidade selecionada. Por favor, selecione pelo menos uma penalidade.');
+      } else {
+        Alert.alert('Erro', 'Por favor, preencha todos os campos.');
+      }
     }
   };
 
@@ -64,14 +91,13 @@ export default function ModalMission({ visible, onClose, onSave }: ModalComponen
         <Pressable className="w-90 bg-neutral-800 p-6 rounded-xl" onPress={() => {}}>
           <ScrollView>
             <Text className="text-white text-2xl font-semibold mb-6">Adicionar Nova Missão</Text>
-
             <Text className="text-white mb-1 text-xl">Título</Text>
             <TextInput
-              className='p-4 bg-gray-100 text-gray-700 rounded-2xl mb-3'
+              className="p-4 bg-gray-100 text-gray-700 rounded-2xl mb-3"
               value={title}
               onChangeText={setTitle}
               placeholder="Digite o título"
-              keyboardType='default'
+              keyboardType="default"
             />
 
             <Text className="text-white mb-1 text-xl">Dificuldade</Text>
@@ -100,44 +126,46 @@ export default function ModalMission({ visible, onClose, onSave }: ModalComponen
               </Picker>
             </View>
 
-            <Text className="text-white mb-1 text-xl">Recompensa (XP)</Text>
-            <TextInput
-              className='p-4 bg-gray-100 text-gray-700 rounded-2xl mb-3'
-              value={xpReward}
-              onChangeText={setXpReward}
-              placeholder="XP"
-              keyboardType='numeric'
-            />
-
-            <Text className="text-white mb-1 text-xl">Recompensa (Ouro)</Text>
-            <TextInput
-              className='p-4 bg-gray-100 text-gray-700 rounded-2xl mb-3'
-              value={goldReward}
-              onChangeText={setGoldReward}
-              placeholder="Ouro"
-              keyboardType='numeric'
-            />
-
-            <Text className="text-white mb-1 text-xl">Recompensa (PD)</Text>
-            <TextInput
-              className='p-4 bg-gray-100 text-gray-700 rounded-2xl mb-3'
-              value={pdReward}
-              onChangeText={setPdReward}
-              placeholder="PD"
-              keyboardType='numeric'
-            />
-
             <Text className="text-white mb-1 text-xl">Prazo</Text>
-            <TextInput
-              className='p-4 bg-gray-100 text-gray-700 rounded-2xl mb-3'
-              value={deadline}
-              onChangeText={setDeadline}
-              placeholder="Prazo (AAAA-MM-DD)"
-              keyboardType='default'
+            <TouchableOpacity onPress={() => setShowDatePicker(true)}>
+              <TextInput
+                className="p-4 bg-gray-100 text-gray-700 rounded-2xl mb-3"
+                value={moment(deadline).format('DD-MM-YYYY')}
+                editable={false}
+              />
+            </TouchableOpacity>
+
+            {showDatePicker && (
+              <DateTimePicker
+                value={deadline}
+                mode="date"
+                display="default"
+                onChange={(event, selectedDate) => {
+                  setShowDatePicker(false);
+                  if (selectedDate) {
+                    setDeadline(selectedDate);
+                  }
+                }}
+              />
+            )}
+
+            <Text className="text-white mb-1 text-xl">Penalidades</Text>
+            <FlatList
+              data={penalties}
+              keyExtractor={(item) => item.id}
+              renderItem={({ item }) => (
+                <TouchableOpacity onPress={() => togglePenaltySelection(item.id)} className="flex-row items-center p-2">
+                  <Text className="text-white">{item.titulo}</Text>
+                  <Text className="ml-auto text-white">
+                    {selectedPenalties.includes(item.id) ? '✓' : ''}
+                  </Text>
+                </TouchableOpacity>
+              )}
+              ListEmptyComponent={<Text className="text-gray-400">Nenhuma penalidade disponível</Text>}
             />
 
-            <TouchableOpacity onPress={handleCreateMission} className='py-3 bg-yellow-400 rounded-xl'>
-              <Text className='font-bold text-center text-gray-700'>Salvar</Text>
+            <TouchableOpacity onPress={handleCreateMission} className="py-3 bg-yellow-400 rounded-xl mt-4">
+              <Text className="font-bold text-center text-gray-700">Salvar</Text>
             </TouchableOpacity>
 
             <TouchableOpacity onPress={onClose}>

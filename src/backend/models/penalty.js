@@ -34,7 +34,7 @@ const Penalty = sequelize.define('Penalty', {
             model: 'Users', // Nome da tabela Users
             key: 'id'
         }
-    }
+    },
 }, {
     tableName: 'Penalties',
     timestamps: true
