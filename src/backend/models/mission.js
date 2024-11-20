@@ -1,6 +1,6 @@
 const { DataTypes } = require('sequelize');
 const sequelize = require('./database');
-const Penalty = require('./penalty');  // Importa o modelo Penalty corretamente
+const Penalty = require('./penalty');  
 
 const Mission = sequelize.define('Mission', {
   titulo: {
@@ -36,11 +36,19 @@ const Mission = sequelize.define('Mission', {
     allowNull: false,
     defaultValue: 'Não finalizada',
   },
+  user_id: {
+    type: DataTypes.INTEGER,
+    allowNull: false,
+    references: {
+      model: 'Users',
+      key: 'id'
+    }
+  },
 });
 
 Mission.hasMany(Penalty, {
-  foreignKey: 'missionId',  // Definir a chave estrangeira corretamente
-  onDelete: 'CASCADE',      // Opcional: excluir as penalidades se a missão for excluída
+  foreignKey: 'missionId',  
+  onDelete: 'CASCADE',      
 });
 
 module.exports = Mission;

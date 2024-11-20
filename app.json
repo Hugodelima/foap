@@ -20,7 +20,8 @@
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "com.hizup.foap"
+      "package": "com.hizup.foap",
+      "jsEngine": "hermes"
     },
     "web": {
       "favicon": "./assets/favicon.png"

@@ -21,7 +21,6 @@ app.use('/api/rewardapi', routerReward);
 app.use('/api/missionapi', routerMission);
 app.use('/api/statusapi', routerStatus);
 
-// Inicia o servidor
 const PORT = process.env.PORT;
 app.listen(PORT, () => {
     console.log(`Servidor rodando na porta ${PORT}`);

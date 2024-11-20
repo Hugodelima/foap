@@ -50,7 +50,6 @@ export default function ModalMission({ visible, onClose, onSave }: ModalComponen
         : [...prevSelected, penaltyId]
     );
   };
-
   const handleCreateMission = async () => {
     if (title && difficulty && rank && selectedPenalties.length > 0) {
       try {
@@ -59,14 +58,13 @@ export default function ModalMission({ visible, onClose, onSave }: ModalComponen
           const response = await axios.post(`${API_URL}/api/missionapi/create`, {
             titulo: title,
             rank,
-            prazo: moment(deadline).format('DD-MM-YYYY'),
+            prazo: moment(deadline).format('YYYY-MM-DD'),
             dificuldade: difficulty,
-            penalidadeIds: selectedPenalties,
+            penalidadeIds: selectedPenalties, 
             userId: JSON.parse(userID),
           });
-
-          const { message } = response.data;
-          Alert.alert('Missão Criada', message);
+  
+          Alert.alert('Missão Criada', response.data.message);
           onSave();
           onClose();
         } else {
@@ -74,16 +72,20 @@ export default function ModalMission({ visible, onClose, onSave }: ModalComponen
         }
       } catch (error) {
         console.error('Erro ao criar missão:', error);
-        Alert.alert('Erro ao criar missão', error.response?.data?.message || 'Erro desconhecido.');
+        Alert.alert('Erro ao criar missão', error.message || 'Erro desconhecido.');
       }
     } else {
-      if (selectedPenalties.length === 0) {
-        Alert.alert('Erro', 'Nenhuma penalidade selecionada. Por favor, selecione pelo menos uma penalidade.');
-      } else {
-        Alert.alert('Erro', 'Por favor, preencha todos os campos.');
-      }
+      Alert.alert(
+        'Erro',
+        selectedPenalties.length === 0
+          ? 'Nenhuma penalidade selecionada. Por favor, selecione pelo menos uma penalidade.'
+          : 'Por favor, preencha todos os campos.'
+      );
     }
   };
+  
+
+ 
 
   return (
     <Modal animationType="fade" transparent={true} visible={visible} onRequestClose={onClose}>
@@ -130,7 +132,7 @@ export default function ModalMission({ visible, onClose, onSave }: ModalComponen
             <TouchableOpacity onPress={() => setShowDatePicker(true)}>
               <TextInput
                 className="p-4 bg-gray-100 text-gray-700 rounded-2xl mb-3"
-                value={moment(deadline).format('DD-MM-YYYY')}
+                value={moment(deadline).format('YYYY-MM-DD')}
                 editable={false}
               />
             </TouchableOpacity>

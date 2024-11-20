@@ -19,7 +19,7 @@ import ModalPenalty from '../modal/addPenalty'
 import { NavigationProps } from '../navigation/types';
 import ModalFilterPenalty from '../hooks/modalFilterPenalty';
 import EditPenaltyModal from '../modal/editPenalty';
-import MissionFilterModal from '../modal/handleOpenMissionFilterModal';
+import MissionFilterModal from '../hooks/modalFilterMission';
 import ModalMission from '../modal/addMission';
 
 
@@ -100,8 +100,8 @@ export default function MissionScreen() {
   };
   
   const handlePenaltyFilterSelection = (status: string) => {
-    setFilterPenaltyStatus(status === 'todos' ? '' : status); // Define como vazio se for "todos"
-    setFilterModalVisiblePenalty(false); // Fecha o modal após a seleção
+    setFilterPenaltyStatus(status === 'todos' ? '' : status);
+    setFilterModalVisiblePenalty(false); 
   };
   
 
@@ -179,7 +179,7 @@ const handleMissionFilterSelection = (status: string) => {
   setFilterMissionStatus(status === 'todos' ? null : status);
   setFilterModalVisibleMission(false);
 };
-const [missions, setMissions] = useState<Penalty[]>([]);
+const [missions, setMissions] = useState<Mission[]>([]);
 // Filtra as missões com base no status selecionado
 const filteredMissions = filterMissionStatus ? missions.filter((mission) => mission.status === filterMissionStatus) : missions;
 
@@ -349,7 +349,7 @@ const handleDeleteMission = async (missionId: number) => {
                 </TouchableOpacity>
               </View>
               <FlatList
-                data={filteredMissions} // Aqui você vai usar a lista de missões filtradas
+                data={filteredMissions} 
                 keyExtractor={(item) => item.id.toString()}
                 renderItem={({ item }) => (
                   <View className="p-4 border-b border-neutral-700">
@@ -571,7 +571,7 @@ const handleDeleteMission = async (missionId: number) => {
       <MissionFilterModal
         visible={filterModalVisibleMission}
         onClose={() => setFilterModalVisibleMission(false)}
-        onSelectStatus={handleMissionFilterSelection}
+        onFilter={handleMissionFilterSelection}
       />
     </View>
   );

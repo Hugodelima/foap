@@ -31,13 +31,13 @@ const Penalty = sequelize.define('Penalty', {
         type: DataTypes.INTEGER,
         allowNull: false,
         references: {
-            model: 'Users', // Nome da tabela Users
+            model: 'Users',
             key: 'id'
         }
     },
 }, {
     tableName: 'Penalties',
     timestamps: true
-});
+}); 
 
 module.exports = Penalty;
