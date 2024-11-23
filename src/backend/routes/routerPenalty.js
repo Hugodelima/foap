@@ -180,7 +180,7 @@ router.put('/update/:id', async (req, res) => {
         const userStatus = await Status.findOne({ where: { user_id: userId } });
 
         if (userStatus) {
-            if (status === 'Não feita') {
+            if (status === 'Pendente') {
                 userStatus.ouro -= ouroPerdido;
                 userStatus.xp -= xpPerdido;
                 userStatus.ouro = Math.max(0, userStatus.ouro);

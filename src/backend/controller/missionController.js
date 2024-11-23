@@ -1,5 +1,8 @@
 const Mission = require('../models/mission');
 const Penalty = require('../models/penalty');
+const Status = require('../models/status')
+const sequelize = require('../models/database');
+const moment = require('moment')
 
 const calcularRecompensas = (dificuldade, rank) => {
   let recompensaXp = 0;
@@ -98,10 +101,11 @@ const createMission = async (req, res) => {
   try {
     const { titulo, rank, prazo, dificuldade, penalidadeIds, userId } = req.body;
 
-    console.log('Dados recebidos no corpo da requisição:', req.body);
-
     if (!userId) {
       return res.status(400).json({ error: 'O campo userId é obrigatório.' });
+    }
+    if (moment(prazo).isBefore(moment(), 'day')) {
+      return res.status(400).json({ error: 'O prazo deve ser hoje ou uma data futura.' });
     }
 
     const { recompensaXp, recompensaOuro, recompensaPd } = calcularRecompensas(dificuldade, rank);
@@ -115,9 +119,8 @@ const createMission = async (req, res) => {
       recompensaOuro,
       recompensaPd,
       status: 'Em progresso',
+      user_id: userId,
     });
-
-    console.log('Missão criada com sucesso:', novaMissao);
 
     if (!Array.isArray(penalidadeIds) || penalidadeIds.length === 0) {
       return res.status(400).json({ error: 'O campo penalidadeIds deve ser um array não vazio.' });
@@ -129,9 +132,7 @@ const createMission = async (req, res) => {
       },
     });
 
-    if (penalidadesExistentes.length !== penalidadeIds.length) {
-      return res.status(404).json({ error: 'Algumas penalidades não foram encontradas.' });
-    }
+    
 
     await novaMissao.setPenalties(penalidadesExistentes);
 
@@ -148,24 +149,132 @@ const createMission = async (req, res) => {
 
 const allMission = async (req, res) => {
   try {
-    const { userId } = req.params;
-
-    if (!userId) {
-      return res.status(400).json({ error: 'User ID is required' });
-    }
-
     const missions = await Mission.findAll({
-        where: {
-          user_id: userId 
-        }
+      where: { user_id: req.params.userId },
+      include: {
+        model: Penalty,
+        as: 'Penalties',
+        required: false,  // Inclui missões mesmo sem penalidades
+      },
+      attributes: {
+        include: [
+          [
+            sequelize.literal(`
+              (SELECT JSON_AGG("penalties"."titulo")
+               FROM "Penalties" AS "penalties"
+               WHERE "penalties"."missionId" = "Mission"."id")`),
+            'penaltyTitles'
+          ],
+          [
+            sequelize.literal(`
+              (SELECT COUNT(*)
+               FROM "Penalties" AS "penalties"
+               WHERE "penalties"."missionId" = "Mission"."id")`),
+            'penaltyCount'
+          ]
+        ]
+      }
     });
 
-    res.status(200).json(missions);
-    
+    res.json(missions);
   } catch (error) {
-    console.error('Erro ao buscar missões:', error);
-    res.status(500).json({ error: 'Erro ao buscar pmissõesenalidades.' });
+    console.error('Error fetching missions:', error);
+    res.status(500).json({ error: 'Failed to fetch missions' });
   }
 };
 
-module.exports = { createMission, allMission };
+
+const deleteMission = async (req, res) => {
+  const { id } = req.params;
+
+  try {
+
+    if (!id) {
+      return res.status(400).json({ error: 'ID da missão não fornecido.' });
+    }
+
+
+    const deletedMission = await Mission.findByPk(id);
+
+    if (!deletedMission) {
+      return res.status(404).json({ error: 'Missão não encontrada.' });
+    }
+
+    await deletedMission.destroy()
+
+
+    return res.status(200).json({ message: 'Missão excluída com sucesso.', mission: deletedMission });
+  } catch (error) {
+    console.error('Erro ao excluir missão:', error);
+    return res.status(500).json({ error: 'Erro interno do servidor.' });
+  }
+};
+
+const completeMission = async (req, res) => {
+  const { id } = req.params; // ID da missão
+  const { userId } = req.body; // ID do usuário
+
+  try {
+    // Buscar missão
+    const mission = await Mission.findByPk(id);
+
+    if (!mission) {
+      return res.status(404).json({ error: 'Missão não encontrada.' });
+    }
+
+    if (mission.status === 'Finalizada') {
+      return res.status(400).json({ error: 'Missão já foi concluída.' });
+    }
+
+    // Atualizar status da missão para "Finalizada"
+    mission.status = 'Finalizada';
+    await mission.save();
+
+    // Atualizar o status do usuário com as recompensas da missão
+    const userStatus = await Status.findOne({ where: { user_id: userId } });
+
+    if (!userStatus) {
+      return res.status(404).json({ error: 'Status do usuário não encontrado.' });
+    }
+
+    userStatus.xp_faltante -= mission.recompensaXp;
+    userStatus.ouro += mission.recompensaOuro;
+    userStatus.pd += mission.recompensaPd;
+
+    // Verificar se o usuário subiu de nível
+    if (userStatus.xp_faltante <= 0) {
+      userStatus.nivel += 1;
+      userStatus.xp_faltante += userStatus.proximo_nivel; // Resetar XP faltante com o próximo nível
+    }
+
+    await userStatus.save();
+
+    // Atualizar o status das penalidades vinculadas a essa missão para "Concluída"
+    const penalties = await Penalty.findAll({
+      where: { missionId: mission.id }, // Supondo que a tabela de penalidades tenha um campo missionId
+    });
+
+    if (penalties.length > 0) {
+      await Promise.all(
+        penalties.map(async (penalty) => {
+          penalty.status = 'Concluída'; // Atualiza o status da penalidade
+          await penalty.save();
+        })
+      );
+    }
+
+    res.status(200).json({
+      message: 'Missão concluída com sucesso.',
+      userStatus,
+    });
+  } catch (error) {
+    console.error('Erro ao concluir missão:', error);
+    res.status(500).json({ error: 'Erro ao concluir a missão.' });
+  }
+};
+
+
+
+
+
+module.exports = { createMission, allMission, deleteMission, completeMission };

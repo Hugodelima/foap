@@ -21,6 +21,8 @@ import ModalFilterPenalty from '../hooks/modalFilterPenalty';
 import EditPenaltyModal from '../modal/editPenalty';
 import MissionFilterModal from '../hooks/modalFilterMission';
 import ModalMission from '../modal/addMission';
+import dayjs from 'dayjs';
+import duration from 'dayjs/plugin/duration';
 
 
 interface Reward {
@@ -50,7 +52,9 @@ interface Mission{
   recompensaOuro: number;
   recompensaPd: number;
   status: string;
-  penalidadeId: number;
+  penalidades: [];
+  penaltyCount: number;
+  penaltyTitles: [];
 }
 
 
@@ -204,7 +208,7 @@ const handleDeleteMission = async (missionId: number) => {
   try {
     await axios.delete(`${API_URL}/api/missionapi/delete/${missionId}`);
     Alert.alert('Missão excluída com sucesso!');
-    fetchMissions(); // Atualiza a lista de missões após a exclusão
+    fetchMissions(); 
   } catch (error: any) {
     console.error('Erro ao excluir missão:', error);
     Alert.alert('Erro ao excluir missão', error.response?.data?.message || 'Erro ao tentar excluir.');
@@ -233,6 +237,24 @@ const handleDeleteMission = async (missionId: number) => {
   };
 
 
+  function calculateTimeRemaining(prazo: Date): string {
+    dayjs.extend(duration);
+    const now = dayjs();
+    const deadline = dayjs(prazo);
+    const diff = deadline.diff(now);
+
+    if (diff <= 0) {
+        return 'Missão Expirada';
+    }
+
+    const timeDuration = dayjs.duration(diff);
+
+    const days = Math.floor(timeDuration.asDays()); // Total de dias inteiros
+    const hours = Math.floor(timeDuration.asHours() % 24); // Horas restantes após dias
+    const minutes = Math.floor(timeDuration.asMinutes() % 60); // Minutos restantes após horas
+
+    return `${days > 0 ? `${days}d ` : ''}${hours}h ${minutes}m`;
+  }
 
 
   const handleCreateReward = () => {
@@ -257,6 +279,21 @@ const handleDeleteMission = async (missionId: number) => {
     setSelectedReward(reward); // Define a recompensa a ser editada
     setModalEditVisible(true); // Abre o modal de edição
   };
+
+  async function handleCompleteMission(missionId, userId) {
+
+    try {
+      const response = await axios.put(`${API_URL}/api/missionapi/complete/${missionId}`, { userId });
+      const { message } = response.data;
+      Alert.alert('Sucesso', message);
+    } catch (error) {
+      console.error('Erro ao completar missão:', error);
+      Alert.alert('Erro', error.response?.data?.error || 'Não foi possível completar a missão.');
+    }
+
+    fetchMissions()
+}
+
 
   const handleRewardEdited = () => {
     setModalEditVisible(false);
@@ -306,7 +343,7 @@ const handleDeleteMission = async (missionId: number) => {
           </View>
           <View className='flex-row items-center'>
             <Image source={xp_image} style={{ width: 30, height: 30, marginRight: 5 }} />
-            <Text className='text-white font-vt323'>{userData?.total_xp}</Text>
+            <Text className='text-white font-vt323'>{userData?.pd}</Text>
           </View>
         </View>
 
@@ -349,7 +386,8 @@ const handleDeleteMission = async (missionId: number) => {
                 </TouchableOpacity>
               </View>
               <FlatList
-                data={filteredMissions} 
+                className="mb-28"
+                data={filteredMissions}
                 keyExtractor={(item) => item.id.toString()}
                 renderItem={({ item }) => (
                   <View className="p-4 border-b border-neutral-700">
@@ -357,24 +395,42 @@ const handleDeleteMission = async (missionId: number) => {
                     <Text className="text-white font-vt323">Status: {item.status}</Text>
                     <Text className="text-white font-vt323">Dificuldade: {item.dificuldade}</Text>
                     <Text className="text-white font-vt323">Rank: {item.rank}</Text>
+                    <Text className="text-white font-vt323">
+                      Tempo Restante: {calculateTimeRemaining(item.prazo)}
+                    </Text>
                     <Text className="text-white font-vt323 mb-4">
-                      Recompensas: {item.recompensaXP} XP, {item.recompensaOuro} Ouro
+                      Recompensas: XP: {item.recompensaXp}, Ouro: {item.recompensaOuro}, PD: {item.recompensaPd}
                     </Text>
 
-                    <View className="flex-row justify-between mt-2 mb-2">
-                      {/* Botão para Editar Missão */}
-                      <TouchableOpacity onPress={() => handleEditMission(item)} className="mr-4">
-                        <PencilIcon size={30} color="orange" />
-                      </TouchableOpacity>
+                    {/* Exibir Penalidades */}
+                    <View className="mt-4">
+                      <Text className="text-white font-vt323 mb-2">Penalidades:</Text>
+                      <Text className="text-neutral-300 font-vt323 mb-2">
+                        Total de Penalidades: {item.penaltyCount}
+                      </Text>
+                      <Text className="text-neutral-300 font-vt323">Títulos:</Text>
+                      {item.penaltyTitles && item.penaltyTitles.length > 0 ? (
+                        item.penaltyTitles.map((penalidade, index) => (
+                          <Text key={index} className="text-neutral-300 font-vt323">
+                            - {penalidade}
+                          </Text>
+                        ))
+                      ) : (
+                        <Text className="text-neutral-300 font-vt323">Sem penalidades vinculadas.</Text>
+                      )}
+                    </View>
 
-                      {/* Botão para Excluir Missão */}
-                      <TouchableOpacity onPress={() => handleDeleteMission(item.id)} className="mr-4">
-                        <TrashIcon size={30} color="red" />
-                      </TouchableOpacity>
-
-                      {/* Botão para Marcar como Feito se o status não for 'Finalizada' */}
+                    <View className="flex-row justify-between mt-4">
+                      <View className="flex-row">
+                        <TouchableOpacity onPress={() => handleEditMission(item)} className="mr-4">
+                          <PencilIcon size={30} color="orange" />
+                        </TouchableOpacity>
+                        <TouchableOpacity onPress={() => handleDeleteMission(item.id)} className="mr-4">
+                          <TrashIcon size={30} color="red" />
+                        </TouchableOpacity>
+                      </View>
                       {item.status !== 'Finalizada' && (
-                        <TouchableOpacity onPress={() => handleCompleteMission(item.id)}>
+                        <TouchableOpacity onPress={async () => handleCompleteMission(item.id, await getUserId())}>
                           <CheckIcon size={30} color="green" />
                         </TouchableOpacity>
                       )}
@@ -382,6 +438,11 @@ const handleDeleteMission = async (missionId: number) => {
                   </View>
                 )}
               />
+
+              
+
+
+
 
               {/*<EditMissionModal
                 visible={modalVisibleEditMission}
@@ -409,6 +470,7 @@ const handleDeleteMission = async (missionId: number) => {
                 </TouchableOpacity>
               </View>
               <FlatList
+                className='mb-28'
                 data={filteredPenalties}
                 keyExtractor={(item) => item.id.toString()}
                 renderItem={({ item }) => (
@@ -435,7 +497,7 @@ const handleDeleteMission = async (missionId: number) => {
                       </TouchableOpacity>
 
                       {/* Botão para Superar Penalidade se o status for 'Não Feita' */}
-                      {item.status === 'Não Feita' && (
+                      {item.status === 'Em andamento' && (
                         <TouchableOpacity onPress={() => handleOvercomePenalty(item.id)}>
                           <CheckIcon size={30} color="green" />
                         </TouchableOpacity>
@@ -452,12 +514,6 @@ const handleDeleteMission = async (missionId: number) => {
                 onSave={handlePenaltyEdited}
               />
               
-
-              
-
-              
-    
-
               <TouchableOpacity className='bg-cyan-500 rounded-full p-3 absolute bottom-4 right-5 left-5' onPress={handleCreatePenalty}>
                 <Text className='text-white text-center font-vt323'>Criar Nova Penalidade</Text>
               </TouchableOpacity>
@@ -480,6 +536,7 @@ const handleDeleteMission = async (missionId: number) => {
 
             <View className='flex-1'>
               <FlatList
+                className='mb-28'
                 data={filteredRewards}
                 keyExtractor={(item) => item.id.toString()}
                 renderItem={({ item }) => (

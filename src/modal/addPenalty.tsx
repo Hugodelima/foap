@@ -27,7 +27,7 @@ export default function ModalPenalty({ visible, onClose, onSave }: ModalComponen
             titulo: title,
             dificuldade: difficulty,
             rank,
-            status: 'Não feita', // Status automático
+            status: 'Pendente',
             userId: JSON.parse(userID),
           });
 

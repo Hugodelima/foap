@@ -7,9 +7,9 @@ const Penalty = sequelize.define('Penalty', {
         allowNull: false
     },
     status: {
-        type: DataTypes.ENUM('Não feita', 'Em progresso', 'Superada', 'Missão feita'),
+        type: DataTypes.ENUM('Pendente', 'Em andamento', 'Concluída'),
         allowNull: false,
-        defaultValue: 'Não feita'
+        defaultValue: 'Pendente'
     },
     perdaOuro: {
         type: DataTypes.INTEGER,

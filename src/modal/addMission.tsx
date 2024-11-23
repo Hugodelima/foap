@@ -1,15 +1,16 @@
 import React, { useState, useEffect } from 'react';
-import { Modal, Pressable, View, Text, TouchableOpacity, TextInput, Alert, ScrollView, FlatList } from 'react-native';
+import { Modal, Pressable, View, Text, TouchableOpacity, TextInput, Alert, FlatList } from 'react-native';
 import axios from 'axios';
 import { API_URL } from '@env';
 import * as SecureStore from 'expo-secure-store';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import moment from 'moment';
-import {Picker} from '@react-native-picker/picker';
+import { Picker } from '@react-native-picker/picker';
 
 interface Penalty {
   id: string;
   titulo: string;
+  missionId: string | null; // Adiciona um campo que indica se a penalidade já foi associada a uma missão
 }
 
 interface ModalComponentProps {
@@ -33,7 +34,10 @@ export default function ModalMission({ visible, onClose, onSave }: ModalComponen
         try {
           const userID = await SecureStore.getItemAsync('userStorageID');
           const response = await axios.get(`${API_URL}/api/penaltyapi/all/${userID}`);
-          setPenalties(response.data.penalties);
+          
+          // Filtra penalidades não associadas a missões
+          const availablePenalties = response.data.penalties.filter((penalty: Penalty) => !penalty.missionId);
+          setPenalties(availablePenalties);
         } catch (error) {
           console.error('Erro ao buscar penalidades:', error);
           Alert.alert('Erro', 'Não foi possível carregar as penalidades.');
@@ -50,8 +54,17 @@ export default function ModalMission({ visible, onClose, onSave }: ModalComponen
         : [...prevSelected, penaltyId]
     );
   };
+
   const handleCreateMission = async () => {
     if (title && difficulty && rank && selectedPenalties.length > 0) {
+      if (moment(deadline).isBefore(moment(), 'day')) {
+        Alert.alert(
+          'Erro',
+          'O prazo da missão deve ser hoje ou uma data futura. Por favor, escolha uma data válida.'
+        );
+        return;
+      }
+
       try {
         const userID = await SecureStore.getItemAsync('userStorageID');
         if (userID) {
@@ -60,11 +73,19 @@ export default function ModalMission({ visible, onClose, onSave }: ModalComponen
             rank,
             prazo: moment(deadline).format('YYYY-MM-DD'),
             dificuldade: difficulty,
-            penalidadeIds: selectedPenalties, 
+            penalidadeIds: selectedPenalties,
             userId: JSON.parse(userID),
           });
-  
+
           Alert.alert('Missão Criada', response.data.message);
+          
+          // Limpar campos
+          setTitle('');
+          setDifficulty('Fácil');
+          setRank('F');
+          setDeadline(new Date());
+          setSelectedPenalties([]);
+
           onSave();
           onClose();
         } else {
@@ -83,15 +104,12 @@ export default function ModalMission({ visible, onClose, onSave }: ModalComponen
       );
     }
   };
-  
-
- 
 
   return (
     <Modal animationType="fade" transparent={true} visible={visible} onRequestClose={onClose}>
       <Pressable onPress={onClose} className="flex-1 justify-center items-center bg-black/60 p-10">
         <Pressable className="w-90 bg-neutral-800 p-6 rounded-xl" onPress={() => {}}>
-          <ScrollView>
+          <View>
             <Text className="text-white text-2xl font-semibold mb-6">Adicionar Nova Missão</Text>
             <Text className="text-white mb-1 text-xl">Título</Text>
             <TextInput
@@ -173,7 +191,7 @@ export default function ModalMission({ visible, onClose, onSave }: ModalComponen
             <TouchableOpacity onPress={onClose}>
               <Text className="text-red-600 text-lg text-center mt-2">Fechar</Text>
             </TouchableOpacity>
-          </ScrollView>
+          </View>
         </Pressable>
       </Pressable>
     </Modal>
