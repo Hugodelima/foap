@@ -45,6 +45,10 @@ export default function HomeScreen(){
             <Image source={levelUp_image} className="w-7 h-7 mr-1" />
             <Text className="text-white font-vt323">Próximo Nível: {userData?.proximo_nivel}</Text>
           </View>
+          <View className="flex-row items-center mb-2">
+            <Image source={levelUp_image} className="w-7 h-7 mr-1" />
+            <Text className="text-white font-vt323">Total de xp: {userData?.total_xp}</Text>
+          </View>
           <View className="flex-row items-center">
             <Image source={gold_image} className="w-7 h-7 mr-1" />
             <Text className="text-white font-vt323">Ouro: {userData?.ouro}</Text>

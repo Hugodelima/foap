@@ -104,8 +104,10 @@ const createMission = async (req, res) => {
     if (!userId) {
       return res.status(400).json({ error: 'O campo userId é obrigatório.' });
     }
-    if (moment(prazo).isBefore(moment(), 'day')) {
-      return res.status(400).json({ error: 'O prazo deve ser hoje ou uma data futura.' });
+    const amanhã = moment().add(1, 'days').startOf('day');
+    
+    if (moment(prazo).isBefore(amanhã, 'day')) {
+      return res.status(400).json({ error: 'O prazo deve ser a partir de amanhã.' });
     }
 
     const { recompensaXp, recompensaOuro, recompensaPd } = calcularRecompensas(dificuldade, rank);
@@ -210,6 +212,8 @@ const deleteMission = async (req, res) => {
   }
 };
 
+
+
 const completeMission = async (req, res) => {
   const { id } = req.params; // ID da missão
   const { userId } = req.body; // ID do usuário
@@ -230,48 +234,60 @@ const completeMission = async (req, res) => {
     mission.status = 'Finalizada';
     await mission.save();
 
-    // Atualizar o status do usuário com as recompensas da missão
+    // Buscar status do usuário
     const userStatus = await Status.findOne({ where: { user_id: userId } });
 
     if (!userStatus) {
       return res.status(404).json({ error: 'Status do usuário não encontrado.' });
     }
 
+    // Adicionar XP à total_xp e subtrair do xp_faltante
+    userStatus.total_xp += mission.recompensaXp;
     userStatus.xp_faltante -= mission.recompensaXp;
-    userStatus.ouro += mission.recompensaOuro;
-    userStatus.pd += mission.recompensaPd;
 
-    // Verificar se o usuário subiu de nível
-    if (userStatus.xp_faltante <= 0) {
+    // Se o xp_faltante for menor ou igual a 0, o usuário sobe de nível
+    while (userStatus.xp_faltante <= 0) {
+      // Aumenta o nível
       userStatus.nivel += 1;
-      userStatus.xp_faltante += userStatus.proximo_nivel; // Resetar XP faltante com o próximo nível
+      
+      // Calcula o próximo nível e ajusta o XP faltante
+      userStatus.proximo_nivel = userStatus.nivel * 10; // Exemplo: cada nível requer 10 mais XP
+      userStatus.xp_faltante = userStatus.proximo_nivel;
+
+      // Definir o rank dependendo do nível
+      if (userStatus.nivel < 10) {
+        userStatus.rank = 'F';
+      } else if (userStatus.nivel < 50) {
+        userStatus.rank = 'E';
+      } else if (userStatus.nivel < 100) {
+        userStatus.rank = 'D';
+      } else if (userStatus.nivel < 200) {
+        userStatus.rank = 'C';
+      } else if (userStatus.nivel < 300) {
+        userStatus.rank = 'B';
+      } else if (userStatus.nivel < 400) {
+        userStatus.rank = 'A';
+      } else {
+        userStatus.rank = 'SSS';
+      }
+
+      // Após o rank mudar ou o nível aumentar, devemos recalcular o xp_faltante
+      userStatus.xp_faltante = userStatus.proximo_nivel - userStatus.total_xp;
     }
 
     await userStatus.save();
 
-    // Atualizar o status das penalidades vinculadas a essa missão para "Concluída"
-    const penalties = await Penalty.findAll({
-      where: { missionId: mission.id }, // Supondo que a tabela de penalidades tenha um campo missionId
-    });
-
-    if (penalties.length > 0) {
-      await Promise.all(
-        penalties.map(async (penalty) => {
-          penalty.status = 'Concluída'; // Atualiza o status da penalidade
-          await penalty.save();
-        })
-      );
-    }
-
     res.status(200).json({
       message: 'Missão concluída com sucesso.',
-      userStatus,
+      userStatus
     });
   } catch (error) {
     console.error('Erro ao concluir missão:', error);
     res.status(500).json({ error: 'Erro ao concluir a missão.' });
   }
 };
+
+
 
 
 

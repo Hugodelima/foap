@@ -24,6 +24,13 @@ import ModalMission from '../modal/addMission';
 import dayjs from 'dayjs';
 import duration from 'dayjs/plugin/duration';
 
+var utc = require('dayjs/plugin/utc');
+var timezone = require('dayjs/plugin/timezone');
+
+
+
+
+
 
 interface Reward {
   id: number;
@@ -236,25 +243,78 @@ const handleDeleteMission = async (missionId: number) => {
     }
   };
 
+  dayjs.extend(utc);
+  dayjs.extend(timezone);
+  dayjs.extend(duration);
 
-  function calculateTimeRemaining(prazo: Date): string {
-    dayjs.extend(duration);
-    const now = dayjs();
-    const deadline = dayjs(prazo);
-    const diff = deadline.diff(now);
+  function calculateTimeRemaining(prazo: string): string {
+    console.log('prazo: '+prazo)
+    // Fuso horário de Cuiabá (UTC -4)
+    const cuiabaOffset = 4 * 60; // UTC-4 = 240 minutos de diferença
 
-    if (diff <= 0) {
-        return 'Missão Expirada';
+    // Dividir a data e hora do prazo recebido
+    const prazoParts = prazo.split("T");
+    const dateParts = prazoParts[0].split("-"); // Ano, mês, dia
+    const timeParts = prazoParts[1].split(":"); // Hora, minuto, segundo
+    
+    // Ajustar o prazo para 23:59:59 UTC
+    let prazoUTC = new Date(Date.UTC(
+        parseInt(dateParts[0]), // Ano
+        parseInt(dateParts[1]) - 1, // Mês começa do 0 no JavaScript
+        parseInt(dateParts[2]), // Dia
+        23, // Hora 23
+        59, // Minuto 59
+        59  // Segundo 59
+    ));
+
+    // Exibir o prazo ajustado para 23:59:59 UTC
+    console.log("Prazo ajustado para 23:59:59 UTC: " + prazoUTC.toISOString().replace('T', ' ').substring(0, 19));
+
+    // Ajustar o horário para Cuiabá (acrescentando 4 horas)
+    prazoUTC.setHours(prazoUTC.getHours()); // Adicionando 4 horas para o horário de Cuiabá
+
+    // Exibir o prazo ajustado para Cuiabá
+    console.log("Prazo ajustado para Cuiabá (23:59:59): " + prazoUTC.toISOString().replace('T', ' ').substring(0, 19));
+
+    // Obter a data e hora atuais (considerando UTC-4)
+    const now = new Date();
+    now.setHours(now.getHours() - 4); // Ajustar o horário atual para Cuiabá
+
+    // Exibir data e hora atuais ajustadas para Cuiabá
+    console.log("Data e hora atuais ajustadas para Cuiabá: " + now.toISOString().replace('T', ' ').substring(0, 19));
+
+    // Calcular a diferença em milissegundos
+    const diffInMilliseconds = prazoUTC.getTime() - now.getTime();
+
+    // Se a diferença for negativa ou zero, significa que o prazo já passou
+    if (diffInMilliseconds <= 0) {
+        console.log("Missão Expirada");
+        return "Missão Expirada";
     }
 
-    const timeDuration = dayjs.duration(diff);
+    // Converter a diferença em minutos
+    const diffInMinutes = Math.floor(diffInMilliseconds / 60000);
+    const remainingDays = Math.floor(diffInMinutes / 1440); // 1 dia tem 1440 minutos
+    const remainingHours = Math.floor((diffInMinutes % 1440) / 60);
+    const remainingMinutes = diffInMinutes % 60;
 
-    const days = Math.floor(timeDuration.asDays()); // Total de dias inteiros
-    const hours = Math.floor(timeDuration.asHours() % 24); // Horas restantes após dias
-    const minutes = Math.floor(timeDuration.asMinutes() % 60); // Minutos restantes após horas
-
-    return `${days > 0 ? `${days}d ` : ''}${hours}h ${minutes}m`;
+    // Exibir o tempo restante
+    const formattedTime = `${remainingDays > 0 ? `${remainingDays}d ` : ''}${remainingHours}h ${remainingMinutes}m`;
+    console.log(`Tempo restante: ${formattedTime}`);
+    
+    return formattedTime;
   }
+
+
+
+
+
+
+
+
+
+
+
 
 
   const handleCreateReward = () => {

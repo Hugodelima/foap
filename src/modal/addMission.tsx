@@ -79,12 +79,6 @@ export default function ModalMission({ visible, onClose, onSave }: ModalComponen
 
           Alert.alert('Missão Criada', response.data.message);
           
-          // Limpar campos
-          setTitle('');
-          setDifficulty('Fácil');
-          setRank('F');
-          setDeadline(new Date());
-          setSelectedPenalties([]);
 
           onSave();
           onClose();
@@ -93,7 +87,7 @@ export default function ModalMission({ visible, onClose, onSave }: ModalComponen
         }
       } catch (error) {
         console.error('Erro ao criar missão:', error);
-        Alert.alert('Erro ao criar missão', error.message || 'Erro desconhecido.');
+        Alert.alert('Erro ao criar missão', error.response.data.error || 'Erro desconhecido.');
       }
     } else {
       Alert.alert(
