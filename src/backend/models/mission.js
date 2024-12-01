@@ -48,7 +48,7 @@ const Mission = sequelize.define('Mission', {
 
 Mission.hasMany(Penalty, {
   foreignKey: 'missionId',  
-  onDelete: 'CASCADE',      
+  onDelete: 'CASCADE',  
 });
 
 module.exports = Mission;

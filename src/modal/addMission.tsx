@@ -64,7 +64,7 @@ export default function ModalMission({ visible, onClose, onSave }: ModalComponen
         );
         return;
       }
-
+  
       try {
         const userID = await SecureStore.getItemAsync('userStorageID');
         if (userID) {
@@ -76,10 +76,16 @@ export default function ModalMission({ visible, onClose, onSave }: ModalComponen
             penalidadeIds: selectedPenalties,
             userId: JSON.parse(userID),
           });
-
+  
           Alert.alert('Missão Criada', response.data.message);
-          
-
+  
+          // Limpar estado após criação
+          setTitle('');
+          setDifficulty('Fácil');
+          setRank('F');
+          setDeadline(new Date());
+          setSelectedPenalties([]); // Limpa penalidades selecionadas
+  
           onSave();
           onClose();
         } else {
@@ -98,6 +104,7 @@ export default function ModalMission({ visible, onClose, onSave }: ModalComponen
       );
     }
   };
+  
 
   return (
     <Modal animationType="fade" transparent={true} visible={visible} onRequestClose={onClose}>

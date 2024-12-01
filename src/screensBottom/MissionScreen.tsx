@@ -21,16 +21,6 @@ import ModalFilterPenalty from '../hooks/modalFilterPenalty';
 import EditPenaltyModal from '../modal/editPenalty';
 import MissionFilterModal from '../hooks/modalFilterMission';
 import ModalMission from '../modal/addMission';
-import dayjs from 'dayjs';
-import duration from 'dayjs/plugin/duration';
-
-var utc = require('dayjs/plugin/utc');
-var timezone = require('dayjs/plugin/timezone');
-
-
-
-
-
 
 interface Reward {
   id: number;
@@ -172,6 +162,35 @@ export default function MissionScreen() {
   
     return () => clearInterval(interval);
   }, []);
+
+  useEffect(() => {
+    const checkExpiredMissions = async () => {
+      try {
+        const userId = await getUserId();
+        const response = await axios.get(`${API_URL}/api/missionapi/${userId}`);
+        const missions = response.data;
+
+        missions.forEach(async (mission: Mission) => {
+          const timeRemaining = calculateTimeRemaining(mission.prazo);
+          if (timeRemaining === 'Missão Expirada' && mission.status === 'Em progresso') {
+            await axios.put(`${API_URL}/api/missionapi/expire/${mission.id}`, { userId });
+            Alert.alert('Missão expirada!', `A missão "${mission.titulo}" foi marcada como não finalizada.`);
+          }
+        });
+
+        fetchMissions(); // Atualiza a lista de missões
+      } catch (error) {
+        console.error('Erro ao verificar missões expiradas:', error);
+      }
+    };
+
+    const interval = setInterval(() => {
+      checkExpiredMissions();
+    }, 10000);
+
+    return () => clearInterval(interval);
+  }, []);
+
   
 
   
@@ -243,12 +262,7 @@ const handleDeleteMission = async (missionId: number) => {
     }
   };
 
-  dayjs.extend(utc);
-  dayjs.extend(timezone);
-  dayjs.extend(duration);
-
   function calculateTimeRemaining(prazo: string): string {
-    console.log('prazo: '+prazo)
     // Fuso horário de Cuiabá (UTC -4)
     const cuiabaOffset = 4 * 60; // UTC-4 = 240 minutos de diferença
 
@@ -267,29 +281,23 @@ const handleDeleteMission = async (missionId: number) => {
         59  // Segundo 59
     ));
 
-    // Exibir o prazo ajustado para 23:59:59 UTC
-    console.log("Prazo ajustado para 23:59:59 UTC: " + prazoUTC.toISOString().replace('T', ' ').substring(0, 19));
+
 
     // Ajustar o horário para Cuiabá (acrescentando 4 horas)
     prazoUTC.setHours(prazoUTC.getHours()); // Adicionando 4 horas para o horário de Cuiabá
 
-    // Exibir o prazo ajustado para Cuiabá
-    console.log("Prazo ajustado para Cuiabá (23:59:59): " + prazoUTC.toISOString().replace('T', ' ').substring(0, 19));
 
     // Obter a data e hora atuais (considerando UTC-4)
     const now = new Date();
     now.setHours(now.getHours() - 4); // Ajustar o horário atual para Cuiabá
 
-    // Exibir data e hora atuais ajustadas para Cuiabá
-    console.log("Data e hora atuais ajustadas para Cuiabá: " + now.toISOString().replace('T', ' ').substring(0, 19));
 
     // Calcular a diferença em milissegundos
     const diffInMilliseconds = prazoUTC.getTime() - now.getTime();
 
     // Se a diferença for negativa ou zero, significa que o prazo já passou
     if (diffInMilliseconds <= 0) {
-        console.log("Missão Expirada");
-        return "Missão Expirada";
+      return "Missão Expirada";
     }
 
     // Converter a diferença em minutos
@@ -300,9 +308,9 @@ const handleDeleteMission = async (missionId: number) => {
 
     // Exibir o tempo restante
     const formattedTime = `${remainingDays > 0 ? `${remainingDays}d ` : ''}${remainingHours}h ${remainingMinutes}m`;
-    console.log(`Tempo restante: ${formattedTime}`);
-    
+
     return formattedTime;
+
   }
 
 
@@ -368,6 +376,19 @@ const handleDeleteMission = async (missionId: number) => {
   const handleEditPenalty = (penalty: Penalty) => {
     setSelectedPenalty(penalty)
     setModalVisibleEditPenalty(true)
+  };
+
+  const handleOvercomePenalty = async (penaltyId: number) => {
+    try {
+      const response = await axios.put(`${API_URL}/api/penaltyapi/overcome/${penaltyId}`);
+      if (response.status === 200) {
+        Alert.alert('Sucesso', response.data.message);
+        
+      }
+    } catch (error: any) {
+      console.error('Erro ao superar penalidade:', error);
+      Alert.alert('Erro', error.response?.data?.error || 'Erro ao superar penalidade.');
+    }
   };
   
 
@@ -489,7 +510,7 @@ const handleDeleteMission = async (missionId: number) => {
                           <TrashIcon size={30} color="red" />
                         </TouchableOpacity>
                       </View>
-                      {item.status !== 'Finalizada' && (
+                      {item.status == 'Em progresso' && (
                         <TouchableOpacity onPress={async () => handleCompleteMission(item.id, await getUserId())}>
                           <CheckIcon size={30} color="green" />
                         </TouchableOpacity>
@@ -498,11 +519,6 @@ const handleDeleteMission = async (missionId: number) => {
                   </View>
                 )}
               />
-
-              
-
-
-
 
               {/*<EditMissionModal
                 visible={modalVisibleEditMission}

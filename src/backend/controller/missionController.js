@@ -1,6 +1,7 @@
 const Mission = require('../models/mission');
 const Penalty = require('../models/penalty');
 const Status = require('../models/status')
+const User = require('../models/user')
 const sequelize = require('../models/database');
 const moment = require('moment')
 
@@ -128,13 +129,20 @@ const createMission = async (req, res) => {
       return res.status(400).json({ error: 'O campo penalidadeIds deve ser um array não vazio.' });
     }
 
+    // Buscar penalidades existentes
     const penalidadesExistentes = await Penalty.findAll({
       where: {
         id: penalidadeIds,
       },
     });
 
-    
+    // Remover vínculos anteriores
+    await Promise.all(
+      penalidadesExistentes.map(async (penalidade) => {
+        penalidade.missionId = novaMissao.id; // Atualiza o ID da missão
+        await penalidade.save();
+      })
+    );
 
     await novaMissao.setPenalties(penalidadesExistentes);
 
@@ -147,7 +155,7 @@ const createMission = async (req, res) => {
     console.error('Erro ao criar missão:', error);
     return res.status(500).json({ error: 'Erro interno do servidor.' });
   }
-};
+}; 
 
 const allMission = async (req, res) => {
   try {
@@ -219,8 +227,10 @@ const completeMission = async (req, res) => {
   const { userId } = req.body; // ID do usuário
 
   try {
-    // Buscar missão
-    const mission = await Mission.findByPk(id);
+    // Buscar missão com penalidades vinculadas
+    const mission = await Mission.findByPk(id, {
+      include: [{ model: Penalty, as: 'Penalties' }], // Certifique-se de que o alias está correto
+    });
 
     if (!mission) {
       return res.status(404).json({ error: 'Missão não encontrada.' });
@@ -241,7 +251,7 @@ const completeMission = async (req, res) => {
       return res.status(404).json({ error: 'Status do usuário não encontrado.' });
     }
 
-    // Adicionar XP à total_xp e subtrair do xp_faltante
+    // Adicionar XP e subtrair do xp_faltante
     userStatus.total_xp += mission.recompensaXp;
     userStatus.xp_faltante -= mission.recompensaXp;
 
@@ -249,7 +259,7 @@ const completeMission = async (req, res) => {
     while (userStatus.xp_faltante <= 0) {
       // Aumenta o nível
       userStatus.nivel += 1;
-      
+
       // Calcula o próximo nível e ajusta o XP faltante
       userStatus.proximo_nivel = userStatus.nivel * 10; // Exemplo: cada nível requer 10 mais XP
       userStatus.xp_faltante = userStatus.proximo_nivel;
@@ -271,15 +281,29 @@ const completeMission = async (req, res) => {
         userStatus.rank = 'SSS';
       }
 
-      // Após o rank mudar ou o nível aumentar, devemos recalcular o xp_faltante
+      // Após o rank mudar ou o nível aumentar, recalcular o xp_faltante
       userStatus.xp_faltante = userStatus.proximo_nivel - userStatus.total_xp;
     }
 
+    // Atualizar penalidades vinculadas
+    const penalties = mission.Penalties;
+    if (penalties && penalties.length > 0) {
+      for (const penalty of penalties) {
+        if (penalty.status !== 'Concluída') {
+          penalty.status = 'Concluída'; // Atualizar o status para "Concluída"
+          userStatus.ouro += penalty.perdaOuro; // Aplicar a recompensa do ouro perdido
+          userStatus.pd += penalty.perdaXp;    // Aplicar a recompensa do PD perdido
+          await penalty.save();
+        }
+      }
+    }
+
+    // Salvar mudanças no status do usuário
     await userStatus.save();
 
     res.status(200).json({
-      message: 'Missão concluída com sucesso.',
-      userStatus
+      message: 'Missão concluída com sucesso, penalidades atualizadas.',
+      userStatus,
     });
   } catch (error) {
     console.error('Erro ao concluir missão:', error);
@@ -289,8 +313,67 @@ const completeMission = async (req, res) => {
 
 
 
+const expireMission = async (req, res) => {
+  const { id } = req.params;
+  const { userId } = req.body;
+
+  const transaction = await sequelize.transaction();
+  try {
+    // Busca missão com as penalidades associadas
+    const mission = await Mission.findByPk(id, {
+      include: [{ model: Penalty, as: 'Penalties' }], // Use o alias correto
+    });
+
+    if (!mission) {
+      return res.status(404).json({ error: 'Missão não encontrada.' });
+    }
+
+    if (mission.status !== 'Em progresso') {
+      return res.status(400).json({ error: 'Apenas missões em progresso podem ser expiradas.' });
+    }
+
+    // Buscar as penalidades associadas à missão
+    const penalties = mission.Penalties;
+    if (!penalties || penalties.length === 0) {
+      return res.status(400).json({ error: 'Nenhuma penalidade vinculada à missão.' });
+    }
+
+    // Buscar usuário e status do usuário
+    const userStatus = await Status.findOne({ where: { user_id: userId } });
+    if (!userStatus) {
+      return res.status(404).json({ error: 'Status do usuário não encontrado.' });
+    }
+
+    // Alterar o status da missão
+    mission.status = 'Não finalizada';
+    await mission.save({ transaction });
+
+    // Atualizar penalidades e status do usuário
+    for (const penalty of penalties) {
+      if (penalty.status === 'Pendente') {
+        penalty.status = 'Em andamento'; // Alterar penalidade para "Em andamento"
+        await penalty.save({ transaction });
+
+        // Atualizar status do usuário
+        userStatus.ouro -= penalty.perdaOuro;
+        userStatus.pd -= penalty.perdaXp;
+      }
+    }
+
+    // Salvar mudanças no status do usuário
+    await userStatus.save({ transaction });
+
+    // Finalizar transação
+    await transaction.commit();
+
+    return res.status(200).json({ message: 'Missão expirada e penalidades aplicadas com sucesso.' });
+  } catch (error) {
+    // Reverter transação em caso de erro
+    await transaction.rollback();
+    console.error('Erro ao expirar missão:', error);
+    return res.status(500).json({ error: 'Erro ao expirar missão.' });
+  }
+};
 
 
-
-
-module.exports = { createMission, allMission, deleteMission, completeMission };
+module.exports = { createMission, allMission, deleteMission, completeMission, expireMission };

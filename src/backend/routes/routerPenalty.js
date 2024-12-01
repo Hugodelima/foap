@@ -147,10 +147,6 @@ router.delete('/delete/:id', async (req, res) => {
     }
 });
 
-
-
-
-
 router.put('/update/:id', async (req, res) => {
     const { id } = req.params;
     const { titulo, dificuldade, rank, status, userId } = req.body;
@@ -214,5 +210,43 @@ router.get('/all/:id', async (req, res) => {
         res.status(500).json({ error: 'Erro ao buscar penalidades.' });
     }
 });
+
+router.put('/overcome/:id', async (req, res) => {
+    const { id } = req.params;
+
+    try {
+        // Buscar a penalidade pelo ID
+        const penalty = await Penalty.findByPk(id);
+
+        if (!penalty) {
+            return res.status(404).json({ error: 'Penalidade não encontrada.' });
+        }
+
+        // Buscar o status do usuário associado
+        const userStatus = await Status.findOne({ where: { user_id: penalty.user_id } });
+
+        if (!userStatus) {
+            return res.status(404).json({ error: 'Status do usuário não encontrado.' });
+        }
+
+        if (penalty.status === 'Em andamento') {
+            penalty.status = 'Concluída'; 
+            await penalty.save();
+
+
+            userStatus.ouro += penalty.perdaOuro; 
+            userStatus.pd += penalty.perdaXp;   
+            await userStatus.save();
+
+            return res.status(200).json({ message: 'Penalidade superada com sucesso.' });
+        } else {
+            return res.status(400).json({ error: 'Penalidade não está em andamento.' });
+        }
+    } catch (error) {
+        console.error('Erro ao superar penalidade:', error);
+        return res.status(500).json({ error: 'Erro ao superar penalidade.' });
+    }
+});
+
 
 module.exports = router;
