@@ -117,7 +117,7 @@ export default function MissionScreen() {
 
  
   
-
+  
   
   const fetchRewards = async () => {
     try {
@@ -189,6 +189,20 @@ export default function MissionScreen() {
     }, 10000);
 
     return () => clearInterval(interval);
+  }, []);
+
+  useEffect(() => {
+    const checkDailyMissions = async () => {
+        try {
+            const userId = await getUserId(); // Obtém o ID do usuário
+            console.log("Chamando a verificação de missões diárias para o usuário:", userId);
+            const response = await axios.get(`${API_URL}/api/missionapi/check-daily-missions/${userId}`);
+            console.log("Resposta da verificação de missões:", response.data);
+        } catch (error) {
+            console.error("Erro ao verificar missões diárias:", error);
+        }
+    };
+    checkDailyMissions();
   }, []);
 
   
@@ -313,399 +327,390 @@ const handleDeleteMission = async (missionId: number) => {
 
   }
 
+    const handleCreateReward = () => {
+      setModalVisibleReward(true);
+    };
 
+    const handleRewardCreated = () => {
+      setModalVisibleReward(false);
+      fetchRewards();
+    };
+    const handleCreatePenalty = () => {
+      setModalVisiblePenalty(true);
+    };
+    
+    const handlePenaltyCreated = () => {
+      setModalVisiblePenalty(false);
+      fetchPenalties(); // Atualiza as penalidades após a criação
+    };
+    
 
+    const handleEditReward = (reward: Reward) => {
+      setSelectedReward(reward); // Define a recompensa a ser editada
+      setModalEditVisible(true); // Abre o modal de edição
+    };
 
+    async function handleCompleteMission(missionId, userId) {
 
-
-
-
-
-
-
-
-
-  const handleCreateReward = () => {
-    setModalVisibleReward(true);
-  };
-
-  const handleRewardCreated = () => {
-    setModalVisibleReward(false);
-    fetchRewards();
-  };
-  const handleCreatePenalty = () => {
-    setModalVisiblePenalty(true);
-  };
-  
-  const handlePenaltyCreated = () => {
-    setModalVisiblePenalty(false);
-    fetchPenalties(); // Atualiza as penalidades após a criação
-  };
-  
-
-  const handleEditReward = (reward: Reward) => {
-    setSelectedReward(reward); // Define a recompensa a ser editada
-    setModalEditVisible(true); // Abre o modal de edição
-  };
-
-  async function handleCompleteMission(missionId, userId) {
-
-    try {
-      const response = await axios.put(`${API_URL}/api/missionapi/complete/${missionId}`, { userId });
-      const { message } = response.data;
-      Alert.alert('Sucesso', message);
-    } catch (error) {
-      console.error('Erro ao completar missão:', error);
-      Alert.alert('Erro', error.response?.data?.error || 'Não foi possível completar a missão.');
-    }
-
-    fetchMissions()
-}
-
-
-  const handleRewardEdited = () => {
-    setModalEditVisible(false);
-    fetchRewards(); // Atualiza as recompensas após a edição
-  };
-  const handlePenaltyEdited = () => {
-    setModalVisibleEditPenalty(false);
-    fetchPenalties(); // Atualiza as recompensas após a edição
-  };
-
-
-  const handleEditPenalty = (penalty: Penalty) => {
-    setSelectedPenalty(penalty)
-    setModalVisibleEditPenalty(true)
-  };
-
-  const handleOvercomePenalty = async (penaltyId: number) => {
-    try {
-      const response = await axios.put(`${API_URL}/api/penaltyapi/overcome/${penaltyId}`);
-      if (response.status === 200) {
-        Alert.alert('Sucesso', response.data.message);
-        
+      try {
+        const response = await axios.put(`${API_URL}/api/missionapi/complete/${missionId}`, { userId });
+        const { message } = response.data;
+        Alert.alert('Sucesso', message);
+      } catch (error) {
+        console.error('Erro ao completar missão:', error);
+        Alert.alert('Erro', error.response?.data?.error || 'Não foi possível completar a missão.');
       }
-    } catch (error: any) {
-      console.error('Erro ao superar penalidade:', error);
-      Alert.alert('Erro', error.response?.data?.error || 'Erro ao superar penalidade.');
-    }
-  };
-  
 
-  const handleDeleteReward = async (rewardId: number) => {
-    try {
-      await axios.delete(`${API_URL}/api/rewardapi/delete/${rewardId}`);
-      Alert.alert('Recompensa excluída com sucesso!');
-      fetchRewards(); // Atualiza a lista de recompensas após a exclusão
-    } catch (error: any) {
-      console.error('Erro ao excluir recompensa:', error);
-      Alert.alert('Erro ao excluir recompensa', error.response?.data?.message || 'Erro ao tentar excluir.');
-    }
-  };
-  const handleDeletePenalty = async (penaltyId: number) => {
-    try {
-      await axios.delete(`${API_URL}/api/penaltyapi/delete/${penaltyId}`);
-      Alert.alert('Penalidade excluída com sucesso!');
-      fetchPenalties(); // Atualiza a lista de penalidades após a exclusão
-    } catch (error: any) {
-      console.error('Erro ao excluir penalidade:', error);
-      Alert.alert('Erro ao excluir penalidade', error.response?.data?.message || 'Erro ao tentar excluir.');
-    }
-  };
+      fetchMissions()
+  }
 
 
-  return (
-    <View style={{ flex: 1, backgroundColor: '#1C1C1E' }}>
-      <SafeAreaView className='bg-neutral-800 rounded-b-lg border-b-8 border-cyan-500'>
-        <View className='flex-row items-center mb-4'>
-          <View className='flex-row items-center'>
-            <Image source={gold_image} style={{ width: 30, height: 30, marginRight: 5 }} />
-            <Text className='text-white font-vt323'>{userData?.ouro}</Text>
-          </View>
-          <View className='flex-row items-center'>
-            <Image source={xp_image} style={{ width: 30, height: 30, marginRight: 5 }} />
-            <Text className='text-white font-vt323'>{userData?.pd}</Text>
-          </View>
-        </View>
+    const handleRewardEdited = () => {
+      setModalEditVisible(false);
+      fetchRewards(); // Atualiza as recompensas após a edição
+    };
+    const handlePenaltyEdited = () => {
+      setModalVisibleEditPenalty(false);
+      fetchPenalties(); // Atualiza as recompensas após a edição
+    };
 
-        <View className='flex-row gap-4 mb-4'>
+
+    const handleEditPenalty = (penalty: Penalty) => {
+      setSelectedPenalty(penalty)
+      setModalVisibleEditPenalty(true)
+    };
+
+    const handleOvercomePenalty = async (penaltyId: number) => {
+      try {
+        const response = await axios.put(`${API_URL}/api/penaltyapi/overcome/${penaltyId}`);
+        if (response.status === 200) {
+          Alert.alert('Sucesso', response.data.message);
           
+        }
+      } catch (error: any) {
+        console.error('Erro ao superar penalidade:', error);
+        Alert.alert('Erro', error.response?.data?.error || 'Erro ao superar penalidade.');
+      }
+    };
+    
 
-          <TouchableOpacity onPress={() => setSelectedSection('missao')}>
-            <Text className={`text-white font-vt323 p-3 rounded-2xl ${selectedSection === 'missao' ? 'bg-fuchsia-700' : 'bg-transparent'}`}>
-              Missões
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity onPress={() => setSelectedSection('penalidade')}>
-            <Text className={`text-white font-vt323 p-3 rounded-2xl ${selectedSection === 'penalidade' ? 'bg-fuchsia-700' : 'bg-transparent'}`}>
-              Penalidades
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity onPress={() => setSelectedSection('recompensa')}>
-            <Text className={`text-white font-vt323 p-3 rounded-2xl ${selectedSection === 'recompensa' ? 'bg-fuchsia-700' : 'bg-transparent'}`}>
-              Recompensas
-            </Text>
-          </TouchableOpacity>
-        </View>
-      </SafeAreaView>
+    const handleDeleteReward = async (rewardId: number) => {
+      try {
+        await axios.delete(`${API_URL}/api/rewardapi/delete/${rewardId}`);
+        Alert.alert('Recompensa excluída com sucesso!');
+        fetchRewards(); // Atualiza a lista de recompensas após a exclusão
+      } catch (error: any) {
+        console.error('Erro ao excluir recompensa:', error);
+        Alert.alert('Erro ao excluir recompensa', error.response?.data?.message || 'Erro ao tentar excluir.');
+      }
+    };
+    const handleDeletePenalty = async (penaltyId: number) => {
+      try {
+        await axios.delete(`${API_URL}/api/penaltyapi/delete/${penaltyId}`);
+        Alert.alert('Penalidade excluída com sucesso!');
+        fetchPenalties(); // Atualiza a lista de penalidades após a exclusão
+      } catch (error: any) {
+        console.error('Erro ao excluir penalidade:', error);
+        Alert.alert('Erro ao excluir penalidade', error.response?.data?.message || 'Erro ao tentar excluir.');
+      }
+    };
 
-      
 
-      <TouchableOpacity className="absolute right-4 top-12" onPress={() => setModalVisibleOption(true)}>
-        <Image source={moreOptions_image} className="w-7 h-7" />
-      </TouchableOpacity>
-
-      <View className='flex-1'>
-        {selectedSection === 'missao' && (
-          <>
-            <View className='flex-1'>
-              <View className="flex items-end">
-                <TouchableOpacity 
-                  className='mt-4 mr-4 w-12 h-12 rounded-full'  
-                  onPress={handleOpenMissionFilterModal}>
-                  <Image source={filter} style={{ width: 50, height: 50 }} />
-                </TouchableOpacity>
-              </View>
-              <FlatList
-                className="mb-28"
-                data={filteredMissions}
-                keyExtractor={(item) => item.id.toString()}
-                renderItem={({ item }) => (
-                  <View className="p-4 border-b border-neutral-700">
-                    <Text className="text-white font-vt323">Título: {item.titulo}</Text>
-                    <Text className="text-white font-vt323">Status: {item.status}</Text>
-                    <Text className="text-white font-vt323">Dificuldade: {item.dificuldade}</Text>
-                    <Text className="text-white font-vt323">Rank: {item.rank}</Text>
-                    <Text className="text-white font-vt323">
-                      Tempo Restante: {calculateTimeRemaining(item.prazo)}
-                    </Text>
-                    <Text className="text-white font-vt323 mb-4">
-                      Recompensas: XP: {item.recompensaXp}, Ouro: {item.recompensaOuro}, PD: {item.recompensaPd}
-                    </Text>
-
-                    {/* Exibir Penalidades */}
-                    <View className="mt-4">
-                      <Text className="text-white font-vt323 mb-2">Penalidades:</Text>
-                      <Text className="text-neutral-300 font-vt323 mb-2">
-                        Total de Penalidades: {item.penaltyCount}
-                      </Text>
-                      <Text className="text-neutral-300 font-vt323">Títulos:</Text>
-                      {item.penaltyTitles && item.penaltyTitles.length > 0 ? (
-                        item.penaltyTitles.map((penalidade, index) => (
-                          <Text key={index} className="text-neutral-300 font-vt323">
-                            - {penalidade}
-                          </Text>
-                        ))
-                      ) : (
-                        <Text className="text-neutral-300 font-vt323">Sem penalidades vinculadas.</Text>
-                      )}
-                    </View>
-
-                    <View className="flex-row justify-between mt-4">
-                      <View className="flex-row">
-                        <TouchableOpacity onPress={() => handleEditMission(item)} className="mr-4">
-                          <PencilIcon size={30} color="orange" />
-                        </TouchableOpacity>
-                        <TouchableOpacity onPress={() => handleDeleteMission(item.id)} className="mr-4">
-                          <TrashIcon size={30} color="red" />
-                        </TouchableOpacity>
-                      </View>
-                      {item.status == 'Em progresso' && (
-                        <TouchableOpacity onPress={async () => handleCompleteMission(item.id, await getUserId())}>
-                          <CheckIcon size={30} color="green" />
-                        </TouchableOpacity>
-                      )}
-                    </View>
-                  </View>
-                )}
-              />
-
-              {/*<EditMissionModal
-                visible={modalVisibleEditMission}
-                mission={selectedMission}
-                onClose={() => setModalVisibleEditMission(false)}
-                onSave={handleMissionEdited}
-              /> */}
-
-              <TouchableOpacity className='bg-cyan-500 rounded-full p-3 absolute bottom-4 right-5 left-5' onPress={handleCreateMission}>
-                <Text className='text-white text-center font-vt323'>Criar Nova Missão</Text>
-              </TouchableOpacity>
+    return (
+      <View style={{ flex: 1, backgroundColor: '#1C1C1E' }}>
+        <SafeAreaView className='bg-neutral-800 rounded-b-lg border-b-8 border-cyan-500'>
+          <View className='flex-row items-center mb-4'>
+            <View className='flex-row items-center'>
+              <Image source={gold_image} style={{ width: 30, height: 30, marginRight: 5 }} />
+              <Text className='text-white font-vt323'>{userData?.ouro}</Text>
             </View>
-          </>
-        )}
-
-        
-        {selectedSection === 'penalidade' && (
-          <>
-            <View className='flex-1'>
-              <View className="flex items-end">
-                <TouchableOpacity 
-                  className='mt-4 mr-4 w-12 h-12 rounded-full'  
-                  onPress={handleOpenPenaltyFilterModal}>
-                  <Image source={filter} style={{width: 50, height: 50}} />
-                </TouchableOpacity>
-              </View>
-              <FlatList
-                className='mb-28'
-                data={filteredPenalties}
-                keyExtractor={(item) => item.id.toString()}
-                renderItem={({ item }) => (
-                  <View className="p-4 border-b border-neutral-700">
-                    <Text className="text-white font-vt323">Título: {item.titulo}</Text>
-                    <Text className="text-white font-vt323">Status: {item.status}</Text>
-                    <Text className="text-white font-vt323">Dificuldade: {item.dificuldade}</Text>
-                    <Text className="text-white font-vt323">Rank: {item.rank}</Text>
-                    <Text className="text-white font-vt323 mb-4">
-                      Penalidades: {item.perdaOuro}
-                      <Image source={gold_image} style={{ width: 30, height: 30}} /> {item.perdaXp}
-                      <Image source={xp_image} style={{ width: 30, height: 30}} />
-                    </Text>
-
-                    <View className="flex-row justify-between mt-2 mb-2">
-                      {/* Botão para Editar Penalidade */}
-                      <TouchableOpacity onPress={() => handleEditPenalty(item)} className="mr-4">
-                        <PencilIcon size={30} color="orange" />
-                      </TouchableOpacity>
-
-                      {/* Botão para Excluir Penalidade */}
-                      <TouchableOpacity onPress={() => handleDeletePenalty(item.id)} className="mr-4">
-                        <TrashIcon size={30} color="red" />
-                      </TouchableOpacity>
-
-                      {/* Botão para Superar Penalidade se o status for 'Não Feita' */}
-                      {item.status === 'Em andamento' && (
-                        <TouchableOpacity onPress={() => handleOvercomePenalty(item.id)}>
-                          <CheckIcon size={30} color="green" />
-                        </TouchableOpacity>
-                      )}
-                    </View>
-                  </View>
-                )}
-              />
-
-              <EditPenaltyModal
-                visible={modalVisibleEditPenalty}
-                penalty={selectedPenalty}
-                onClose={() => setModalVisibleEditPenalty(false)}
-                onSave={handlePenaltyEdited}
-              />
-              
-              <TouchableOpacity className='bg-cyan-500 rounded-full p-3 absolute bottom-4 right-5 left-5' onPress={handleCreatePenalty}>
-                <Text className='text-white text-center font-vt323'>Criar Nova Penalidade</Text>
-              </TouchableOpacity>
+            <View className='flex-row items-center'>
+              <Image source={xp_image} style={{ width: 30, height: 30, marginRight: 5 }} />
+              <Text className='text-white font-vt323'>{userData?.pd}</Text>
             </View>
+          </View>
+
+          <View className='flex-row gap-4 mb-4'>
             
-          </>
-        )}
+
+            <TouchableOpacity onPress={() => setSelectedSection('missao')}>
+              <Text className={`text-white font-vt323 p-3 rounded-2xl ${selectedSection === 'missao' ? 'bg-fuchsia-700' : 'bg-transparent'}`}>
+                Missões
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity onPress={() => setSelectedSection('penalidade')}>
+              <Text className={`text-white font-vt323 p-3 rounded-2xl ${selectedSection === 'penalidade' ? 'bg-fuchsia-700' : 'bg-transparent'}`}>
+                Penalidades
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity onPress={() => setSelectedSection('recompensa')}>
+              <Text className={`text-white font-vt323 p-3 rounded-2xl ${selectedSection === 'recompensa' ? 'bg-fuchsia-700' : 'bg-transparent'}`}>
+                Recompensas
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </SafeAreaView>
 
         
-        {selectedSection === 'recompensa' && (
-          <>
-            <View className="flex items-end">
-              <TouchableOpacity 
-                className='mt-4 mr-4 w-12 h-12 rounded-full'  
-                onPress={handleOpenFilterModal}>
-                <Image source={filter} style={{width: 50, height: 50}} />
-              </TouchableOpacity>
-            </View>
 
+        <TouchableOpacity className="absolute right-4 top-12" onPress={() => setModalVisibleOption(true)}>
+          <Image source={moreOptions_image} className="w-7 h-7" />
+        </TouchableOpacity>
 
-            <View className='flex-1'>
-              <FlatList
-                className='mb-28'
-                data={filteredRewards}
-                keyExtractor={(item) => item.id.toString()}
-                renderItem={({ item }) => (
-                  <View className='p-4 border-b border-neutral-700'>
-                    <Text className='text-white font-vt323'>Titulo: {item.titulo}</Text>
-                    <Text className='text-white font-vt323'>Status: {item.status}</Text>
-                    <Text className='text-white font-vt323'>Ouro: {item.gold}</Text>
+        <View className='flex-1'>
+          {selectedSection === 'missao' && (
+            <>
+              <View className='flex-1'>
+                <View className="flex items-end">
+                  <TouchableOpacity 
+                    className='mt-4 mr-4 w-12 h-12 rounded-full'  
+                    onPress={handleOpenMissionFilterModal}>
+                    <Image source={filter} style={{ width: 50, height: 50 }} />
+                  </TouchableOpacity>
+                </View>
+                <FlatList
+                  className="mb-28"
+                  data={filteredMissions}
+                  keyExtractor={(item) => item.id.toString()}
+                  renderItem={({ item }) => (
+                    <View className="p-4 border-b border-neutral-700">
+                      <Text className="text-white font-vt323">Título: {item.titulo}</Text>
+                      <Text className="text-white font-vt323">Status: {item.status}</Text>
+                      <Text className="text-white font-vt323">Dificuldade: {item.dificuldade}</Text>
+                      <Text className="text-white font-vt323">Rank: {item.rank}</Text>
+                      <Text className="text-white font-vt323">
+                        Tempo Restante: {calculateTimeRemaining(item.prazo)}
+                      </Text>
+                      <Text className="text-white font-vt323">
+                        Repetição: {item.repeticao}
+                      </Text>
+                      <Text className="text-white font-vt323 mb-4">
+                        Recompensas: XP: {item.recompensaXp}, Ouro: {item.recompensaOuro}, PD: {item.recompensaPd}
+                      </Text>
 
-                    {/* Botões para Editar e Excluir */}
-                    {item.status !== 'comprada' && (
-                      <View className='flex-row justify-between mt-2 mb-2'>
-                        
-                        <View className='flex-row'>
-                          {/* Botão para Editar Recompensa */}
-                          <TouchableOpacity onPress={() => handleEditReward(item)} className='mr-4'>
+                      {/* Exibir Penalidades */}
+                      <View className="mt-4">
+                        <Text className="text-white font-vt323 mb-2">Penalidades:</Text>
+                        <Text className="text-neutral-300 font-vt323 mb-2">
+                          Total de Penalidades: {item.penaltyCount}
+                        </Text>
+                        <Text className="text-neutral-300 font-vt323">Títulos:</Text>
+                        {item.penaltyTitles && item.penaltyTitles.length > 0 ? (
+                          item.penaltyTitles.map((penalidade, index) => (
+                            <Text key={index} className="text-neutral-300 font-vt323">
+                              - {penalidade}
+                            </Text>
+                          ))
+                        ) : (
+                          <Text className="text-neutral-300 font-vt323">Sem penalidades vinculadas.</Text>
+                        )}
+                      </View>
+
+                      <View className="flex-row justify-between mt-4">
+                        <View className="flex-row">
+                          <TouchableOpacity onPress={() => handleEditMission(item)} className="mr-4">
                             <PencilIcon size={30} color="orange" />
                           </TouchableOpacity>
-
-                          {/* Botão para Excluir Recompensa */}
-                          <TouchableOpacity onPress={() => handleDeleteReward(item.id)}>
+                          <TouchableOpacity onPress={() => handleDeleteMission(item.id)} className="mr-4">
                             <TrashIcon size={30} color="red" />
                           </TouchableOpacity>
                         </View>
-                        <View>
-                          {/* Botão para Comprar Recompensa, posicionado à direita */}
-                          <TouchableOpacity onPress={() => handleBuyReward(item.id, item.gold)}>
-                            <ShoppingCartIcon size={30} color="green" />
+                        {item.status == 'Em progresso' && (
+                          <TouchableOpacity onPress={async () => handleCompleteMission(item.id, await getUserId())}>
+                            <CheckIcon size={30} color="green" />
                           </TouchableOpacity>
-                        </View>
+                        )}
                       </View>
-                    )}
+                    </View>
+                  )}
+                />
 
-                    
-                  </View>
-                )}
-              />
+                {/*<EditMissionModal
+                  visible={modalVisibleEditMission}
+                  mission={selectedMission}
+                  onClose={() => setModalVisibleEditMission(false)}
+                  onSave={handleMissionEdited}
+                /> */}
 
+                <TouchableOpacity className='bg-cyan-500 rounded-full p-3 absolute bottom-4 right-5 left-5' onPress={handleCreateMission}>
+                  <Text className='text-white text-center font-vt323'>Criar Nova Missão</Text>
+                </TouchableOpacity>
+              </View>
+            </>
+          )}
+
+          
+          {selectedSection === 'penalidade' && (
+            <>
+              <View className='flex-1'>
+                <View className="flex items-end">
+                  <TouchableOpacity 
+                    className='mt-4 mr-4 w-12 h-12 rounded-full'  
+                    onPress={handleOpenPenaltyFilterModal}>
+                    <Image source={filter} style={{width: 50, height: 50}} />
+                  </TouchableOpacity>
+                </View>
+                <FlatList
+                  className='mb-28'
+                  data={filteredPenalties}
+                  keyExtractor={(item) => item.id.toString()}
+                  renderItem={({ item }) => (
+                    <View className="p-4 border-b border-neutral-700">
+                      <Text className="text-white font-vt323">Título: {item.titulo}</Text>
+                      <Text className="text-white font-vt323">Status: {item.status}</Text>
+                      <Text className="text-white font-vt323">Dificuldade: {item.dificuldade}</Text>
+                      <Text className="text-white font-vt323">Rank: {item.rank}</Text>
+                      <Text className="text-white font-vt323 mb-4">
+                        Penalidades: {item.perdaOuro}
+                        <Image source={gold_image} style={{ width: 30, height: 30}} /> {item.perdaXp}
+                        <Image source={xp_image} style={{ width: 30, height: 30}} />
+                      </Text>
+
+                      <View className="flex-row justify-between mt-2 mb-2">
+                        {/* Botão para Editar Penalidade */}
+                        <TouchableOpacity onPress={() => handleEditPenalty(item)} className="mr-4">
+                          <PencilIcon size={30} color="orange" />
+                        </TouchableOpacity>
+
+                        {/* Botão para Excluir Penalidade */}
+                        <TouchableOpacity onPress={() => handleDeletePenalty(item.id)} className="mr-4">
+                          <TrashIcon size={30} color="red" />
+                        </TouchableOpacity>
+
+                        {/* Botão para Superar Penalidade se o status for 'Não Feita' */}
+                        {item.status === 'Em andamento' && (
+                          <TouchableOpacity onPress={() => handleOvercomePenalty(item.id)}>
+                            <CheckIcon size={30} color="green" />
+                          </TouchableOpacity>
+                        )}
+                      </View>
+                    </View>
+                  )}
+                />
+
+                <EditPenaltyModal
+                  visible={modalVisibleEditPenalty}
+                  penalty={selectedPenalty}
+                  onClose={() => setModalVisibleEditPenalty(false)}
+                  onSave={handlePenaltyEdited}
+                />
+                
+                <TouchableOpacity className='bg-cyan-500 rounded-full p-3 absolute bottom-4 right-5 left-5' onPress={handleCreatePenalty}>
+                  <Text className='text-white text-center font-vt323'>Criar Nova Penalidade</Text>
+                </TouchableOpacity>
+              </View>
               
+            </>
+          )}
 
-              
-              {/* Modal de Criação de Recompensa */}
-              <ModalReward
-                visible={modalVisibleReward}
-                onClose={() => setModalVisibleReward(false)}
-                onSave={handleRewardCreated}
-              />
+          
+          {selectedSection === 'recompensa' && (
+            <>
+              <View className="flex items-end">
+                <TouchableOpacity 
+                  className='mt-4 mr-4 w-12 h-12 rounded-full'  
+                  onPress={handleOpenFilterModal}>
+                  <Image source={filter} style={{width: 50, height: 50}} />
+                </TouchableOpacity>
+              </View>
 
-              {/* Modal de Edição de Recompensa */}
-              <ModalEditReward
-                visible={modalEditVisible}
-                reward={selectedReward || { id: 0, titulo: '', gold: 0, status: '' }} // Passa a recompensa selecionada
-                onClose={() => setModalEditVisible(false)}
-                onSave={handleRewardEdited}
-              />
 
-              <TouchableOpacity className='bg-cyan-500 rounded-full p-3 absolute bottom-4 right-5 left-5' onPress={handleCreateReward}>
-                <Text className='text-white text-center font-vt323'>Criar Nova Recompensa</Text>
-              </TouchableOpacity>
-            </View>
-          </>
-        )}
+              <View className='flex-1'>
+                <FlatList
+                  className='mb-28'
+                  data={filteredRewards}
+                  keyExtractor={(item) => item.id.toString()}
+                  renderItem={({ item }) => (
+                    <View className='p-4 border-b border-neutral-700'>
+                      <Text className='text-white font-vt323'>Titulo: {item.titulo}</Text>
+                      <Text className='text-white font-vt323'>Status: {item.status}</Text>
+                      <Text className='text-white font-vt323'>Ouro: {item.gold}</Text>
+
+                      {/* Botões para Editar e Excluir */}
+                      {item.status !== 'comprada' && (
+                        <View className='flex-row justify-between mt-2 mb-2'>
+                          
+                          <View className='flex-row'>
+                            {/* Botão para Editar Recompensa */}
+                            <TouchableOpacity onPress={() => handleEditReward(item)} className='mr-4'>
+                              <PencilIcon size={30} color="orange" />
+                            </TouchableOpacity>
+
+                            {/* Botão para Excluir Recompensa */}
+                            <TouchableOpacity onPress={() => handleDeleteReward(item.id)}>
+                              <TrashIcon size={30} color="red" />
+                            </TouchableOpacity>
+                          </View>
+                          <View>
+                            {/* Botão para Comprar Recompensa, posicionado à direita */}
+                            <TouchableOpacity onPress={() => handleBuyReward(item.id, item.gold)}>
+                              <ShoppingCartIcon size={30} color="green" />
+                            </TouchableOpacity>
+                          </View>
+                        </View>
+                      )}
+
+                      
+                    </View>
+                  )}
+                />
+
+                
+
+                
+                {/* Modal de Criação de Recompensa */}
+                <ModalReward
+                  visible={modalVisibleReward}
+                  onClose={() => setModalVisibleReward(false)}
+                  onSave={handleRewardCreated}
+                />
+
+                {/* Modal de Edição de Recompensa */}
+                <ModalEditReward
+                  visible={modalEditVisible}
+                  reward={selectedReward || { id: 0, titulo: '', gold: 0, status: '' }} // Passa a recompensa selecionada
+                  onClose={() => setModalEditVisible(false)}
+                  onSave={handleRewardEdited}
+                />
+
+                <TouchableOpacity className='bg-cyan-500 rounded-full p-3 absolute bottom-4 right-5 left-5' onPress={handleCreateReward}>
+                  <Text className='text-white text-center font-vt323'>Criar Nova Recompensa</Text>
+                </TouchableOpacity>
+              </View>
+            </>
+          )}
+        </View>
+
+        <ModalComponent visible={modalVisibleOption} onClose={() => setModalVisibleOption(false)} onNavigate={handleNavigate} />
+
+        <ModalFilter
+          visible={filterModalVisible}
+          onClose={() => setFilterModalVisible(false)} // Fecha o modal
+          onFilter={handleFilterSelection} // Função chamada quando uma opção é selecionada
+        />
+        <ModalFilterPenalty
+          visible={filterModalVisiblePenalty}
+          onClose={() => setFilterModalVisiblePenalty(false)}
+          onFilter={handlePenaltyFilterSelection}
+        />
+
+        <ModalPenalty
+          visible={modalVisiblePenalty}
+          onClose={() => setModalVisiblePenalty(false)}
+          onSave={handlePenaltyCreated} // Função que deve ser implementada para criar a penalidade
+        />
+
+        <ModalMission
+          visible={modalVisibleMission}
+          onClose={() => setModalVisibleMission(false)}
+          onSave={handleMissionCreated}
+        />
+
+        <MissionFilterModal
+          visible={filterModalVisibleMission}
+          onClose={() => setFilterModalVisibleMission(false)}
+          onFilter={handleMissionFilterSelection}
+        />
       </View>
-
-      <ModalComponent visible={modalVisibleOption} onClose={() => setModalVisibleOption(false)} onNavigate={handleNavigate} />
-
-      <ModalFilter
-        visible={filterModalVisible}
-        onClose={() => setFilterModalVisible(false)} // Fecha o modal
-        onFilter={handleFilterSelection} // Função chamada quando uma opção é selecionada
-      />
-      <ModalFilterPenalty
-        visible={filterModalVisiblePenalty}
-        onClose={() => setFilterModalVisiblePenalty(false)}
-        onFilter={handlePenaltyFilterSelection}
-      />
-
-      <ModalPenalty
-        visible={modalVisiblePenalty}
-        onClose={() => setModalVisiblePenalty(false)}
-        onSave={handlePenaltyCreated} // Função que deve ser implementada para criar a penalidade
-      />
-
-      <ModalMission
-        visible={modalVisibleMission}
-        onClose={() => setModalVisibleMission(false)}
-        onSave={handleMissionCreated}
-      />
-
-      <MissionFilterModal
-        visible={filterModalVisibleMission}
-        onClose={() => setFilterModalVisibleMission(false)}
-        onFilter={handleMissionFilterSelection}
-      />
-    </View>
-  );
-}
+    );
+  }

@@ -34,7 +34,6 @@ const Mission = sequelize.define('Mission', {
   status: {
     type: DataTypes.ENUM('Finalizada', 'Em progresso', 'Não finalizada'),
     allowNull: false,
-    defaultValue: 'Não finalizada',
   },
   user_id: {
     type: DataTypes.INTEGER,
@@ -44,6 +43,12 @@ const Mission = sequelize.define('Mission', {
       key: 'id'
     }
   },
+  repeticao: {
+    type: DataTypes.ENUM('Diariamente', 'Nunca'),  // ou outra opção que desejar
+    allowNull: false,
+    defaultValue: 'Nunca',  // Caso você queira que por padrão não haja repetição
+  },
+  
 });
 
 Mission.hasMany(Penalty, {

@@ -3,6 +3,8 @@ const Penalty = require('../models/penalty');
 const Status = require('../models/status')
 const User = require('../models/user')
 const sequelize = require('../models/database');
+const { Op } = require('sequelize'); // Importação do Sequelize.Op
+
 const moment = require('moment')
 
 const calcularRecompensas = (dificuldade, rank) => {
@@ -100,28 +102,47 @@ const calcularRecompensas = (dificuldade, rank) => {
 
 const createMission = async (req, res) => {
   try {
-    const { titulo, rank, prazo, dificuldade, penalidadeIds, userId } = req.body;
+    const { titulo, rank, prazo, dificuldade, penalidadeIds, userId, repeticao } = req.body;
 
     if (!userId) {
       return res.status(400).json({ error: 'O campo userId é obrigatório.' });
     }
-    const amanhã = moment().add(1, 'days').startOf('day');
-    
-    if (moment(prazo).isBefore(amanhã, 'day')) {
-      return res.status(400).json({ error: 'O prazo deve ser a partir de amanhã.' });
+
+    let prazoFinal;
+
+    if (repeticao) {
+      // Se repetição diária, defina até hoje às 23:59:59 no horário local de Cuiabá
+      const now = new Date();
+      now.setHours(23, 59, 59, 999);
+      // Ajustar para fuso horário local de Cuiabá (-04:00)
+      const offset = -4 * 60; // -4 horas em minutos
+      const localTime = new Date(now.getTime() + offset * 60000);
+
+      prazoFinal = localTime.toISOString();
+    } else {
+      prazoFinal = new Date(prazo).toISOString();
     }
+
+    // Console log para verificar dados
+    console.log("Dados recebidos do frontend:");
+    console.log("prazo enviado:", prazo);
+    console.log("repeticao:", repeticao);
+    console.log("prazoFinal ajustado sem conversão UTC padrão:", prazoFinal);
+
+    const repeticaoValor = repeticao ? 'Diariamente' : 'Nunca';
 
     const { recompensaXp, recompensaOuro, recompensaPd } = calcularRecompensas(dificuldade, rank);
 
     const novaMissao = await Mission.create({
       titulo,
       rank,
-      prazo,
+      prazo: prazoFinal,
       dificuldade,
       recompensaXp,
       recompensaOuro,
       recompensaPd,
       status: 'Em progresso',
+      repeticao: repeticaoValor,
       user_id: userId,
     });
 
@@ -129,17 +150,13 @@ const createMission = async (req, res) => {
       return res.status(400).json({ error: 'O campo penalidadeIds deve ser um array não vazio.' });
     }
 
-    // Buscar penalidades existentes
     const penalidadesExistentes = await Penalty.findAll({
-      where: {
-        id: penalidadeIds,
-      },
+      where: { id: penalidadeIds },
     });
 
-    // Remover vínculos anteriores
     await Promise.all(
       penalidadesExistentes.map(async (penalidade) => {
-        penalidade.missionId = novaMissao.id; // Atualiza o ID da missão
+        penalidade.missionId = novaMissao.id;
         await penalidade.save();
       })
     );
@@ -155,7 +172,10 @@ const createMission = async (req, res) => {
     console.error('Erro ao criar missão:', error);
     return res.status(500).json({ error: 'Erro interno do servidor.' });
   }
-}; 
+};
+
+
+
 
 const allMission = async (req, res) => {
   try {
@@ -375,5 +395,69 @@ const expireMission = async (req, res) => {
   }
 };
 
+const checkAndDuplicateDailyMissions = async (req, res) => {
+  try {
+    const { user_id } = req.params;
+    console.log("Iniciando verificação de missões diárias...");
 
-module.exports = { createMission, allMission, deleteMission, completeMission, expireMission };
+    const today = new Date();
+    today.setHours(0, 0, 0, 0); // Início do dia de hoje
+
+    const missions = await Mission.findAll({
+      where: {
+        repeticao: 'Diariamente',
+        status: { [Op.in]: ['Não finalizada', 'Finalizada'] },
+        ...(user_id ? { user_id } : {}),
+      },
+    });
+
+    for (const mission of missions) {
+      const missionDeadline = new Date(mission.prazo);
+
+      // Verifica se a missão precisa ser duplicada
+      if (missionDeadline < today) {
+        console.log(`Duplicando missão: ${mission.titulo}`);
+
+        // Configura prazo para hoje às 23:59:59.999
+        const newDeadline = new Date(Date.UTC(
+          today.getUTCFullYear(),
+          today.getUTCMonth(),
+          today.getUTCDate(),
+          23, 59, 59, 999
+        ));
+
+        console.log("Prazo configurado para:", newDeadline);
+
+        const newMission = await Mission.create({
+          ...mission.toJSON(),
+          id: undefined, 
+          prazo: newDeadline,
+          status: 'Em progresso',
+        });
+
+        const penalties = await Penalty.findAll({ where: { missionId: mission.id } });
+        console.log(`Duplicando ${penalties.length} penalidades...`);
+
+        if (penalties.length > 0) {
+          const newPenalties = penalties.map((penalty) => ({
+            ...penalty.toJSON(),
+            id: undefined,
+            missionId: newMission.id,
+          }));
+
+          await Penalty.bulkCreate(newPenalties);
+        }
+      }
+    }
+
+    console.log("Verificação de missões diárias concluída.");
+    res.status(200).json({ message: 'Missões verificadas e duplicadas com penalidades, se necessário.' });
+  } catch (error) {
+    console.error('Erro ao verificar e duplicar missões diárias com penalidades:', error);
+    res.status(500).json({ error: 'Erro interno no servidor.' });
+  }
+};
+
+
+
+module.exports = { createMission, allMission, deleteMission, completeMission, expireMission, checkAndDuplicateDailyMissions };
