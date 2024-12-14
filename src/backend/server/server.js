@@ -7,6 +7,7 @@ const routerPenalty = require('../routes/routerPenalty');
 const routerReward = require('../routes/routerReward');
 const routerMission = require('../routes/routerMission');
 const routerStatus = require('../routes/routerStatus')
+const routerMissionHistory = require('../routes/routerMissionHistory')
 
 const app = express();
 
@@ -20,6 +21,7 @@ app.use('/api/penaltyapi', routerPenalty);
 app.use('/api/rewardapi', routerReward);
 app.use('/api/missionapi', routerMission);
 app.use('/api/statusapi', routerStatus);
+app.use('/api/missiohistorynapi', routerMissionHistory);
 
 const PORT = process.env.PORT;
 app.listen(PORT, () => {

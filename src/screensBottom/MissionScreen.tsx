@@ -8,6 +8,7 @@ import { useFetchUserData } from '../hooks/useFetchDataUser';
 import ModalComponent from '../modal/moreOptions';
 import ModalReward from '../modal/addReward';
 import ModalEditReward from '../modal/editReward'; // Modal para editar a recompensa
+import ModalEditMission from '../modal/editMission'
 import gold_image from '../assets/images/home/gold.png';
 import xp_image from '../assets/images/mission/xp.png';
 import moreOptions_image from '../assets/images/home/more_options.png';
@@ -88,6 +89,9 @@ export default function MissionScreen() {
   ? penalties.filter((penalty) => penalty.status === filterPenaltyStatus)
   : penalties;
 
+
+  const [selectedMission, setSelectedMission] = useState<Mission | null>(null);
+  const [modalVisibleEditMission, setModalVisibleEditMission] = useState(false)
   const [modalVisibleMission, setModalVisibleMission] = useState(false);
   
 
@@ -128,6 +132,7 @@ export default function MissionScreen() {
       console.error('Erro ao buscar recompensas:', error);
     }
   };
+
   const fetchPenalties = async () => {
     try {
       const userId = await getUserId();
@@ -191,19 +196,7 @@ export default function MissionScreen() {
     return () => clearInterval(interval);
   }, []);
 
-  useEffect(() => {
-    const checkDailyMissions = async () => {
-        try {
-            const userId = await getUserId(); // Obtém o ID do usuário
-            console.log("Chamando a verificação de missões diárias para o usuário:", userId);
-            const response = await axios.get(`${API_URL}/api/missionapi/check-daily-missions/${userId}`);
-            console.log("Resposta da verificação de missões:", response.data);
-        } catch (error) {
-            console.error("Erro ao verificar missões diárias:", error);
-        }
-    };
-    checkDailyMissions();
-  }, []);
+  
 
   
 
@@ -237,7 +230,7 @@ const handleMissionCreated = () => {
 };
 const handleEditMission = (mission: Mission) => {
   setSelectedMission(mission);
-  setModalEditVisibleMission(true); // abre o modal de edição de missão (caso tenha)
+  setModalVisibleEditMission(true); // abre o modal de edição de missão (caso tenha)
 };
 
 const handleMissionEdited = () => {
@@ -415,6 +408,60 @@ const handleDeleteMission = async (missionId: number) => {
       }
     };
 
+    useEffect(() => {
+      const checkDailyMissions = async () => {
+        try {
+          const userId = await getUserId();
+          const { data: missions } = await axios.get(`${API_URL}/api/missionapi/daily-missions/${userId}`);
+          missions.forEach(resetDailyMission);
+        } catch (error) {
+          console.error('Erro ao verificar missões diárias:', error);
+        }
+      };
+    
+      checkDailyMissions();
+    }, []); 
+    
+  
+
+    const resetDailyMission = async (mission) => {
+      const currentTime = new Date();
+      //currentTime.setDate(currentTime.getDate() + 1); // Aumenta 1 dia
+      const missionDeadline = new Date(mission.prazo);
+    
+      // Reseta a missão somente se o prazo já expirou
+      if (currentTime > missionDeadline) {
+        const updatedPrazo = new Date();
+        updatedPrazo.setHours(23, 59, 59, 999); // Define o novo prazo até o final do dia
+        const offsetHours = 4; // Horas de diferença para UTC
+        updatedPrazo.setUTCHours(updatedPrazo.getUTCHours() - offsetHours);
+    
+        try {
+          // Atualiza o prazo da missão
+          await axios.put(`${API_URL}/api/missionapi/update/${mission.id}`, {
+            prazo: updatedPrazo.toISOString(),
+          });
+
+          console.log('anterior: '+mission.prazo)
+          console.log('atualizado: '+updatedPrazo.toISOString())
+
+          await axios.post(`${API_URL}/api/missiohistorynapi/create`, {
+            missionId: mission.id,
+            userId: await getUserId(),
+            completed: mission.completed || false, 
+            prazoAnterior: mission.prazo,
+            prazoAtualizado: updatedPrazo.toISOString(),
+          });
+    
+          console.log(`Missão diária com ID ${mission.id} resetada com sucesso.`);
+        } catch (error) {
+          console.error(`Erro ao resetar missão diária com ID ${mission.id}:`, error);
+        }
+      }
+    };
+    
+  
+
 
     return (
       <View style={{ flex: 1, backgroundColor: '#1C1C1E' }}>
@@ -524,13 +571,13 @@ const handleDeleteMission = async (missionId: number) => {
                     </View>
                   )}
                 />
-
-                {/*<EditMissionModal
+                
+                <ModalEditMission
                   visible={modalVisibleEditMission}
                   mission={selectedMission}
                   onClose={() => setModalVisibleEditMission(false)}
                   onSave={handleMissionEdited}
-                /> */}
+                /> 
 
                 <TouchableOpacity className='bg-cyan-500 rounded-full p-3 absolute bottom-4 right-5 left-5' onPress={handleCreateMission}>
                   <Text className='text-white text-center font-vt323'>Criar Nova Missão</Text>

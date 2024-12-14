@@ -8,7 +8,7 @@ interface ModalComponentProps {
   visible: boolean;
   onClose: () => void;
   onSave: () => void;
-  reward: { id: number; titulo: string; gold: number; status: string }; // Editar recompensa
+  reward: { id: number; titulo: string; gold: number; status: string };
 }
 
 export default function ModalEditReward({ visible, onClose, onSave, reward }: ModalComponentProps) {
