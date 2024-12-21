@@ -21,7 +21,7 @@ app.use('/api/penaltyapi', routerPenalty);
 app.use('/api/rewardapi', routerReward);
 app.use('/api/missionapi', routerMission);
 app.use('/api/statusapi', routerStatus);
-app.use('/api/missiohistorynapi', routerMissionHistory);
+app.use('/api/missionhistorynapi', routerMissionHistory);
 
 const PORT = process.env.PORT;
 app.listen(PORT, () => {

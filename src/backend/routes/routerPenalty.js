@@ -79,7 +79,6 @@ const calcularPenalidade = (dificuldade, rank) => {
     };
 };
 
-
 router.post('/create', async (req, res) => {
     const { titulo, dificuldade, rank, userId } = req.body;
 
@@ -105,9 +104,6 @@ router.post('/create', async (req, res) => {
     }
 });
 
-
-
-// Rota para buscar penalidades por userId
 router.get('/:userId', async (req, res) => {
     const { userId } = req.params;
 
@@ -248,5 +244,66 @@ router.put('/overcome/:id', async (req, res) => {
     }
 });
 
+router.put('/reset/:missionId', async (req, res) => {
+    const { missionId } = req.params;
+  
+    try {
+      // Atualiza o status das penalidades para "Pendente"
+      await Penalty.update(
+        { status: "Pendente" },
+        { where: { missionId } }
+      );
+  
+      res.status(200).json({ message: 'Penalidades resetadas com sucesso.' });
+    } catch (error) {
+      console.error('Erro ao resetar penalidades:', error);
+      res.status(500).json({ error: 'Erro ao resetar penalidades.' });
+    }
+});
 
+
+// Rota para atualizar as penalidades em massa
+router.put('/update-multiple', async (req, res) => {
+    const { missionId, status } = req.body;
+  
+    if (!missionId || !status) {
+      return res.status(400).json({ error: 'Por favor, forneça a missão e o novo status.' });
+    }
+  
+    try {
+      // Encontra todas as penalidades associadas à missão
+      const penalties = await Penalty.update(
+        { status },  // Atualiza o status das penalidades
+        { where: { missionId }, returning: true }  // Filtra pelo missionId
+      );
+  
+      res.status(200).json({ message: 'Penalidades atualizadas com sucesso.', penalties });
+    } catch (error) {
+      console.error('Erro ao atualizar penalidades:', error);
+      res.status(500).json({ error: 'Erro ao atualizar penalidades.' });
+    }
+});
+
+router.get('/getByMission/:missionId', async (req, res) => {
+    const { missionId } = req.params; // Captura o missionId da URL
+  
+    try {
+      // Busca as penalidades associadas à missão
+      const penalties = await Penalty.findAll({
+        where: { missionId },
+        include: [{ model: Mission, attributes: ['titulo'] }] // Opcional: inclui o título da missão
+      });
+  
+      // Se não encontrar penalidades para a missão
+      if (penalties.length === 0) {
+        return res.status(404).json({ error: 'Nenhuma penalidade encontrada para esta missão.' });
+      }
+  
+      // Retorna as penalidades encontradas
+      res.status(200).json(penalties);
+    } catch (error) {
+      console.error('Erro ao buscar penalidades:', error);
+      res.status(500).json({ error: 'Erro ao buscar penalidades.' });
+    }
+});
 module.exports = router;

@@ -5,25 +5,29 @@ const Mission = require('../models/mission');
 
 // Rota para criar um registro no histórico de missões
 router.post('/create', async (req, res) => {
-    const { missionId, userId, completed, prazoAnterior, prazoAtualizado } = req.body;
-
+    console.log('rota de criar historico')
+    const { missionId, userId, completed, prazoAnterior, prazoAtualizado, recompensaXp, recompensaOuro, recompensaPd } = req.body;
+  
     if (!missionId || !userId || !prazoAnterior || !prazoAtualizado) {
-        return res.status(400).json({ error: 'Por favor, preencha todos os campos obrigatórios.' });
+      return res.status(400).json({ error: 'Por favor, preencha todos os campos obrigatórios.' });
     }
-
+  
     try {
-        const history = await MissionHistory.create({
-            missionId,
-            userId,
-            completed,
-            prazoAnterior,
-            prazoAtualizado,
-        });
-
-        res.status(201).json({ message: 'Histórico criado com sucesso.', history });
+      const history = await MissionHistory.create({
+        missionId,
+        userId,
+        completed,
+        prazoAnterior,
+        prazoAtualizado,
+        recompensaXp,
+        recompensaOuro,
+        recompensaPd,
+      });
+  
+      res.status(201).json({ message: 'Histórico criado com sucesso.', history });
     } catch (error) {
-        console.error('Erro ao criar histórico:', error);
-        res.status(500).json({ error: 'Erro ao criar histórico.' });
+      console.error('Erro ao criar histórico:', error);
+      res.status(500).json({ error: 'Erro ao criar histórico.' });
     }
 });
 

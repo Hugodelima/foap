@@ -424,45 +424,95 @@ const handleDeleteMission = async (missionId: number) => {
     
   
 
+    
+
     const resetDailyMission = async (mission) => {
       const currentTime = new Date();
-      //currentTime.setDate(currentTime.getDate() + 1); // Aumenta 1 dia
-      const missionDeadline = new Date(mission.prazo);
+      //currentTime.setDate(currentTime.getDate() + 2);
     
-      // Reseta a missão somente se o prazo já expirou
+      // Verifica se a missão precisa ser resetada (expiração do prazo)
+      const missionDeadline = new Date(mission.prazo);
       if (currentTime > missionDeadline) {
-        const updatedPrazo = new Date();
-        updatedPrazo.setHours(23, 59, 59, 999); // Define o novo prazo até o final do dia
+        let updatedPrazo = new Date(currentTime); // Usa o currentTime com 1 dia a mais
+        updatedPrazo.setHours(23, 59, 59, 999);
+    
+        // Ajusta o horário para o fuso horário de Cuiabá (UTC-4)
         const offsetHours = 4; // Horas de diferença para UTC
         updatedPrazo.setUTCHours(updatedPrazo.getUTCHours() - offsetHours);
     
+        const prazoAnterior = new Date(mission.prazo);
+        const prazoAtualizado = updatedPrazo;
+    
+        const diffTime = Math.abs(prazoAtualizado - prazoAnterior);
+        const diffDays = Math.ceil(diffTime / (1000 * 3600 * 24)); // Diferença em dias
+    
+        const { recompensaXp, recompensaOuro, recompensaPd } = mission;
+    
         try {
-          // Atualiza o prazo da missão
+          // Atualiza o prazo da missão e o status para "Em progresso"
           await axios.put(`${API_URL}/api/missionapi/update/${mission.id}`, {
             prazo: updatedPrazo.toISOString(),
-          });
-
-          console.log('anterior: '+mission.prazo)
-          console.log('atualizado: '+updatedPrazo.toISOString())
-
-          await axios.post(`${API_URL}/api/missiohistorynapi/create`, {
-            missionId: mission.id,
-            userId: await getUserId(),
-            completed: mission.completed || false, 
-            prazoAnterior: mission.prazo,
-            prazoAtualizado: updatedPrazo.toISOString(),
+            status: "Em progresso", // Atualiza o status da missão
           });
     
-          console.log(`Missão diária com ID ${mission.id} resetada com sucesso.`);
+          // Resetando o status das penalidades associadas à missão
+          await axios.put(`${API_URL}/api/penaltyapi/reset/${mission.id}`);
+    
+          // Verifica se a missão foi completada anteriormente
+          const missionStatus = mission.status; // Supondo que a missão tenha um status de "Completada" ou "Pendente"
+          const completed = missionStatus === 'Finalizada' ? true : false;
+    
+          // Controla o registro de histórico: apenas o primeiro dia será "completado" se a missão foi finalizada
+          let isCompleted = false;
+    
+          // Verifica se a missão foi completada em um dia específico
+          for (let i = 0; i < diffDays; i++) {
+            const dayStart = new Date(prazoAnterior); // Começa com o prazo anterior
+            dayStart.setDate(dayStart.getDate() + i); // Incrementa 1 dia
+    
+            const dayEnd = new Date(dayStart); // Fim do dia
+            dayEnd.setHours(23, 59, 59, 999);
+    
+            // Define se é o dia em que a missão foi completada
+            isCompleted = (completed && i === 0); // Apenas o primeiro dia será completado se a missão foi completada
+    
+            // Adiciona o histórico para o dia específico
+            await axios.post(`${API_URL}/api/missionhistorynapi/create`, {
+              missionId: mission.id,
+              userId: mission.user_id,
+              completed: isCompleted, // Marca como completada no primeiro dia
+              prazoAnterior: dayStart.toISOString(),
+              prazoAtualizado: dayEnd.toISOString(),
+              recompensaXp: recompensaXp,
+              recompensaOuro: recompensaOuro,
+              recompensaPd: recompensaPd,
+            });
+    
+            console.log('Histórico registrado para o dia: ' + dayStart.toISOString());
+          }
+    
+          console.log('Prazo atualizado: ' + updatedPrazo.toISOString());
         } catch (error) {
-          console.error(`Erro ao resetar missão diária com ID ${mission.id}:`, error);
+          console.error('Erro ao atualizar missão:', error);
         }
       }
     };
     
+    
+    
+    
+    
+    
+    
+    
+    
   
-
-
+  
+    
+    
+    
+    
+ 
     return (
       <View style={{ flex: 1, backgroundColor: '#1C1C1E' }}>
         <SafeAreaView className='bg-neutral-800 rounded-b-lg border-b-8 border-cyan-500'>
