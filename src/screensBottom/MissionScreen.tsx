@@ -234,7 +234,7 @@ const handleEditMission = (mission: Mission) => {
 };
 
 const handleMissionEdited = () => {
-  setModalEditVisibleMission(false);
+  setModalVisibleEditMission(false);
   fetchMissions(); // Atualiza a lista de missões após a edição
 };
 const handleDeleteMission = async (missionId: number) => {
@@ -648,7 +648,7 @@ const handleDeleteMission = async (missionId: number) => {
                   </TouchableOpacity>
                 </View>
                 <FlatList
-                  className='mb-28'
+                  className="mb-28"
                   data={filteredPenalties}
                   keyExtractor={(item) => item.id.toString()}
                   renderItem={({ item }) => (
@@ -659,22 +659,27 @@ const handleDeleteMission = async (missionId: number) => {
                       <Text className="text-white font-vt323">Rank: {item.rank}</Text>
                       <Text className="text-white font-vt323 mb-4">
                         Penalidades: {item.perdaOuro}
-                        <Image source={gold_image} style={{ width: 30, height: 30}} /> {item.perdaXp}
-                        <Image source={xp_image} style={{ width: 30, height: 30}} />
+                        <Image source={gold_image} style={{ width: 30, height: 30 }} /> {item.perdaXp}
+                        <Image source={xp_image} style={{ width: 30, height: 30 }} />
                       </Text>
 
                       <View className="flex-row justify-between mt-2 mb-2">
-                        {/* Botão para Editar Penalidade */}
-                        <TouchableOpacity onPress={() => handleEditPenalty(item)} className="mr-4">
-                          <PencilIcon size={30} color="orange" />
-                        </TouchableOpacity>
+                        {/* Botões somente se o status for "Pendente" */}
+                        {item.status === 'Pendente' && (
+                          <>
+                            {/* Botão para Editar Penalidade */}
+                            <TouchableOpacity onPress={() => handleEditPenalty(item)} className="mr-4">
+                              <PencilIcon size={30} color="orange" />
+                            </TouchableOpacity>
 
-                        {/* Botão para Excluir Penalidade */}
-                        <TouchableOpacity onPress={() => handleDeletePenalty(item.id)} className="mr-4">
-                          <TrashIcon size={30} color="red" />
-                        </TouchableOpacity>
+                            {/* Botão para Excluir Penalidade */}
+                            <TouchableOpacity onPress={() => handleDeletePenalty(item.id)} className="mr-4">
+                              <TrashIcon size={30} color="red" />
+                            </TouchableOpacity>
+                          </>
+                        )}
 
-                        {/* Botão para Superar Penalidade se o status for 'Não Feita' */}
+                        {/* Botão para Superar Penalidade se o status for 'Em andamento' */}
                         {item.status === 'Em andamento' && (
                           <TouchableOpacity onPress={() => handleOvercomePenalty(item.id)}>
                             <CheckIcon size={30} color="green" />
@@ -684,6 +689,8 @@ const handleDeleteMission = async (missionId: number) => {
                     </View>
                   )}
                 />
+
+               
 
                 <EditPenaltyModal
                   visible={modalVisibleEditPenalty}

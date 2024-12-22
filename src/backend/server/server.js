@@ -7,7 +7,7 @@ const routerPenalty = require('../routes/routerPenalty');
 const routerReward = require('../routes/routerReward');
 const routerMission = require('../routes/routerMission');
 const routerStatus = require('../routes/routerStatus')
-const routerMissionHistory = require('../routes/routerMissionHistory')
+const routerMissionHistory = require('../routes/routerMissionHistoryDiary')
 
 const app = express();
 

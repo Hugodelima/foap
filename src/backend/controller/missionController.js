@@ -174,9 +174,6 @@ const createMission = async (req, res) => {
   }
 };
 
-
-
-
 const allMission = async (req, res) => {
   try {
     const missions = await Mission.findAll({
@@ -414,9 +411,12 @@ const getDailyMissions = async (req, res) => {
 
 const updateMission = async (req, res) => {
   const { id } = req.params;
-  const { prazo, status, titulo, dificuldade, rank } = req.body;
+  const { prazo, status, titulo, dificuldade, rank, penalidadeIds, repeticao } = req.body;
 
   try {
+    // Logando os dados recebidos
+    console.log("Dados recebidos para atualização de missão:", req.body);
+
     // Buscar missão pelo ID
     const mission = await Mission.findByPk(id);
 
@@ -424,25 +424,53 @@ const updateMission = async (req, res) => {
       return res.status(404).json({ error: 'Missão não encontrada.' });
     }
 
-    // Atualizar os campos permitidos
-    if (prazo) mission.prazo = new Date(prazo).toISOString();
-    if (status) mission.status = status;
+    // Atualizando os campos da missão
     if (titulo) mission.titulo = titulo;
     if (dificuldade) mission.dificuldade = dificuldade;
     if (rank) mission.rank = rank;
 
-    // Salvar as alterações
-    await mission.save();
+    // Ajuste para repetição diária
+    let prazoFinal;
+    if (repeticao === 'Diariamente') {
+      const now = new Date();
 
-    return res.status(200).json({
-      message: 'Missão atualizada com sucesso.',
-      mission,
-    });
+      now.setHours(23 - 4, 59, 59, 999);
+
+
+      prazoFinal = new Date(now).toISOString();
+      console.log("Prazo final formatado (ISO string):", prazoFinal);
+
+      // Ajusta o valor de repetição para 'Diariamente'
+      mission.repeticao = 'Diariamente';
+    } else if (prazo) {
+      prazoFinal = new Date(prazo).toISOString();
+      console.log("Prazo recebido (caso não seja Diariamente):", prazoFinal);
+    }
+
+    if (prazoFinal) mission.prazo = prazoFinal;
+
+    // Logando a missão que será salva
+    console.log("Missão após atualização:", mission);
+
+    // Atualizar recompensas
+    const { recompensaXp, recompensaOuro, recompensaPd } = calcularRecompensas(dificuldade, rank);
+    mission.recompensaXp = recompensaXp;
+    mission.recompensaOuro = recompensaOuro;
+    mission.recompensaPd = recompensaPd;
+
+    // Se a repetição for diária, o status deve ser 'Em progresso'
+    if (repeticao === 'Diariamente') {
+      mission.status = 'Em progresso'; // Se for repetição diária
+    }
+
+    await mission.save();
+    return res.status(200).json({ message: 'Missão atualizada com sucesso!' });
   } catch (error) {
-    console.error('Erro ao atualizar missão:', error);
-    return res.status(500).json({ error: 'Erro interno do servidor.' });
+    console.error("Erro ao atualizar missão:", error);
+    return res.status(500).json({ error: 'Erro interno do servidor' });
   }
 };
+
 
 
 module.exports = { createMission, allMission, deleteMission, completeMission, expireMission, getDailyMissions, updateMission };

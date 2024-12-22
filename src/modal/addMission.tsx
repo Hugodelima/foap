@@ -57,11 +57,13 @@ export default function ModalMission({ visible, onClose, onSave }: ModalComponen
 
   const handleCreateMission = async () => {
     if (title && difficulty && rank && selectedPenalties.length > 0) {
-      // Verificar se o prazo é anterior a hoje
-      if (repetition !== 'Diariamente' && moment(deadline).isBefore(moment(), 'day')) {
+      const tomorrow = moment().add(1, 'day').startOf('day');
+  
+      // Validação adicional para o prazo
+      if (repetition === 'Não' && moment(deadline).isBefore(tomorrow)) {
         Alert.alert(
           'Erro',
-          'O prazo da missão não pode ser anterior a hoje. Por favor, escolha uma data válida.'
+          'O prazo deve ser a partir de amanhã quando a repetição for "Nunca".'
         );
         return;
       }
@@ -113,6 +115,7 @@ export default function ModalMission({ visible, onClose, onSave }: ModalComponen
   
   
   
+  
   return (
     <Modal animationType="fade" transparent={true} visible={visible} onRequestClose={onClose}>
       <Pressable onPress={onClose} className="flex-1 justify-center items-center bg-black/60 p-10">
@@ -151,6 +154,12 @@ export default function ModalMission({ visible, onClose, onSave }: ModalComponen
                       <Picker.Item label="E" value="E" />
                       <Picker.Item label="D" value="D" />
                       <Picker.Item label="C" value="C" />
+                      <Picker.Item label="B" value="B" />
+                      <Picker.Item label="A" value="A" />
+                      <Picker.Item label="S" value="S" />
+                      <Picker.Item label="SS" value="SS" />
+                      <Picker.Item label="SSS" value="SSS" />
+                      <Picker.Item label="SSS+" value="SSS+" />
                     </Picker>
                   </View>
 
@@ -183,13 +192,20 @@ export default function ModalMission({ visible, onClose, onSave }: ModalComponen
                           onChange={(event, selectedDate) => {
                             setShowDatePicker(false);
                             if (selectedDate) {
-                              setDeadline(selectedDate); // Atualiza a data selecionada
+                              // Verifica se a repetição é "Nunca" e a data é anterior a amanhã
+                              const tomorrow = moment().add(1, 'day').startOf('day');
+                              if (repetition === 'Não' && moment(selectedDate).isBefore(tomorrow)) {
+                                Alert.alert(
+                                  'Erro',
+                                  'O prazo deve ser a partir de amanhã quando a repetição for "Nunca".'
+                                );
+                              } else {
+                                setDeadline(selectedDate); // Atualiza a data se for válida
+                              }
                             }
                           }}
                           minimumDate={moment().add(1, 'day').toDate()} // Data mínima é amanhã
                         />
-
-                      
                       )}
                     </>
                   )}

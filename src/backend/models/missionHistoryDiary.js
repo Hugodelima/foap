@@ -1,7 +1,7 @@
 const { DataTypes } = require('sequelize');
 const sequelize = require('./database');
 
-const MissionHistory = sequelize.define('MissionHistory', {
+const MissionHistoryDiary = sequelize.define('MissionHistory', {
   id: {
     type: DataTypes.INTEGER,
     primaryKey: true,
@@ -41,8 +41,8 @@ const MissionHistory = sequelize.define('MissionHistory', {
     allowNull: false,
   },
 }, {
-  tableName: 'mission_histories',
+  tableName: 'MissionHistoriesDiary',
   timestamps: true,
 });
 
-module.exports = MissionHistory;
+module.exports = MissionHistoryDiary;

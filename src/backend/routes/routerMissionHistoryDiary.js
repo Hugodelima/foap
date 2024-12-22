@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const MissionHistory = require('../models/missionHistory');
+const MissionHistory = require('../models/missionHistoryDiary');
 const Mission = require('../models/mission');
 
 // Rota para criar um registro no histórico de missões
