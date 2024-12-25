@@ -56,7 +56,7 @@ interface Mission{
 }
 
 
-async function getUserId() {
+export async function getUserId() {
   const userID = await SecureStore.getItemAsync('userStorageID');
   return userID;
 }

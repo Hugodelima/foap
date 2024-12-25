@@ -8,6 +8,7 @@ const routerReward = require('../routes/routerReward');
 const routerMission = require('../routes/routerMission');
 const routerStatus = require('../routes/routerStatus')
 const routerMissionHistory = require('../routes/routerMissionHistoryDiary')
+const routerAttribute = require('../routes/routerAttribute')
 
 const app = express();
 
@@ -22,6 +23,7 @@ app.use('/api/rewardapi', routerReward);
 app.use('/api/missionapi', routerMission);
 app.use('/api/statusapi', routerStatus);
 app.use('/api/missionhistorynapi', routerMissionHistory);
+app.use('/api/attributeapi', routerAttribute);
 
 const PORT = process.env.PORT;
 app.listen(PORT, () => {

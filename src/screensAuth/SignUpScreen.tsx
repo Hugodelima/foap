@@ -39,37 +39,82 @@ export default function SignUpScreen() {
     }
 
     try {
+      // Registro do usuário
       const response = await axios.post(`${API_URL}/api/userapi/register`, {
         username,
         email,
-        password
+        password,
       });
-      
+
       if (response.status === 200) {
         const { userID } = response.data;
 
-        console.log('signup id: '+userID)
+        console.log('signup id: ' + userID);
 
+        // Salvar ID do usuário
         await SecureStore.setItemAsync('userStorageID', JSON.stringify(userID));
         await AsyncStorage.setItem('emailVerificationStatus', 'true'); // Marca a verificação como pendente
 
-        Alert.alert("Sucesso", "Registrado com sucesso! Verifique seu e-mail para o código de verificação.");
-        
+        // Criação do status inicial
+        try {
+          const statusResponse = await axios.post(`${API_URL}/api/statusapi/create`, { userID });
+          console.log('Status criado com sucesso:', statusResponse.data);
+        } catch (statusError) {
+          console.error('Erro ao criar status:', statusError);
+          Alert.alert('Erro', 'Falha ao criar status.');
+          return;
+        }
+
+        // Criação dos atributos iniciais
+        const atributos = [
+          // Atributos mentais
+          { nome: 'Inteligência', tipo: 'Mental', valor: 0 },
+          { nome: 'Criatividade', tipo: 'Mental', valor: 0 },
+          { nome: 'Disciplina', tipo: 'Mental', valor: 0 },
+          { nome: 'Confiança', tipo: 'Mental', valor: 0 },
+          { nome: 'Carisma', tipo: 'Mental', valor: 0 },
+          { nome: 'Empatia', tipo: 'Mental', valor: 0 },
+          { nome: 'Comunicação', tipo: 'Mental', valor: 0 },
+
+          // Atributos físicos
+          { nome: 'Agilidade', tipo: 'Físico', valor: 0 },
+          { nome: 'Resistência', tipo: 'Físico', valor: 0 },
+          { nome: 'Flexibilidade', tipo: 'Físico', valor: 0 },
+          { nome: 'Equilíbrio', tipo: 'Físico', valor: 0 },
+          { nome: 'Coordenação', tipo: 'Físico', valor: 0 },
+          { nome: 'Reação', tipo: 'Físico', valor: 0 },
+          { nome: 'Velocidade', tipo: 'Físico', valor: 0 },
+        ];
+
+        try {
+          for (const atributo of atributos) {
+            await axios.post(`${API_URL}/api/attributeapi/create`, {
+              ...atributo,
+              user_id: userID,
+            });
+          }
+          console.log('Atributos criados com sucesso.');
+        } catch (attributeError) {
+          console.error('Erro ao criar atributos:', attributeError);
+          Alert.alert('Erro', 'Falha ao criar atributos.');
+          return;
+        }
+
+        Alert.alert('Sucesso', 'Registrado com sucesso! Verifique seu e-mail para o código de verificação.');
         navigation.navigate('VerificationScreen');
-        // Limpar os inputs após a verificação bem-sucedida
+
+        // Limpar os inputs após o registro bem-sucedido
         setUsername('');
         setEmail('');
         setPassword('');
         setConfirmPassword('');
-
       } else {
-        Alert.alert("Erro", "Erro ao registrar, tente novamente.");
+        Alert.alert('Erro', 'Erro ao registrar, tente novamente.');
       }
-
     } catch (error: any) {
-      const errorMessage = error.response?.data?.message || "Erro durante o cadastro, tente novamente.";
-      Alert.alert("Erro", errorMessage);
-      console.log(error);
+      const errorMessage = error.response?.data?.message || 'Erro durante o cadastro, tente novamente.';
+      Alert.alert('Erro', errorMessage);
+      console.error(error);
     }
   };
 

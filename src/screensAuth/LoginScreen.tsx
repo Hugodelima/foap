@@ -28,22 +28,6 @@ export default function LoginScreen() {
             const response = await axios.post(`${API_URL}/api/userapi/login`, { email, password });
             const { token, userID } = response.data;
     
-            // Tenta buscar o status do usuário
-            let statusResponse;
-            try {
-                statusResponse = await axios.get(`${API_URL}/api/statusapi/${userID}`);
-                console.log('Status encontrado:', statusResponse.data);
-            } catch (statusError: any) {
-                // Se o erro for 404, cria um novo status
-                if (statusError.response && statusError.response.status === 404) {
-                    console.log('Status não encontrado, criando um novo...');
-                    statusResponse = await axios.post(`${API_URL}/api/statusapi/create`, { userID });
-                    console.log('Novo status criado:', statusResponse.data);
-                } else {
-                    throw statusError; // Lança outros erros
-                }
-            }
-    
             // Armazena os tokens e navega para a próxima tela
             await AsyncStorage.setItem('isLoggedIn', JSON.stringify(true));
             await SecureStore.setItemAsync('userStorageID', JSON.stringify(userID));
@@ -58,8 +42,6 @@ export default function LoginScreen() {
         }
     };
     
-    
-
     const handleRegister = () =>{
         navigation.navigate('FindUserScreen')
     }

@@ -58,8 +58,6 @@ const authenticateToken = (req, res, next) => {
     });
 };
 
-// Rotas
-
 router.post('/register', async (req, res) => {
     const { username, email, password } = req.body;
 
