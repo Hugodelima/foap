@@ -34,32 +34,31 @@ router.get('/:userId', async (req, res) => {
     }
 });
 
-// Rota para atualizar um atributo
-router.put('/update/:id', async (req, res) => {
-    const { id } = req.params;
-    const { nome, valor, tipo } = req.body;
 
-    if (!nome || !valor || !tipo) {
-        return res.status(400).json({ error: 'Por favor, preencha todos os campos obrigatórios.' });
-    }
-
+router.put('/:userID', async (req, res) => {
+    const { userID } = req.params;
+    const { attributeId, operation } = req.body;
+  
     try {
-        const attribute = await Attribute.findByPk(id);
-
-        if (!attribute) {
-            return res.status(404).json({ error: 'Atributo não encontrado.' });
-        }
-
-        attribute.nome = nome;
-        attribute.valor = valor;
-        attribute.tipo = tipo;
-        await attribute.save();
-
-        res.status(200).json({ attribute, message: 'Atributo atualizado com sucesso.' });
+      const attribute = await Attribute.findOne({ where: { id: attributeId, user_id: userID } });
+  
+      if (!attribute) {
+        return res.status(404).json({ message: 'Atributo não encontrado.' });
+      }
+  
+      if (operation === 'increment') {
+        attribute.valor += 1;
+      } else if (operation === 'decrement' && attribute.valor > 0) {
+        attribute.valor -= 1;
+      }
+  
+      await attribute.save();
+      res.status(200).json(attribute);
     } catch (error) {
-        res.status(400).json({ error: error.message });
+      res.status(500).json({ message: 'Erro ao atualizar atributo.', error: error.message });
     }
 });
+  
 
 // Rota para deletar um atributo
 router.delete('/delete/:id', async (req, res) => {

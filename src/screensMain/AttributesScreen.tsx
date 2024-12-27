@@ -23,23 +23,85 @@ export default function AttributesScreen() {
   const [availablePoints, setAvailablePoints] = useState<number>(0);
 
   useEffect(() => {
-    const fetchAttributes = async () => {
+    const fetchAttributesAndStatus = async () => {
       try {
         const userId = await getUserId();
+        console.log('User ID:', userId); // Verifica o ID do usuário
         if (!userId) throw new Error('Usuário não encontrado.');
-
-        const response = await axios.get(`${API_URL}/api/attributeapi/${userId}`);
-        const { mental, fisico, availablePoints } = response.data;
-
+  
+        // Buscar os atributos
+        const attributesResponse = await axios.get(`${API_URL}/api/attributeapi/${userId}`);
+        console.log('Atributos Response:', attributesResponse.data);
+  
+        const attributesData = attributesResponse.data;
+        const mental = attributesData.filter((attr: any) => attr.tipo === 'Mental');
+        const fisico = attributesData.filter((attr: any) => attr.tipo === 'Físico');
+  
         setAttributes({ mental, fisico });
-        setAvailablePoints(availablePoints || 0);
+  
+        // Buscar os pontos disponíveis (Status)
+        const statusResponse = await axios.get(`${API_URL}/api/statusapi/${userId}`);
+        console.log('Status Response:', statusResponse.data);
+  
+        const { pd } = statusResponse.data; // Extrai os pontos disponíveis (pd)
+        setAvailablePoints(pd || 0); // Atualiza o estado com pd ou 0 caso seja undefined
       } catch (error) {
-        console.error('Erro ao buscar atributos:', error);
+        console.error('Erro ao buscar dados:', error);
       }
     };
-
-    fetchAttributes();
+  
+    fetchAttributesAndStatus();
   }, []);
+
+  const updateAttribute = async (attributeId: number, operation: 'increment' | 'decrement') => {
+    try {
+      const userId = await getUserId();
+  
+      // Validação de pontos disponíveis
+      if (operation === 'increment' && availablePoints <= 0) {
+        alert('Você não tem pontos disponíveis!');
+        return;
+      }
+  
+      const response = await axios.put(`${API_URL}/api/attributeapi/${userId}`, {
+        attributeId,
+        operation,
+      });
+  
+      // Atualiza os atributos no estado local
+      const updatedAttribute = response.data;
+      setAttributes((prevAttributes: any) => {
+        const updatedAttributes = { ...prevAttributes };
+  
+        if (updatedAttributes.mental.some((attr: any) => attr.id === attributeId)) {
+          updatedAttributes.mental = updatedAttributes.mental.map((attr: any) =>
+            attr.id === attributeId ? { ...attr, valor: updatedAttribute.valor } : attr
+          );
+        } else if (updatedAttributes.fisico.some((attr: any) => attr.id === attributeId)) {
+          updatedAttributes.fisico = updatedAttributes.fisico.map((attr: any) =>
+            attr.id === attributeId ? { ...attr, valor: updatedAttribute.valor } : attr
+          );
+        }
+  
+        return updatedAttributes;
+      });
+  
+      // Atualiza os pontos disponíveis
+      if (operation === 'increment') {
+        setAvailablePoints((prevPoints) => prevPoints - 1);
+      } else if (operation === 'decrement') {
+        setAvailablePoints((prevPoints) => prevPoints + 1);
+      }
+    } catch (error) {
+      console.error('Erro ao atualizar atributo:', error);
+      alert('Erro ao atualizar atributo.');
+    }
+  };
+  
+  
+  
+  
+  
 
   const toggleArrows = () => {
     setShowArrows(!showArrows);
@@ -75,19 +137,21 @@ export default function AttributesScreen() {
         </TouchableOpacity>
       </View>
 
-      <View className="flex-1">
-        {attributes && selectedSection === 'mental' && (
+      <View className="flex-1">      
+        {attributes && selectedSection === 'mental' && Array.isArray(attributes.mental) && (
           <View className="flex-row flex-wrap ml-7 mr-3 justify-between">
             {attributes.mental.map((attribute: any, index: number) => (
               <View key={index} className="flex-row items-center mb-4">
                 <Image source={str_image} className="w-10 h-10" />
-                <Text className="text-white font-vt323 ml-2">{attribute.name}: {attribute.value}</Text>
+                <Text className="text-white font-vt323 ml-2">
+                  {attribute.nome}: {attribute.valor}
+                </Text>
                 {showArrows && (
                   <View className="flex-row gap-1 ml-1">
-                    <TouchableOpacity>
+                    <TouchableOpacity onPress={() => updateAttribute(attribute.id, 'increment')}>
                       <Image source={up_image} className="w-8 h-8" />
                     </TouchableOpacity>
-                    <TouchableOpacity>
+                    <TouchableOpacity onPress={() => updateAttribute(attribute.id, 'decrement')}>
                       <Image source={bottom_image} className="w-8 h-8" />
                     </TouchableOpacity>
                   </View>
@@ -97,18 +161,20 @@ export default function AttributesScreen() {
           </View>
         )}
 
-        {attributes && selectedSection === 'fisico' && (
+        {attributes && selectedSection === 'fisico' && Array.isArray(attributes.fisico) && (
           <View className="flex-row flex-wrap ml-7 mr-3 justify-between">
             {attributes.fisico.map((attribute: any, index: number) => (
               <View key={index} className="flex-row items-center mb-4">
                 <Image source={str_image} className="w-10 h-10" />
-                <Text className="text-white font-vt323 ml-2">{attribute.name}: {attribute.value}</Text>
+                <Text className="text-white font-vt323 ml-2">
+                  {attribute.nome}: {attribute.valor}
+                </Text>
                 {showArrows && (
                   <View className="flex-row gap-1 ml-1">
-                    <TouchableOpacity>
+                    <TouchableOpacity onPress={() => updateAttribute(attribute.id, 'increment')}>
                       <Image source={up_image} className="w-8 h-8" />
                     </TouchableOpacity>
-                    <TouchableOpacity>
+                    <TouchableOpacity onPress={() => updateAttribute(attribute.id, 'decrement')}>
                       <Image source={bottom_image} className="w-8 h-8" />
                     </TouchableOpacity>
                   </View>
@@ -125,6 +191,7 @@ export default function AttributesScreen() {
           <Image source={edit_image} className="w-10 h-10" />
         </TouchableOpacity>
       </View>
+
     </View>
-  );
+  ); 
 }
