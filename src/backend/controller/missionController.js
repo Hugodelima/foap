@@ -472,6 +472,55 @@ const updateMission = async (req, res) => {
   }
 };
 
+const getCompletedMissionsLast7Days = async (req, res) => {
+  const { id: userId } = req.params;
+  const today = moment().startOf('day'); // Início do dia atual
+  const endOfToday = moment().endOf('day'); // Fim do dia atual
+
+  try {
+    const missions = await Mission.findAll({
+      where: {
+        user_id: userId,
+        status: 'Finalizada',
+        updatedAt: {
+          [Op.between]: [
+            today.clone().subtract(6, 'days').toDate(), // 7 dias atrás
+            endOfToday.toDate(), // Fim do dia atual
+          ],
+        },
+      },
+      attributes: [
+        [sequelize.fn('DATE', sequelize.col('updatedAt')), 'date'], // Retorna apenas a data (sem a hora)
+        [sequelize.fn('COUNT', sequelize.col('id')), 'count'], // Conta as missões por dia
+      ],
+      group: [sequelize.fn('DATE', sequelize.col('updatedAt'))],
+      order: [[sequelize.fn('DATE', sequelize.col('updatedAt')), 'ASC']], // Ordena as missões por data ascendente
+    });
+
+    // Formatando o resultado para o Frontend
+    const missionsPerDay = {};
+    for (let i = 6; i >= 0; i--) {
+      const date = today.clone().subtract(i, 'days').format('YYYY-MM-DD');
+      missionsPerDay[date] = 0; // Inicializa com 0 missões
+    }
+
+    missions.forEach((mission) => {
+      const { date, count } = mission.get();
+      if (missionsPerDay.hasOwnProperty(date)) {
+        missionsPerDay[date] = parseInt(count, 10); // Atualiza a contagem de missões
+      }
+    });
+    console.log(missionsPerDay)
+    res.status(200).json({ missionsPerDay });
+  } catch (error) {
+    console.error('Erro ao buscar missões dos últimos 7 dias:', error);
+    res.status(500).json({ error: 'Erro ao buscar missões.' });
+  }
+};
 
 
-module.exports = { createMission, allMission, deleteMission, completeMission, expireMission, getDailyMissions, updateMission };
+
+
+
+
+module.exports = { createMission, allMission, deleteMission, completeMission, expireMission, getDailyMissions, updateMission, getCompletedMissionsLast7Days };

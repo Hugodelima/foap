@@ -1,8 +1,10 @@
 import React, { useEffect, useState } from 'react';
-import { Text, TouchableOpacity, View, Image } from 'react-native';
+import { Text, TouchableOpacity, View, Image, ActivityIndicator } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import ModalComponent from '../modal/moreOptions';
+import { BarChart } from 'react-native-chart-kit';
+import { Dimensions } from 'react-native';
 
 import gold_image from '../assets/images/home/gold.png';
 import levelUp_image from '../assets/images/home/levelUp_home.png';
@@ -11,19 +13,63 @@ import rank_image from '../assets/images/home/rank_home.png';
 import moreOptions_image from '../assets/images/home/more_options.png';
 
 import { NavigationProps } from '../navigation/types';
-
 import { useFetchUserData } from '../hooks/useFetchDataUser';
+import { API_URL } from '@env';
+import axios from 'axios';
 
-export default function HomeScreen(){
-  const { userData, error } = useFetchUserData();
-
-  const [modalVisible, setModalVisible] = useState(false); 
-
+export default function HomeScreen() {
+  const { userData } = useFetchUserData();
+  const [modalVisible, setModalVisible] = useState(false);
+  const [missionsData, setMissionsData] = useState({ labels: [], datasets: [{ data: [] }] });
+  const [loading, setLoading] = useState(true);
   const navigation = useNavigation<NavigationProps>();
 
   const handleNavigate = (screen: any) => {
     navigation.navigate(screen);
   };
+
+  // Formata a data no formato dd/mm
+  // Formata a data no formato dd/mm
+  const formatDate = (dateString: string) => {
+    
+    const day = dateString.slice(8,10)
+    const month = dateString.slice(5,7)
+    return `${day}/${month}`;
+  };
+
+  // Busca os dados da API
+  const fetchMissionsData = async () => {
+    try {
+      const response = await axios.get(`${API_URL}/api/missionapi/complete/last7days/${userData?.id}`);
+
+      // Usa apenas as chaves do objeto retornado para definir as labels
+      const rawData = response.data.missionsPerDay;
+      const labels = Object.keys(rawData).map(formatDate); // Formata as datas no formato dd/mm
+      const data = Object.values(rawData); // Obtém os valores correspondentes
+      console.log(data)
+   
+
+      setMissionsData({
+        labels, // Labels formatadas
+        datasets: [
+          {
+            data, // Dados correspondentes
+          },
+        ],
+      });
+    } catch (err) {
+      console.error('Erro ao buscar os dados de missões:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+
+  useEffect(() => {
+    if (userData?.id) {
+      fetchMissionsData();
+    }
+  }, [userData]);
 
   return (
     <View className="flex-1 bg-neutral-900">
@@ -65,12 +111,39 @@ export default function HomeScreen(){
           />
         </TouchableOpacity>
       </SafeAreaView>
-    
-      <ModalComponent 
-        visible={modalVisible} 
-        onClose={() => setModalVisible(false)} 
-        onNavigate={handleNavigate}
-      />
+
+      {/* Gráfico de Barras */}
+      <View className="p-4">
+        {loading ? (
+          <ActivityIndicator size="large" color="#22caec" />
+        ) : missionsData.labels.length > 0 ? (
+          <BarChart
+            data={missionsData}
+            yAxisLabel=""
+            yAxisSuffix=""
+            width={Dimensions.get('window').width - 32}
+            height={300}
+            chartConfig={{
+              backgroundGradientFrom: '#22caec',
+              backgroundGradientFromOpacity: 1,
+              backgroundGradientTo: 'blue',
+              backgroundGradientToOpacity: 1,
+              color: () => 'white',
+              barPercentage: 0.8,
+              fillShadowGradient: 'white',
+              fillShadowGradientOpacity: 2,
+              decimalPlaces: 1
+            }}
+            
+            fromZero // Garante que o gráfico começa do zero
+            
+          />
+        ) : (
+          <Text className="text-white text-center">Nenhum dado disponível para exibição.</Text>
+        )}
+      </View>
+
+      <ModalComponent visible={modalVisible} onClose={() => setModalVisible(false)} onNavigate={handleNavigate} />
     </View>
   );
 }
