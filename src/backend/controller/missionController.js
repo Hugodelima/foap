@@ -519,8 +519,61 @@ const getCompletedMissionsLast7Days = async (req, res) => {
 };
 
 
+const getUserMissionsByStatusLast7Days = async (req, res) => {
+  const { userId } = req.params; // Obtém o ID do usuário dos parâmetros da rota
+  console.log('pegou a rota certo');
+
+  try {
+    // Define o intervalo de 7 dias
+    const sevenDaysAgo = moment().subtract(6, 'days').startOf('day').toDate();
+    const endOfToday = moment().endOf('day').toDate();
+
+    // Busca todas as missões do usuário dentro dos últimos 7 dias
+    const missions = await Mission.findAll({
+      where: {
+        user_id: userId, // Filtra pelo ID do usuário
+        updatedAt: {
+          [Op.between]: [sevenDaysAgo, endOfToday], // Apenas missões atualizadas nos últimos 7 dias
+        },
+      },
+    });
+
+    // Inicializa os contadores e categoriza as missões pelo status
+    const missionData = {
+      total: missions.length,
+      finalizadas: [],
+      emProgresso: [],
+      naoFinalizadas: [],
+    };
+
+    missions.forEach((mission) => {
+      switch (mission.status) {
+        case 'Finalizada':
+          missionData.finalizadas.push(mission);
+          break;
+        case 'Em progresso':
+          missionData.emProgresso.push(mission);
+          break;
+        case 'Não finalizada':
+          missionData.naoFinalizadas.push(mission);
+          break;
+        default:
+          break;
+      }
+    });
+
+    // Retorna os dados no formato estruturado
+    res.status(200).json(missionData);
+  } catch (error) {
+    console.error('Erro ao buscar missões do usuário:', error);
+    res.status(500).json({ error: 'Erro ao buscar missões do usuário.' });
+  }
+};
 
 
 
 
-module.exports = { createMission, allMission, deleteMission, completeMission, expireMission, getDailyMissions, updateMission, getCompletedMissionsLast7Days };
+
+
+
+module.exports = { createMission, allMission, deleteMission, completeMission, expireMission, getDailyMissions, updateMission, getCompletedMissionsLast7Days, getUserMissionsByStatusLast7Days };
