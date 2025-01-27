@@ -3,8 +3,8 @@ const Penalty = require('../models/penalty');
 const Status = require('../models/status')
 const User = require('../models/user')
 const sequelize = require('../models/database');
-const { Op } = require('sequelize'); // Importação do Sequelize.Op
-
+const { Op, fn, col } = require('sequelize');
+const MissionHistoryDiary = require('../models/missionHistoryDiary');
 const moment = require('moment')
 
 const calcularRecompensas = (dificuldade, rank) => {
@@ -478,6 +478,7 @@ const getCompletedMissionsLast7Days = async (req, res) => {
   const endOfToday = moment().endOf('day'); // Fim do dia atual
 
   try {
+    // Buscar missões no modelo 'Mission' com status 'Finalizada' e a data de atualização nos últimos 7 dias
     const missions = await Mission.findAll({
       where: {
         user_id: userId,
@@ -497,26 +498,59 @@ const getCompletedMissionsLast7Days = async (req, res) => {
       order: [[sequelize.fn('DATE', sequelize.col('updatedAt')), 'ASC']], // Ordena as missões por data ascendente
     });
 
-    // Formatando o resultado para o Frontend
+    // Agora buscamos o histórico de missões do usuário para verificar se as missões foram concluídas
+    const missionHistory = await MissionHistoryDiary.findAll({
+      where: {
+        userId: userId,
+        prazoAtualizado: { // Alterei para prazoAtualizado, pois é a data de conclusão da missão
+          [Op.between]: [
+            today.clone().subtract(6, 'days').toDate(), // 7 dias atrás
+            endOfToday.toDate(), // Fim do dia atual
+          ],
+        },
+        completed: true, // Garantir que a missão foi completada
+      },
+      attributes: [
+        [sequelize.fn('DATE', sequelize.col('prazoAtualizado')), 'date'], // Coluna que armazena a data de conclusão
+        [sequelize.fn('COUNT', sequelize.col('missionId')), 'count'], // Conta as missões do histórico
+      ],
+      group: [sequelize.fn('DATE', sequelize.col('prazoAtualizado'))],
+      order: [[sequelize.fn('DATE', sequelize.col('prazoAtualizado')), 'ASC']], // Ordena por data ascendente
+    });
+
+    // Combinando as missões do modelo 'Mission' e 'MissionHistoryDiary'
     const missionsPerDay = {};
     for (let i = 6; i >= 0; i--) {
       const date = today.clone().subtract(i, 'days').format('YYYY-MM-DD');
       missionsPerDay[date] = 0; // Inicializa com 0 missões
     }
 
+    // Adicionando missões do modelo 'Mission'
     missions.forEach((mission) => {
       const { date, count } = mission.get();
       if (missionsPerDay.hasOwnProperty(date)) {
-        missionsPerDay[date] = parseInt(count, 10); // Atualiza a contagem de missões
+        missionsPerDay[date] += parseInt(count, 10); // Soma as missões de 'Mission'
       }
     });
-    console.log(missionsPerDay)
+
+    // Adicionando missões do histórico 'MissionHistoryDiary'
+    missionHistory.forEach((history) => {
+      const { date, count } = history.get();
+      if (missionsPerDay.hasOwnProperty(date)) {
+        missionsPerDay[date] += parseInt(count, 10); // Soma as missões do histórico
+      }
+    });
+
+    console.log(missionsPerDay); // Exibe a contagem final de missões por dia
+
     res.status(200).json({ missionsPerDay });
   } catch (error) {
     console.error('Erro ao buscar missões dos últimos 7 dias:', error);
     res.status(500).json({ error: 'Erro ao buscar missões.' });
   }
 };
+
+
 
 
 const getUserMissionsByStatusLast7Days = async (req, res) => {
@@ -571,9 +605,77 @@ const getUserMissionsByStatusLast7Days = async (req, res) => {
 };
 
 
+const getTotalXpGainedPerDay = async (req, res) => {
+  const { id: userId } = req.params;
+  const today = moment().endOf('day'); // Fim do dia de hoje
+  const sevenDaysAgo = moment().subtract(7, 'days').startOf('day'); // 7 dias atrás
+
+  try {
+    // Buscar as missões finalizadas no modelo 'Mission' nos últimos 7 dias com base no createdAt
+    const missions = await Mission.findAll({
+      where: {
+        user_id: userId,
+        status: 'Finalizada',
+        createdAt: {
+          [Op.between]: [sevenDaysAgo.toDate(), today.toDate()],
+        },
+      },
+      attributes: [
+        [sequelize.fn('DATE', sequelize.col('createdAt')), 'date'], // Retorna a data (sem a hora)
+        [sequelize.fn('SUM', sequelize.col('recompensaXp')), 'totalXp'], // Soma o XP das missões
+      ],
+      group: [sequelize.fn('DATE', sequelize.col('createdAt'))], // Agrupa por dia
+      order: [[sequelize.fn('DATE', sequelize.col('createdAt')), 'ASC']], // Ordena por data
+    });
+
+    // Buscar o histórico de missões no modelo 'MissionHistoryDiary' nos últimos 7 dias com base no createdAt
+    const missionHistory = await MissionHistoryDiary.findAll({
+      where: {
+        userId: userId,
+        completed: true, // Considerando que a missão foi completada
+        createdAt: {
+          [Op.between]: [sevenDaysAgo.toDate(), today.toDate()],
+        },
+      },
+      attributes: [
+        [sequelize.fn('DATE', sequelize.col('createdAt')), 'date'], // Ajustando para 'createdAt'
+        [sequelize.fn('SUM', sequelize.col('recompensaXp')), 'totalXp'], // Soma o XP do histórico
+      ],
+      group: [sequelize.fn('DATE', sequelize.col('createdAt'))], // Agrupa por dia
+      order: [[sequelize.fn('DATE', sequelize.col('createdAt')), 'ASC']], // Ordena por data
+    });
+
+    // Combina os resultados das missões e do histórico
+    let totalXpPerDay = {}; // Usaremos um objeto para armazenar o XP por dia
+
+    // Adiciona XP das missões
+    missions.forEach((mission) => {
+      const { date, totalXp } = mission.get();
+      totalXpPerDay[date] = totalXpPerDay[date] ? totalXpPerDay[date] + parseInt(totalXp, 10) : parseInt(totalXp, 10);
+    });
+
+    // Adiciona XP do histórico
+    missionHistory.forEach((history) => {
+      const { date, totalXp } = history.get();
+      totalXpPerDay[date] = totalXpPerDay[date] ? totalXpPerDay[date] + parseInt(totalXp, 10) : parseInt(totalXp, 10);
+    });
+
+    // Agora, precisamos garantir que tenhamos dados para os últimos 7 dias
+    const labels = [];
+    const xpData = [];
+    for (let i = 6; i >= 0; i--) {
+      const date = moment().subtract(i, 'days').format('YYYY-MM-DD'); // Formato YYYY-MM-DD
+      labels.push(moment(date).format('DD/MM')); // Formatar como dia/mês
+      xpData.push(totalXpPerDay[date] || 0); // Se não houver dados, coloca 0
+    }
+
+    res.status(200).json({ data: { labels, datasets: [{ data: xpData }] } });
+  } catch (error) {
+    console.error('Erro ao buscar XP ganho nos últimos 7 dias:', error);
+    res.status(500).json({ error: 'Erro ao buscar XP ganho.' });
+  }
+};
 
 
 
-
-
-module.exports = { createMission, allMission, deleteMission, completeMission, expireMission, getDailyMissions, updateMission, getCompletedMissionsLast7Days, getUserMissionsByStatusLast7Days };
+module.exports = { createMission, allMission, deleteMission, completeMission, expireMission, getDailyMissions, updateMission, getCompletedMissionsLast7Days, getUserMissionsByStatusLast7Days, getTotalXpGainedPerDay};
