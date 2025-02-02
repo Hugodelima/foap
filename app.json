@@ -14,14 +14,15 @@
       "backgroundColor": "#ffffff"
     },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.hizup.foap"
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./src/assets/images/app/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "com.hizup.foap",  
+      "package": "com.hizup.foap",
       "jsEngine": "hermes"
     },
     "web": {

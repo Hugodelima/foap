@@ -37,10 +37,11 @@ router.post('/create', async (req, res) => {
 // Obter ou criar o status do cliente
 router.get('/:userID', async (req, res) => {
   const { userID } = req.params;
+  console.log('fdgf')
 
   try {
     // Verifica se já existe um status para o usuário
-    let status = await Status.findOne({ where: { user_id: userID } });
+    let status = await Status.findAll({ where: { user_id: userID } });
 
     if (!status) {
       return res.status(404).json({ message: 'Status não encontrado.' });
