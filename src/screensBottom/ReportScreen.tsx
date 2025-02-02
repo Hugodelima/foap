@@ -29,40 +29,72 @@ export default function ReportScreen() {
 
       // Gera o HTML do relatório com Tailwind CSS
       const htmlContent = `
-      <!DOCTYPE html>
-      <html lang="pt-BR">
-      <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <script src="https://cdn.tailwindcss.com"></script>
-      </head>
-      <body class="p-4 bg-gray-100 text-gray-900">
-        <h1 class="text-2xl font-bold mb-4">Relatório de ${reportType.toUpperCase()}</h1>
-        <table class="w-full border-collapse border border-gray-400">
-          <thead>
-            <tr class="bg-gray-300">
-              ${Object.keys(data[0])
-                .map((key) => `<th class="border border-gray-400 p-2">${key}</th>`)
-                .join('')}
-            </tr>
-          </thead>
-          <tbody>
-            ${data
-              .map(
-                (item) => `
-              <tr class="bg-white border-b">
-                ${Object.values(item)
-                  .map((value) => `<td class="border border-gray-400 p-2">${value}</td>`)
+        <!DOCTYPE html>
+        <html lang="pt-BR">
+        <head>
+          <meta charset="UTF-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <script src="https://cdn.tailwindcss.com"></script>
+          <style>
+            body {
+              font-family: 'Arial', sans-serif;
+            }
+            table {
+              width: 100%;
+              border-collapse: collapse;
+            }
+            th, td {
+              padding: 12px;
+              text-align: left;
+              border: 1px solid #e2e8f0;
+            }
+            th {
+              background-color: #4fd1c5;
+              color: #ffffff;
+              font-weight: bold;
+            }
+            tr:hover {
+              background-color: #f1f5f9;
+            }
+          </style>
+        </head>
+        <body class="bg-gray-50 text-gray-800 p-6">
+          <div class="text-center mb-8">
+            <h1 class="text-3xl font-extrabold text-teal-600">Relatório de ${reportType.charAt(0).toUpperCase() + reportType.slice(1, reportType.length - 3)}</h1>
+          </div>
+
+          <table class="shadow-lg rounded-lg overflow-hidden">
+            <thead>
+              <tr>
+                ${Object.keys(data[0])
+                  .filter(key => key !== 'createdAt' && key !== 'updatedAt') // Filtra as colunas createdAt e updatedAt
+                  .map((key) => `
+                    <th class="px-4 py-2 text-sm font-semibold text-gray-800">${key}</th>
+                  `)
                   .join('')}
               </tr>
-            `
-              )
-              .join('')}
-          </tbody>
-        </table>
-      </body>
-      </html>
+            </thead>
+            <tbody>
+              ${data
+                .map((item) => `
+                  <tr class="hover:bg-gray-100">
+                    ${Object.keys(item)
+                      .filter(key => key !== 'createdAt' && key !== 'updatedAt') // Filtra as colunas createdAt e updatedAt
+                      .map((key) => `
+                        <td class="px-4 py-2 text-sm text-gray-700">${item[key]}</td>
+                      `)
+                      .join('')}
+                  </tr>
+                `)
+                .join('')}
+            </tbody>
+          </table>
+        </body>
+        </html>
       `;
+
+
+
 
       // Gera o PDF e pega o URI do arquivo
       const { uri } = await Print.printToFileAsync({ html: htmlContent });
