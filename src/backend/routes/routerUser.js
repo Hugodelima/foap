@@ -67,8 +67,8 @@ router.post('/register', async (req, res) => {
     }
 });
 
-/////////////////////
-router.post('/send-verification-email', async (req, res) => {
+
+/* router.post('/send-verification-email', async (req, res) => {
     const { email } = req.body;
 
     try {
@@ -104,7 +104,7 @@ router.post('/send-verification-email', async (req, res) => {
     } catch (error) {
         res.status(500).json({ message: 'Erro ao buscar usuário.', error: error.message });
     }
-});
+}); */
 
 router.get('/users/:id', async (req, res) => {
     const { id } = req.params;
@@ -160,7 +160,7 @@ router.post('/login', async (req, res) => {
     }
 });
 
-router.post('/forgot-password', async (req, res) => {
+/* router.post('/forgot-password', async (req, res) => {
     const { email } = req.body;
 
     try {
@@ -201,9 +201,7 @@ router.post('/forgot-password', async (req, res) => {
     } catch (error) {
         res.status(500).json({ message: 'Erro ao enviar o código de redefinição de senha.', error: error.message });
     }
-});
-
-
+}); */
 
 router.post('/reset-password', async (req, res) => {
     const { email, nova_senha } = req.body;

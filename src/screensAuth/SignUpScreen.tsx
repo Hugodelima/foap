@@ -101,9 +101,10 @@ export default function SignUpScreen() {
         
         await SecureStore.setItemAsync('userStorageID', JSON.stringify(userID)); // Salvar ID do usuario
         await AsyncStorage.setItem('emailVerificationStatus', 'true'); // Marca a verificação como pendente
+        await AsyncStorage.setItem('emailVerificationData', JSON.stringify({ email, userID })); // Salva email e userID
   
         Alert.alert('Sucesso', 'Registrado com sucesso! Verifique seu e-mail para o código de verificação.');
-        navigation.navigate('VerificationScreen', { userID, email, verificationType: 'signup' });
+        navigation.navigate('VerificationScreen', { email, userID, verificationType: 'signup' });
 
   
         setUsername('');

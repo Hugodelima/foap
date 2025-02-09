@@ -152,8 +152,6 @@ router.post('/resend-verification-code', async (req, res) => {
     }
 });
 
-
-
 router.post('/resend-forgot-password-code', async (req, res) => {
     const { email } = req.body;
 
@@ -201,7 +199,6 @@ router.post('/resend-forgot-password-code', async (req, res) => {
         res.status(500).json({ message: 'Erro no servidor.', error: error.message });
     }
 });
-
 
 router.post('/verify-forgot-password', async (req, res) => {
     const { email, verificationCode } = req.body;

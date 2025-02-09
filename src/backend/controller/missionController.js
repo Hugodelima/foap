@@ -110,26 +110,19 @@ const createMission = async (req, res) => {
 
     let prazoFinal;
 
-    if (repeticao) {
-      // Se repetição diária, defina até hoje às 23:59:59 no horário local de Cuiabá
+    if (repeticao === 'Diariamente') {
       const now = new Date();
       now.setHours(23, 59, 59, 999);
-      // Ajustar para fuso horário local de Cuiabá (-04:00)
-      const offset = -4 * 60; // -4 horas em minutos
+      const offset = -4 * 60;
       const localTime = new Date(now.getTime() + offset * 60000);
-
       prazoFinal = localTime.toISOString();
     } else {
       prazoFinal = new Date(prazo).toISOString();
     }
 
-    // Console log para verificar dados
-    console.log("Dados recebidos do frontend:");
     console.log("prazo enviado:", prazo);
     console.log("repeticao:", repeticao);
-    console.log("prazoFinal ajustado sem conversão UTC padrão:", prazoFinal);
-
-    const repeticaoValor = repeticao ? 'Diariamente' : 'Nunca';
+    console.log("prazoFinal ajustado:", prazoFinal);
 
     const { recompensaXp, recompensaOuro, recompensaPd } = calcularRecompensas(dificuldade, rank);
 
@@ -138,28 +131,19 @@ const createMission = async (req, res) => {
       rank,
       prazo: prazoFinal,
       dificuldade,
-      recompensaXp,
-      recompensaOuro,
-      recompensaPd,
-      status: 'Em progresso',
-      repeticao: repeticaoValor,
-      user_id: userId,
+      valorXp: recompensaXp,
+      valorOuro: recompensaOuro,
+      valorPd: recompensaPd,
+      situacao: 'Em progresso',
+      repeticao: repeticao || 'Nunca',
+      id_usuario: userId,
     });
 
     if (!Array.isArray(penalidadeIds) || penalidadeIds.length === 0) {
       return res.status(400).json({ error: 'O campo penalidadeIds deve ser um array não vazio.' });
     }
 
-    const penalidadesExistentes = await Penalty.findAll({
-      where: { id: penalidadeIds },
-    });
-
-    await Promise.all(
-      penalidadesExistentes.map(async (penalidade) => {
-        penalidade.missionId = novaMissao.id;
-        await penalidade.save();
-      })
-    );
+    const penalidadesExistentes = await Penalty.findAll({ where: { id: penalidadeIds } });
 
     await novaMissao.setPenalties(penalidadesExistentes);
 
@@ -177,11 +161,11 @@ const createMission = async (req, res) => {
 const allMission = async (req, res) => {
   try {
     const missions = await Mission.findAll({
-      where: { user_id: req.params.userId },
+      where: { id_usuario: req.params.userId },
       include: {
         model: Penalty,
         as: 'Penalties',
-        required: false,  // Inclui missões mesmo sem penalidades
+        required: false,
       },
       attributes: {
         include: [
@@ -189,14 +173,14 @@ const allMission = async (req, res) => {
             sequelize.literal(`
               (SELECT JSON_AGG("penalties"."titulo")
                FROM "Penalties" AS "penalties"
-               WHERE "penalties"."missionId" = "Mission"."id")`),
+               WHERE "penalties"."id_missao" = "Mission"."id")`),
             'penaltyTitles'
           ],
           [
             sequelize.literal(`
               (SELECT COUNT(*)
                FROM "Penalties" AS "penalties"
-               WHERE "penalties"."missionId" = "Mission"."id")`),
+               WHERE "penalties"."id_missao" = "Mission"."id")`),
             'penaltyCount'
           ]
         ]
@@ -238,84 +222,62 @@ const deleteMission = async (req, res) => {
 };
 
 const completeMission = async (req, res) => {
-  const { id } = req.params; // ID da missão
-  const { userId } = req.body; // ID do usuário
+  const { id } = req.params;
+  const { userId } = req.body;
 
   try {
-    // Buscar missão com penalidades vinculadas
     const mission = await Mission.findByPk(id, {
-      include: [{ model: Penalty, as: 'Penalties' }], // Certifique-se de que o alias está correto
+      include: [{ model: Penalty, as: 'Penalties' }],
     });
 
     if (!mission) {
       return res.status(404).json({ error: 'Missão não encontrada.' });
     }
 
-    if (mission.status === 'Finalizada') {
+    if (mission.situacao === 'Finalizada') {
       return res.status(400).json({ error: 'Missão já foi concluída.' });
     }
 
-    // Atualizar status da missão para "Finalizada"
-    mission.status = 'Finalizada';
+    mission.situacao = 'Finalizada';
     await mission.save();
 
-    // Buscar status do usuário
-    const userStatus = await Status.findOne({ where: { user_id: userId } });
+    const userStatus = await Status.findOne({ where: { id_usuario: userId } });
 
     if (!userStatus) {
       return res.status(404).json({ error: 'Status do usuário não encontrado.' });
     }
 
-    // Aplicar recompensas da missão (XP, Ouro e PD)
-    userStatus.total_xp += mission.recompensaXp;
-    userStatus.xp_faltante -= mission.recompensaXp;
-    console.log('recomepnsa da missão' + mission.recompensaOuro)
-    console.log('recomepnsa da penalidade' + mission.recompensaPd)
-    userStatus.ouro += mission.recompensaOuro;  // Adicionar o ouro da missão
-    userStatus.pd += mission.recompensaPd;      // Adicionar o PD da missão
+    userStatus.total_xp += mission.valorXp;
+    userStatus.xp_faltante -= mission.valorXp;
+    userStatus.ouro += mission.valorOuro;
+    userStatus.pd += mission.valorPd;
 
-    // Se o xp_faltante for menor ou igual a 0, o usuário sobe de nível
     while (userStatus.xp_faltante <= 0) {
-      // Aumenta o nível
       userStatus.nivel += 1;
+      userStatus.proximo_nivel = Math.round(100 * Math.pow(1.5, userStatus.nivel - 1));
+      userStatus.xp_faltante += userStatus.proximo_nivel;
 
-      // Calcula o próximo nível com base em uma fórmula escalável
-      userStatus.proximo_nivel = Math.round(100 * Math.pow(1.5, userStatus.nivel - 1)); // Fórmula dinâmica
-      userStatus.xp_faltante += userStatus.proximo_nivel; // Ajusta o XP faltante
-
-      // Atualiza o rank dependendo do nível
-      if (userStatus.nivel < 10) {
-        userStatus.rank = 'F';
-      } else if (userStatus.nivel < 50) {
-        userStatus.rank = 'E';
-      } else if (userStatus.nivel < 100) {
-        userStatus.rank = 'D';
-      } else if (userStatus.nivel < 200) {
-        userStatus.rank = 'C';
-      } else if (userStatus.nivel < 300) {
-        userStatus.rank = 'B';
-      } else if (userStatus.nivel < 400) {
-        userStatus.rank = 'A';
-      } else {
-        userStatus.rank = 'SSS';
-      }
+      if (userStatus.nivel < 10) userStatus.rank = 'F';
+      else if (userStatus.nivel < 50) userStatus.rank = 'E';
+      else if (userStatus.nivel < 100) userStatus.rank = 'D';
+      else if (userStatus.nivel < 200) userStatus.rank = 'C';
+      else if (userStatus.nivel < 300) userStatus.rank = 'B';
+      else if (userStatus.nivel < 400) userStatus.rank = 'A';
+      else userStatus.rank = 'SSS';
     }
 
-    // Recalcular o xp_faltante com base no progresso total de XP
     userStatus.xp_faltante = userStatus.proximo_nivel - (userStatus.total_xp % userStatus.proximo_nivel);
 
-    // Atualizar penalidades vinculadas
     const penalties = mission.Penalties;
     if (penalties && penalties.length > 0) {
       for (const penalty of penalties) {
         if (penalty.status !== 'Concluída') {
-          penalty.status = 'Concluída'; // Atualizar o status para "Concluída"
+          penalty.status = 'Concluída';
           await penalty.save();
         }
       }
     }
 
-    // Salvar mudanças no status do usuário
     await userStatus.save();
 
     res.status(200).json({
@@ -412,56 +374,43 @@ const getDailyMissions = async (req, res) => {
 
 const updateMission = async (req, res) => {
   const { id } = req.params;
-  const { prazo, status, titulo, dificuldade, rank, penalidadeIds, repeticao } = req.body;
+  const { prazo, situacao, titulo, dificuldade, rank, penalidadeIds, repeticao } = req.body;
 
   try {
-    // Logando os dados recebidos
     console.log("Dados recebidos para atualização de missão:", req.body);
 
-    // Buscar missão pelo ID
     const mission = await Mission.findByPk(id);
 
     if (!mission) {
       return res.status(404).json({ error: 'Missão não encontrada.' });
     }
 
-    // Atualizando os campos da missão
     if (titulo) mission.titulo = titulo;
     if (dificuldade) mission.dificuldade = dificuldade;
     if (rank) mission.rank = rank;
+    if (situacao) mission.situacao = situacao;
 
-    // Ajuste para repetição diária
     let prazoFinal;
     if (repeticao === 'Diariamente') {
       const now = new Date();
-
       now.setHours(23 - 4, 59, 59, 999);
-
-
       prazoFinal = new Date(now).toISOString();
-      console.log("Prazo final formatado (ISO string):", prazoFinal);
-
-      // Ajusta o valor de repetição para 'Diariamente'
       mission.repeticao = 'Diariamente';
     } else if (prazo) {
       prazoFinal = new Date(prazo).toISOString();
-      console.log("Prazo recebido (caso não seja Diariamente):", prazoFinal);
     }
 
     if (prazoFinal) mission.prazo = prazoFinal;
 
-    // Logando a missão que será salva
     console.log("Missão após atualização:", mission);
 
-    // Atualizar recompensas
     const { recompensaXp, recompensaOuro, recompensaPd } = calcularRecompensas(dificuldade, rank);
-    mission.recompensaXp = recompensaXp;
-    mission.recompensaOuro = recompensaOuro;
-    mission.recompensaPd = recompensaPd;
+    mission.valorXp = recompensaXp;
+    mission.valorOuro = recompensaOuro;
+    mission.valorPd = recompensaPd;
 
-    // Se a repetição for diária, o status deve ser 'Em progresso'
     if (repeticao === 'Diariamente') {
-      mission.status = 'Em progresso'; // Se for repetição diária
+      mission.situacao = 'Em progresso';
     }
 
     await mission.save();
@@ -550,9 +499,6 @@ const getCompletedMissionsLast7Days = async (req, res) => {
   }
 };
 
-
-
-
 const getUserMissionsByStatusLast7Days = async (req, res) => {
   const { userId } = req.params; // Obtém o ID do usuário dos parâmetros da rota
   console.log('pegou a rota certo');
@@ -603,8 +549,6 @@ const getUserMissionsByStatusLast7Days = async (req, res) => {
     res.status(500).json({ error: 'Erro ao buscar missões do usuário.' });
   }
 };
-
-
 const getTotalXpGainedPerDay = async (req, res) => {
   const { id: userId } = req.params;
   const today = moment().endOf('day'); // Fim do dia de hoje
@@ -675,7 +619,5 @@ const getTotalXpGainedPerDay = async (req, res) => {
     res.status(500).json({ error: 'Erro ao buscar XP ganho.' });
   }
 };
-
-
 
 module.exports = { createMission, allMission, deleteMission, completeMission, expireMission, getDailyMissions, updateMission, getCompletedMissionsLast7Days, getUserMissionsByStatusLast7Days, getTotalXpGainedPerDay};

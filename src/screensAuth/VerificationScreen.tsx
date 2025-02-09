@@ -5,19 +5,40 @@ import axios from 'axios';
 import { API_URL } from '@env';
 import { NavigationProps } from '../navigation/types';
 import { ArrowLeftIcon } from 'react-native-heroicons/solid';
-
+import AsyncStorage from '@react-native-async-storage/async-storage';
 const inputs = Array(4).fill('');
 
 export default function VerificationScreen() {
     const navigation = useNavigation<NavigationProps>();
     const route = useRoute();
-    const { email, userID, verificationType } = route.params as { email?: string; userID?: string; verificationType: 'signup' | 'forgotPassword' };
+    const [email, setEmail] = useState<string | undefined>(route.params?.email);
+    const [userID, setUserID] = useState<string | undefined>(route.params?.userID);
+    const [verificationType, setVerificationType] = useState<'signup' | 'forgotPassword'>(route.params?.verificationType || 'signup');
+
+    useEffect(() => {
+        const loadVerificationData = async () => {
+            if (!email || !userID) {
+                try {
+                    const storedData = await AsyncStorage.getItem('emailVerificationData');
+                    if (storedData) {
+                        const { email: storedEmail, userID: storedUserID } = JSON.parse(storedData);
+                        setEmail(storedEmail);
+                        setUserID(storedUserID);
+                    }
+                } catch (error) {
+                    console.error("Erro ao recuperar dados de verificação:", error);
+                }
+            }
+        };
+
+        loadVerificationData();
+    }, []);
     
     const input = useRef<TextInput>(null);
 
     const [OTP, setOTP] = useState<{ [key: number]: string }>({ 0: '', 1: '', 2: '', 3: '' });
     const [nextInputIndex, setNextInputIndex] = useState<number>(0);
-    const [timeLeft, setTimeLeft] = useState<number>(120000); // 2 minutos
+    const [timeLeft, setTimeLeft] = useState<number>(0);
 
     useEffect(() => {
         input.current?.focus();
@@ -113,9 +134,13 @@ export default function VerificationScreen() {
             <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
                 <View className='flex-1 bg-gray-500'>
                     <SafeAreaView className='absolute top-8'>
+                        {verificationType == 'forgotPassword' 
+                        ?
                         <TouchableOpacity onPress={() => navigation.goBack()} className='bg-blue-400 p-2 rounded-tr-2xl rounded-bl-2xl ml-4 mt-4 absolute'>
                             <ArrowLeftIcon size={35} color='black' />
-                        </TouchableOpacity>
+                        </TouchableOpacity> 
+                        : null}
+                        
                     </SafeAreaView>
 
                     <SafeAreaView className='flex'>
