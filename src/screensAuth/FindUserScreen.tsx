@@ -29,7 +29,8 @@ export default function FindUserScreen() {
                 
                 if (email_send.status === 200) {
                     Alert.alert(email_send.data.message);
-                    navigation.navigate('VerificationForgotPassword', { email });
+                    navigation.navigate('VerificationScreen', { email, verificationType: 'forgotPassword' });
+
                 }
             } else {
                 Alert.alert("E-mail não encontrado ou não está verificado.");

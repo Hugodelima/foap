@@ -4,12 +4,12 @@ const Status = require('../models/status');
 const User = require('../models/user');
 
 // Criar o status do cliente
-router.post('/create', async (req, res) => {
-  const { id_usuario } = req.body;
+router.post('/create/:userID', async (req, res) => {
+  const { userID } = req.params;
 
   try {
     // Verifica se o status já existe para o usuário
-    const existingStatus = await Status.findOne({ where: { id_usuario } });
+    const existingStatus = await Status.findOne({ where: { id_usuario: userID } });
 
     if (existingStatus) {
       return res.status(400).json({ message: 'Status já criado para este usuário.' });
@@ -24,7 +24,7 @@ router.post('/create', async (req, res) => {
       total_xp: 0,
       ouro: 0,
       pd: 0,
-      id_usuario
+      id_usuario: userID
     });
 
     res.status(201).json(newStatus);
@@ -34,12 +34,12 @@ router.post('/create', async (req, res) => {
 });
 
 // Obter ou criar o status do cliente
-router.get('/:id_usuario', async (req, res) => {
-  const { id_usuario } = req.params;
+router.get('/:userID', async (req, res) => {
+  const { userID } = req.params;
 
   try {
     // Verifica se já existe um status para o usuário
-    let status = await Status.findAll({ where: { id_usuario } });
+    let status = await Status.findOne({ where: { id_usuario: userID } });
 
     if (!status) {
       return res.status(404).json({ message: 'Status não encontrado.' });

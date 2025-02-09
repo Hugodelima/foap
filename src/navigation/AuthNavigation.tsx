@@ -11,7 +11,7 @@ import ResetPasswordScreen from '../screensAuth/ResetPasswordScreen';
 
 import MainNavigation from './MainNavigation';
 import FindUserScreen from  '../screensAuth/FindUserScreen'
-import VerificationForgotPassword from '../screensAuth/VerificationForgotPassword'
+
 
 
 
@@ -57,7 +57,6 @@ const AuthNavigation = () => {
                 <Stack.Screen name='VerificationScreen' options={{ headerShown: false }} component={VerificationScreen} />
                 <Stack.Screen name='ResetPasswordScreen' options={{ headerShown: false }} component={ResetPasswordScreen} />
                 <Stack.Screen name='FindUserScreen' options={{ headerShown: false }} component={FindUserScreen} />
-                <Stack.Screen name='VerificationForgotPassword' options={{ headerShown: false }} component={VerificationForgotPassword} />
 
                 <Stack.Screen name='MainNavigation' options={{ headerShown: false }} component={MainNavigation} />
                 

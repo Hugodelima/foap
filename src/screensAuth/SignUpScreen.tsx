@@ -58,13 +58,53 @@ export default function SignUpScreen() {
           Alert.alert('Erro', 'Falha ao gerar código de verificação.');
           return;
         }
+        // cria as fases
+        try {
+          const statusResponse = await axios.post(`${API_URL}/api/statusapi/create/${userID}`);
+          console.log('Status criado com sucesso:', statusResponse.data);
+        } catch (statusError) {
+          console.error('Erro ao criar status:', statusError);
+          Alert.alert('Erro', 'Falha ao criar status.');
+        }
+        const atributos = [
+          // Atributos mentais
+          { nome: 'Inteligência', tipo: 'Mental', valor: 0 },
+          { nome: 'Criatividade', tipo: 'Mental', valor: 0 },
+          { nome: 'Disciplina', tipo: 'Mental', valor: 0 },
+          { nome: 'Confiança', tipo: 'Mental', valor: 0 },
+          { nome: 'Carisma', tipo: 'Mental', valor: 0 },
+          { nome: 'Empatia', tipo: 'Mental', valor: 0 },
+          { nome: 'Comunicação', tipo: 'Mental', valor: 0 },
+          // Atributos físicos
+          { nome: 'Agilidade', tipo: 'Físico', valor: 0 },
+          { nome: 'Resistência', tipo: 'Físico', valor: 0 },
+          { nome: 'Flexibilidade', tipo: 'Físico', valor: 0 },
+          { nome: 'Equilíbrio', tipo: 'Físico', valor: 0 },
+          { nome: 'Coordenação', tipo: 'Físico', valor: 0 },
+          { nome: 'Reação', tipo: 'Físico', valor: 0 },
+          { nome: 'Velocidade', tipo: 'Físico', valor: 0 },
+        ];
+        try {
+          for (const atributo of atributos) {
+            await axios.post(`${API_URL}/api/attributeapi/create`, {
+              ...atributo,
+              id_usuario: userID,
+            });
+          }
+          console.log('Atributos criados com sucesso.');
+        } catch (attributeError) {
+          console.error('Erro ao criar atributos:', attributeError);
+          Alert.alert('Erro', 'Falha ao criar atributos.');
+          return;
+        }
   
         
         await SecureStore.setItemAsync('userStorageID', JSON.stringify(userID)); // Salvar ID do usuario
         await AsyncStorage.setItem('emailVerificationStatus', 'true'); // Marca a verificação como pendente
   
         Alert.alert('Sucesso', 'Registrado com sucesso! Verifique seu e-mail para o código de verificação.');
-        navigation.navigate('VerificationScreen');
+        navigation.navigate('VerificationScreen', { userID, email, verificationType: 'signup' });
+
   
         setUsername('');
         setEmail('');

@@ -35,6 +35,7 @@ const App = () => {
 
   useEffect(() => {
     setDataFromStatusLogin();
+    //AsyncStorage.setItem('emailVerificationStatus', 'false'); // Marca a verificação como pendente
   }, []);
   
   console.log('status de logado: '+isLoggedIn)

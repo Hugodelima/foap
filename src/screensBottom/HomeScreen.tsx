@@ -29,12 +29,6 @@ export default function HomeScreen() {
     navigation.navigate(screen);
   };
 
-  // Função para obter o ID do usuário
-  const getUserId = async () => {
-    // Aqui você vai colocar a lógica de como obter o ID do usuário, exemplo:
-    return userData?.id; // Supondo que userData tenha o ID do usuário
-  };
-
   // Formata a data no formato dd/mm
   const formatDate = (dateString: string) => {
     const day = dateString.slice(8, 10);
@@ -69,9 +63,9 @@ export default function HomeScreen() {
 
   // Busca os dados de missões com o status (Finalizada, Em Progresso, Não Finalizada) para o gráfico de pizza
   const fetchMissionStatusData = async () => {
-    const userId = await getUserId();
+
     try {
-      const response = await axios.get(`${API_URL}/api/missionapi/status/last7days/${userId}`);
+      const response = await axios.get(`${API_URL}/api/missionapi/status/last7days/${userData?.id_usuario}`);
       
       // Organiza os dados para o gráfico de pizza
       const statusCounts = response.data;
@@ -110,6 +104,7 @@ export default function HomeScreen() {
       fetchMissionsData();
       fetchMissionStatusData(); // Chama a função para buscar os dados de status
     }
+    console.log(userData)
   }, [userData]);
 
   return (
