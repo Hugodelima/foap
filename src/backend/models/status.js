@@ -30,17 +30,19 @@ const Status = sequelize.define('Status', {
     type: DataTypes.INTEGER,
     allowNull: false
   },
-  user_id: {
+  id_usuario: {
     type: DataTypes.INTEGER,
+    allowNull: false,
     references: {
-      model: 'Users', // Nome da tabela User
+      model: 'Usuarios',
       key: 'id'
-    },
-    allowNull: false
-  }
+    }
+  },
 }, {
-  tableName: 'Status',
-  timestamps: true
+  tableName: 'Fases',
+  timestamps: true,
+  createdAt: 'criado_em',
+  updatedAt: 'atualizado_em'
 });
 
 module.exports = Status;

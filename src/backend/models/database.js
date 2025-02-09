@@ -1,4 +1,3 @@
-// models/database.js
 const { Sequelize } = require('sequelize');
 require('dotenv').config();
 
@@ -9,7 +8,13 @@ const sequelize = new Sequelize(
     {
         host: process.env.DB_HOST,
         dialect: process.env.DB_DIALECT,
-        logging: false, // Defina como true se você quiser ver logs SQL no console
+        logging: false, 
+        dialectOptions: {
+            useUTC: false,
+        },
+        timezone: 'America/Cuiaba', //no postgres o banco de dados que você criou coloque set timezone = 'America/Cuiaba';
+
+        
     }
 );
 

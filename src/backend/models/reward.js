@@ -1,31 +1,33 @@
 const { DataTypes } = require('sequelize');
 const sequelize = require('./database');
-const User = require('./user');  // Assumindo que você tem um modelo de Usuário
+const User = require('./user');
 
 const Reward = sequelize.define('Reward', {
     titulo: {
         type: DataTypes.STRING,
         allowNull: false, 
     },
-    gold: {
+    ouro: {
         type: DataTypes.INTEGER,
         allowNull: false, 
     },
-    status: {
+    situacao: {
         type: DataTypes.STRING, 
         allowNull: false, 
     },
-    userId: { 
+    id_usuario: {
         type: DataTypes.INTEGER,
+        allowNull: false,
         references: {
-            model: User,  // Referência ao modelo de Usuário
-            key: 'id'
-        },
-        allowNull: false, // userId é obrigatório
-    }
+          model: 'Usuarios',
+          key: 'id'
+        }
+    },
 }, {
-    tableName: 'Rewards',
-    timestamps: true
+    tableName: 'Recompensas',
+    timestamps: true,
+    createdAt: 'criado_em',
+    updatedAt: 'atualizado_em'
 });
 
 module.exports = Reward;

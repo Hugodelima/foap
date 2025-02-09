@@ -15,17 +15,19 @@ const Attribute = sequelize.define('Attribute', {
         type: DataTypes.ENUM('Mental', 'Físico'),
         allowNull: false,
     },
-    user_id: {
+    id_usuario: {
         type: DataTypes.INTEGER,
         allowNull: false,
         references: {
-            model: 'Users',
-            key: 'id',
-        },
+          model: 'Usuarios',
+          key: 'id'
+        }
     },
 }, {
-    tableName: 'Attributes',
+    tableName: 'Atributos',
     timestamps: true,
+    createdAt: 'criado_em',
+    updatedAt: 'atualizado_em'
 });
 
 module.exports = Attribute;

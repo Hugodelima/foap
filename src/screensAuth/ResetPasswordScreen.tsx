@@ -26,7 +26,7 @@ export default function ResetPasswordScreen() {
         try {
             const response = await axios.post(`${API_URL}/api/userapi/reset-password`, {
                 email,
-                newPassword: password
+                nova_senha: password
             });
             if (response.status === 200) {
                 Alert.alert("Sucesso", "Senha redefinida com sucesso!");
@@ -57,7 +57,7 @@ export default function ResetPasswordScreen() {
                 secureTextEntry
                 className='border border-gray-300 p-2 rounded mb-4'
             />
-            <TouchableOpacity onPress={handleResetPassword} className='py-3 bg-yellow-400 rounded-xl'>
+            <TouchableOpacity onPress={handleResetPassword} className='py-3 bg-blue-400 rounded-xl'>
                 <Text className='font-bold text-center text-gray-700'>Redefinir Senha</Text>
             </TouchableOpacity>
         </View>

@@ -26,12 +26,12 @@ export default function LoginScreen() {
         try {
             // Faz a requisição de login
             const response = await axios.post(`${API_URL}/api/userapi/login`, { email, password });
-            const { token, userID } = response.data;
+            const { userID } = response.data;
     
             // Armazena os tokens e navega para a próxima tela
             await AsyncStorage.setItem('isLoggedIn', JSON.stringify(true));
             await SecureStore.setItemAsync('userStorageID', JSON.stringify(userID));
-            await SecureStore.setItemAsync('userToken', token);
+
     
             Alert.alert("Logado com sucesso");
     
@@ -55,8 +55,8 @@ export default function LoginScreen() {
                 <View className='flex-1 bg-gray-500'>
                     <SafeAreaView className='flex'>
                         <View className='flex-row justify-center'>
-                            <Image source={{ uri: 'https://portal.longitude.com.br/resource/1676002128000/BannerLogin' }}
-                                style={{ width: 200, height: 200 }}
+                            <Image source={{ uri: 'https://cdni.iconscout.com/illustration/premium/thumb/secure-login-and-password-illustration-download-in-svg-png-gif-file-formats--online-registration-sign-up-register-social-responsibility-pack-business-illustrations-6148085.png?f=webp' }}
+                                style={{ width: 200, height: 250 }}
                             />
                         </View>
                     </SafeAreaView>
@@ -83,26 +83,18 @@ export default function LoginScreen() {
                             />
 
                             <TouchableOpacity className='flex items-end mb-5' onPress={handleRegister}>
-                                <Text className='text-gray-700'>Esqueceu a Senha?</Text>
+                                <Text className='text-yellow-600 font-bold'>Esqueceu a Senha?</Text>
                             </TouchableOpacity>
                             <TouchableOpacity
                                 onPress={handleLogin}
-                                className='py-3 bg-yellow-400 rounded-xl'
+                                className='py-3 bg-blue-400 rounded-xl'
                             >
                                 <Text className='font-bold text-center text-gray-700'>
                                     Entrar
                                 </Text>
                             </TouchableOpacity>
                         </View>
-                        <Text className='font-bold text-gray-700 text-center py-5'>
-                            Ou
-                        </Text>
-                        <View className='flex-row justify-center'>
-                            <TouchableOpacity className='p-2 bg-gray-100 rounded-2xl'>
-                                <Image source={{ uri: 'https://static-00.iconduck.com/assets.00/google-icon-2048x2048-pks9lbdv.png' }}
-                                    className='w-10 h-10 rounded-full' />
-                            </TouchableOpacity>
-                        </View>
+                        
                         
                         <View className='flex-row justify-center mb-10 mt-4'>
                             <Text className='text-gray-500 font-semibold'>Não tem uma conta? </Text>

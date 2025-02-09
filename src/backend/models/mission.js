@@ -19,40 +19,44 @@ const Mission = sequelize.define('Mission', {
     type: DataTypes.ENUM('Fácil', 'Médio', 'Difícil', 'Absurdo'),
     allowNull: false,
   },
-  recompensaXp: {
+  valorXp: {
     type: DataTypes.INTEGER,
     allowNull: false,
   },
-  recompensaOuro: {
+  valorOuro: {
     type: DataTypes.INTEGER,
     allowNull: false,
   },
-  recompensaPd: {
+  valorPd: {
     type: DataTypes.INTEGER,
     allowNull: false,
   },
-  status: {
+  situacao: {
     type: DataTypes.ENUM('Finalizada', 'Em progresso', 'Não finalizada'),
     allowNull: false,
   },
-  user_id: {
+  id_usuario: {
     type: DataTypes.INTEGER,
     allowNull: false,
     references: {
-      model: 'Users',
+      model: 'Usuarios',
       key: 'id'
     }
   },
   repeticao: {
-    type: DataTypes.ENUM('Diariamente', 'Nunca'),  // ou outra opção que desejar
+    type: DataTypes.ENUM('Diariamente', 'Nunca'),
     allowNull: false,
-    defaultValue: 'Nunca',  // Caso você queira que por padrão não haja repetição
+    defaultValue: 'Nunca',
   },
-  
+}, {
+  tableName: 'Missoes',
+  timestamps: true,
+  createdAt: 'criado_em',
+  updatedAt: 'atualizado_em'
 });
 
 Mission.hasMany(Penalty, {
-  foreignKey: 'missionId',  
+  foreignKey: 'id_missao',  
   onDelete: 'CASCADE',  
 });
 

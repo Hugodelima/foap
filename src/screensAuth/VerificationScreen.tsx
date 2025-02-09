@@ -38,7 +38,7 @@ export default function VerificationScreen() {
                 const response = await axios.get(`${API_URL}/api/userapi/users/${userID}`);
                 setUser(response.data);
 
-                const expirationResponse = await axios.get(`${API_URL}/api/userapi/verification-expiration/${userID}`);
+                const expirationResponse = await axios.get(`${API_URL}/api/verificationapi/verification-expiration/${userID}`);
                 setTimeLeft(expirationResponse.data.timeLeft);
 
             } catch (error) {
@@ -79,7 +79,7 @@ export default function VerificationScreen() {
         try {
             console.log('Verificando com userID:', userID, 'e código:', code);
 
-            const response = await axios.post(`${API_URL}/api/userapi/verify`, {
+            const response = await axios.post(`${API_URL}/api/verificationapi/verify`, {
                 userID,
                 verificationCode: code
             });
@@ -89,7 +89,6 @@ export default function VerificationScreen() {
                 await SecureStore.setItemAsync('userStorageID', '');
                 Alert.alert("Email verificado com sucesso!");
                 navigation.navigate('Login');
-                // Limpar os inputs após a verificação bem-sucedida
                 setOTP({ 0: '', 1: '', 2: '', 3: '' });
                 
             } else {
@@ -131,7 +130,7 @@ export default function VerificationScreen() {
     const resendCode = async () => {
         if (user) {
             try {
-                const response = await axios.post(`${API_URL}/api/userapi/resend-verification-code`, {
+                const response = await axios.post(`${API_URL}/api/verificationapi/resend-verification-code`, {
                     email: user.email
                 });
 
@@ -156,8 +155,8 @@ export default function VerificationScreen() {
                 <View className='flex-1 bg-gray-500'>
                     <SafeAreaView className='flex'>
                         <View className='flex-row justify-center'>
-                            <Image source={{ uri: 'https://ds9xi3hub5xxi.cloudfront.net/cdn/farfuture/otEn1mSO8Tk3mLVPFxYMCMwRn-qtie_ueonsviYMy0w/mtime:1608563955/sites/default/files/nodeicon/plugins_email-verification-plugin.png' }}
-                                style={{ width: 200, height: 200, marginTop: 50}}
+                            <Image source={{ uri: 'https://png.pngtree.com/png-vector/20221106/ourmid/pngtree-email-icon-blue-for-your-project-clipart-transparent-background-png-image_6401859.png' }}
+                                style={{ width: 250, height: 200, marginTop: 30}}
                             />
                         </View>
                     </SafeAreaView>
@@ -175,7 +174,7 @@ export default function VerificationScreen() {
 
                             <View className='flex-row space-x-4 mt-5 justify-center mb-6'>
                                 {inputs.map((inp, index) => (
-                                    <View className='w-14 border border-yellow-400 items-center justify-center h-16 mt-5' key={index.toString()}>
+                                    <View className='w-14 border border-blue-400 items-center justify-center h-16 mt-5' key={index.toString()}>
                                         <TextInput
                                             onChangeText={(text) => handleChangeText(text, index)}
                                             value={OTP[index]}
@@ -189,7 +188,7 @@ export default function VerificationScreen() {
                                 ))}
                             </View>
                             <TouchableOpacity
-                                className='py-3 bg-yellow-400 rounded-xl mb-4'
+                                className='py-3 bg-blue-400 rounded-xl mb-4'
                                 onPress={submitOTP}
                             >
                                 <Text className='font-bold text-center text-gray-700 '>
@@ -197,7 +196,7 @@ export default function VerificationScreen() {
                                 </Text>
                             </TouchableOpacity>
                             <TouchableOpacity
-                                className='py-3 bg-blue-400 rounded-xl mt-4'
+                                className='py-3 bg-cyan-400 rounded-xl mt-4'
                                 onPress={resendCode}
                             >
                                 <Text className='font-bold text-center text-gray-700'>

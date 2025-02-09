@@ -6,7 +6,7 @@ const Penalty = sequelize.define('Penalty', {
         type: DataTypes.STRING,
         allowNull: false
     },
-    status: {
+    situacao: {
         type: DataTypes.ENUM('Pendente', 'Em andamento', 'Concluída'),
         allowNull: false,
         defaultValue: 'Pendente'
@@ -27,17 +27,19 @@ const Penalty = sequelize.define('Penalty', {
         type: DataTypes.ENUM('F', 'E', 'D', 'C', 'B', 'A', 'S', 'SS', 'SSS', 'SSS+'),
         allowNull: false
     },
-    user_id: {
+    id_usuario: {
         type: DataTypes.INTEGER,
         allowNull: false,
         references: {
-            model: 'Users',
-            key: 'id'
+          model: 'Usuarios',
+          key: 'id'
         }
-    },
+      },
 }, {
-    tableName: 'Penalties',
-    timestamps: true
+    tableName: 'Penalidades',
+    timestamps: true,
+    createdAt: 'criado_em',
+    updatedAt: 'atualizado_em'
 }); 
 
 module.exports = Penalty;

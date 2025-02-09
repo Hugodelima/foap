@@ -7,15 +7,23 @@ const MissionHistoryDiary = sequelize.define('MissionHistory', {
     primaryKey: true,
     autoIncrement: true,
   },
-  missionId: {
+  id_missao: {
     type: DataTypes.INTEGER,
     allowNull: false,
+    references: {
+      model: 'Missoes',
+      key: 'id'
+    }
   },
-  userId: {
+  id_usuario: {
     type: DataTypes.INTEGER,
     allowNull: false,
+    references: {
+      model: 'Usuarios',
+      key: 'id'
+    }
   },
-  completed: {
+  completado: {
     type: DataTypes.BOOLEAN,
     allowNull: false,
     defaultValue: false,
@@ -28,21 +36,23 @@ const MissionHistoryDiary = sequelize.define('MissionHistory', {
     type: DataTypes.DATE,
     allowNull: false,
   },
-  recompensaXp: {
+  valorXp: {
     type: DataTypes.INTEGER,
     allowNull: false,
   },
-  recompensaOuro: {
+  valorOuro: {
     type: DataTypes.INTEGER,
     allowNull: false,
   },
-  recompensaPd: {
+  valorPd: {
     type: DataTypes.INTEGER,
     allowNull: false,
   },
 }, {
-  tableName: 'MissionHistoriesDiary',
+  tableName: 'MissoesDiarias',
   timestamps: true,
+  createdAt: 'criado_em',
+  updatedAt: 'atualizado_em'
 });
 
 module.exports = MissionHistoryDiary;

@@ -5,15 +5,13 @@ import { NavigationProps } from '../navigation/types';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import axios from 'axios';
 import { API_URL } from '@env';
-import { useHandleGoogleOAuth } from '../hooks/handleGoogleOAuth';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as SecureStore from 'expo-secure-store';
 import { useBackButtonHandler } from '../hooks/useBackButtonHandler';
-
+import signup_image from '../assets/images/signup/Sign_Up.png'
 
 export default function SignUpScreen() {
   const navigation = useNavigation<NavigationProps>();
-  const { onPress } = useHandleGoogleOAuth(); // Função para login com Google
 
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
@@ -30,80 +28,44 @@ export default function SignUpScreen() {
     if (username.length === 0 || email.length === 0 || password.length === 0 || confirmPassword.length === 0) {
       Alert.alert("Erro", "Preencha todos os campos corretamente");
       return;
-    }else if (!isValidEmail(email)) {
+    } else if (!isValidEmail(email)) {
       Alert.alert("Erro", "O e-mail fornecido não é válido.");
       return;
-    }else if (password !== confirmPassword) {
+    } else if (password !== confirmPassword) {
       Alert.alert("Erro", "As senhas não conferem");
       return;
     }
-
+  
     try {
       // Registro do usuário
       const response = await axios.post(`${API_URL}/api/userapi/register`, {
-        username,
+        nome_usuario: username,
         email,
-        password,
+        senha: password,
       });
-
+  
       if (response.status === 200) {
         const { userID } = response.data;
-
+  
         console.log('signup id: ' + userID);
-
-        // Salvar ID do usuário
-        await SecureStore.setItemAsync('userStorageID', JSON.stringify(userID));
+  
+        // Criar código de verificação com nova rota
+        try {
+          await axios.post(`${API_URL}/api/verificationapi/generate/${userID}`);
+          console.log('Código de verificação gerado com sucesso.');
+        } catch (verificationError) {
+          console.error('Erro ao gerar código de verificação:', verificationError);
+          Alert.alert('Erro', 'Falha ao gerar código de verificação.');
+          return;
+        }
+  
+        
+        await SecureStore.setItemAsync('userStorageID', JSON.stringify(userID)); // Salvar ID do usuario
         await AsyncStorage.setItem('emailVerificationStatus', 'true'); // Marca a verificação como pendente
-
-        // Criação do status inicial
-        try {
-          const statusResponse = await axios.post(`${API_URL}/api/statusapi/create`, { userID });
-          console.log('Status criado com sucesso:', statusResponse.data);
-        } catch (statusError) {
-          console.error('Erro ao criar status:', statusError);
-          Alert.alert('Erro', 'Falha ao criar status.');
-          return;
-        }
-
-        // Criação dos atributos iniciais
-        const atributos = [
-          // Atributos mentais
-          { nome: 'Inteligência', tipo: 'Mental', valor: 0 },
-          { nome: 'Criatividade', tipo: 'Mental', valor: 0 },
-          { nome: 'Disciplina', tipo: 'Mental', valor: 0 },
-          { nome: 'Confiança', tipo: 'Mental', valor: 0 },
-          { nome: 'Carisma', tipo: 'Mental', valor: 0 },
-          { nome: 'Empatia', tipo: 'Mental', valor: 0 },
-          { nome: 'Comunicação', tipo: 'Mental', valor: 0 },
-
-          // Atributos físicos
-          { nome: 'Agilidade', tipo: 'Físico', valor: 0 },
-          { nome: 'Resistência', tipo: 'Físico', valor: 0 },
-          { nome: 'Flexibilidade', tipo: 'Físico', valor: 0 },
-          { nome: 'Equilíbrio', tipo: 'Físico', valor: 0 },
-          { nome: 'Coordenação', tipo: 'Físico', valor: 0 },
-          { nome: 'Reação', tipo: 'Físico', valor: 0 },
-          { nome: 'Velocidade', tipo: 'Físico', valor: 0 },
-        ];
-
-        try {
-          for (const atributo of atributos) {
-            await axios.post(`${API_URL}/api/attributeapi/create`, {
-              ...atributo,
-              user_id: userID,
-            });
-          }
-          console.log('Atributos criados com sucesso.');
-        } catch (attributeError) {
-          console.error('Erro ao criar atributos:', attributeError);
-          Alert.alert('Erro', 'Falha ao criar atributos.');
-          return;
-        }
-
+  
         Alert.alert('Sucesso', 'Registrado com sucesso! Verifique seu e-mail para o código de verificação.');
         navigation.navigate('VerificationScreen');
-
-        // Limpar os inputs após o registro bem-sucedido
+  
         setUsername('');
         setEmail('');
         setPassword('');
@@ -117,6 +79,9 @@ export default function SignUpScreen() {
       console.error(error);
     }
   };
+  
+  
+  
 
   return (
     <KeyboardAvoidingView
@@ -127,7 +92,7 @@ export default function SignUpScreen() {
         <View className='flex-1 bg-gray-500'>
           <SafeAreaView className='flex'>
             <View className='flex-row justify-center'>
-              <Image source={{ uri: 'https://portal.longitude.com.br/resource/1676002128000/BannerLogin' }}
+              <Image source={signup_image}
                 style={{ width: 200, height: 200 }}
               />
             </View>
@@ -171,21 +136,12 @@ export default function SignUpScreen() {
               />
 
               <TouchableOpacity
-                className='py-3 bg-yellow-400 rounded-xl'
+                className='py-3 bg-blue-500 rounded-xl'
                 onPress={handleRegister}
               >
-                <Text className='font-bold text-center text-gray-700'>
+                <Text className='font-bold text-center text-white'>
                   Cadastrar
                 </Text>
-              </TouchableOpacity>
-            </View>
-            <Text className='font-bold text-gray-700 text-center py-5'>
-              Ou
-            </Text>
-            <View className='flex-row justify-center'>
-              <TouchableOpacity onPress={onPress} className='p-2 bg-gray-100 rounded-2xl'>
-                <Image source={{ uri: 'https://static-00.iconduck.com/assets.00/google-icon-2048x2048-pks9lbdv.png' }}
-                  className='w-10 h-10 rounded-full' />
               </TouchableOpacity>
             </View>
 

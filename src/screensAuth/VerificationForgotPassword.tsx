@@ -49,7 +49,7 @@ export default function VerificationForgotPasswordScreen() {
 
     const handleVerification = async (code: string) => {
         try {
-            const response = await axios.post(`${API_URL}/api/userapi/verify-forgot-password`, {
+            const response = await axios.post(`${API_URL}/api/verificationapi/verify-forgot-password`, {
                 email,
                 verificationCode: code
             });
@@ -97,7 +97,7 @@ export default function VerificationForgotPasswordScreen() {
 
     const resendCode = async () => {
         try {
-            const response = await axios.post(`${API_URL}/api/userapi/resend-forgot-password-code`, {
+            const response = await axios.post(`${API_URL}/api/verificationapi/resend-forgot-password-code`, {
                 email
             });
 
@@ -122,14 +122,14 @@ export default function VerificationForgotPasswordScreen() {
                 <View className='flex-1 bg-gray-500'>
                     <SafeAreaView className='absolute top-8'>
                         <View>
-                            <TouchableOpacity onPress={() => navigation.goBack()} className='bg-yellow-400 p-2 rounded-tr-2xl rounded-bl-2x1 ml-4 mt-4 absolute'>
+                            <TouchableOpacity onPress={() => navigation.goBack()} className='bg-blue-400 p-2 rounded-tr-2xl rounded-bl-2x1 ml-4 mt-4 absolute'>
                                 <ArrowLeftIcon size='35' color='black' />
                             </TouchableOpacity>
                         </View>
                     </SafeAreaView>
                     <SafeAreaView className='flex'>
                         <View className='flex-row justify-center'>
-                            <Image source={{ uri: 'https://ds9xi3hub5xxi.cloudfront.net/cdn/farfuture/otEn1mSO8Tk3mLVPFxYMCMwRn-qtie_ueonsviYMy0w/mtime:1608563955/sites/default/files/nodeicon/plugins_email-verification-plugin.png' }}
+                            <Image source={{ uri: 'https://png.pngtree.com/png-vector/20221106/ourmid/pngtree-email-icon-blue-for-your-project-clipart-transparent-background-png-image_6401859.png' }}
                                 style={{ width: 200, height: 200, marginTop: 50 }}
                             />
                         </View>
@@ -148,7 +148,7 @@ export default function VerificationForgotPasswordScreen() {
 
                             <View className='flex-row space-x-4 mt-5 justify-center mb-6'>
                                 {inputs.map((inp, index) => (
-                                    <View className='w-14 border border-yellow-400 items-center justify-center h-16 mt-5' key={index.toString()}>
+                                    <View className='w-14 border border-blue-400 items-center justify-center h-16 mt-5' key={index.toString()}>
                                         <TextInput
                                             onChangeText={(text) => handleChangeText(text, index)}
                                             value={OTP[index]}
@@ -162,7 +162,7 @@ export default function VerificationForgotPasswordScreen() {
                                 ))}
                             </View>
                             <TouchableOpacity
-                                className='py-3 bg-yellow-400 rounded-xl mb-4'
+                                className='py-3 bg-blue-400 rounded-xl mb-4'
                                 onPress={submitOTP}
                             >
                                 <Text className='font-bold text-center text-gray-700'>
@@ -170,7 +170,7 @@ export default function VerificationForgotPasswordScreen() {
                                 </Text>
                             </TouchableOpacity>
                             <TouchableOpacity
-                                className='py-3 bg-blue-400 rounded-xl mt-4'
+                                className='py-3 bg-cyan-400 rounded-xl mt-4'
                                 onPress={resendCode}
                             >
                                 <Text className='font-bold text-center text-gray-700'>

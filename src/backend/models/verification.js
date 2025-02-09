@@ -1,13 +1,12 @@
-// models/verification.js
 const { Sequelize, DataTypes } = require('sequelize');
-const sequelize = require('./database'); // ou o caminho correto para sua configuração do sequelize
+const sequelize = require('./database');
 
 const Verification = sequelize.define('Verification', {
-  user_id: {
+  id_usuario: {
     type: DataTypes.INTEGER,
     allowNull: false,
     references: {
-      model: 'Users', // Nome da tabela de usuários (em plural ou no formato correto)
+      model: 'Usuarios',
       key: 'id'
     }
   },
@@ -19,13 +18,15 @@ const Verification = sequelize.define('Verification', {
     type: DataTypes.DATE,
     allowNull: false
   },
-  tipo: { // Campo adicional para diferenciar o tipo de verificação
+  tipo: {
     type: DataTypes.STRING,
     allowNull: false
   }
 }, {
-  tableName: 'Verifications',
-  timestamps: true, // Adiciona colunas createdAt e updatedAt
+  tableName: 'Verificacoes',
+  timestamps: true,
+  createdAt: 'criado_em',
+  updatedAt: 'atualizado_em'
 });
 
 module.exports = Verification;

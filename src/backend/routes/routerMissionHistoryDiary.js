@@ -5,39 +5,39 @@ const Mission = require('../models/mission');
 
 // Rota para criar um registro no histórico de missões
 router.post('/create', async (req, res) => {
-    console.log('rota de criar historico')
-    const { missionId, userId, completed, prazoAnterior, prazoAtualizado, recompensaXp, recompensaOuro, recompensaPd } = req.body;
+    console.log('rota de criar histórico');
+    const { id_missao, id_usuario, completado, prazoAnterior, prazoAtualizado, valorXp, valorOuro, valorPd } = req.body;
   
-    if (!missionId || !userId || !prazoAnterior || !prazoAtualizado) {
-      return res.status(400).json({ error: 'Por favor, preencha todos os campos obrigatórios.' });
+    if (!id_missao || !id_usuario || !prazoAnterior || !prazoAtualizado) {
+        return res.status(400).json({ error: 'Por favor, preencha todos os campos obrigatórios.' });
     }
   
     try {
-      const history = await MissionHistory.create({
-        missionId,
-        userId,
-        completed,
-        prazoAnterior,
-        prazoAtualizado,
-        recompensaXp,
-        recompensaOuro,
-        recompensaPd,
-      });
+        const history = await MissionHistory.create({
+            id_missao,
+            id_usuario,
+            completado,
+            prazoAnterior,
+            prazoAtualizado,
+            valorXp,
+            valorOuro,
+            valorPd,
+        });
   
-      res.status(201).json({ message: 'Histórico criado com sucesso.', history });
+        res.status(201).json({ message: 'Histórico criado com sucesso.', history });
     } catch (error) {
-      console.error('Erro ao criar histórico:', error);
-      res.status(500).json({ error: 'Erro ao criar histórico.' });
+        console.error('Erro ao criar histórico:', error);
+        res.status(500).json({ error: 'Erro ao criar histórico.' });
     }
 });
 
 // Rota para buscar o histórico de uma missão por usuário
-router.get('/:userId', async (req, res) => {
-    const { userId } = req.params;
+router.get('/:id_usuario', async (req, res) => {
+    const { id_usuario } = req.params;
 
     try {
         const histories = await MissionHistory.findAll({
-            where: { userId },
+            where: { id_usuario },
             include: [{ model: Mission, attributes: ['titulo', 'dificuldade'] }],
         });
 
@@ -48,6 +48,7 @@ router.get('/:userId', async (req, res) => {
     }
 });
 
+// Rota para buscar missões diárias
 router.get('/daily-missions', async (req, res) => {
     try {
         const missions = await Mission.findAll({
@@ -62,6 +63,5 @@ router.get('/daily-missions', async (req, res) => {
         res.status(500).json({ error: 'Erro ao buscar missões diárias.' });
     }
 });
-
 
 module.exports = router;

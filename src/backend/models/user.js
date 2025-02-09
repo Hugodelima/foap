@@ -21,8 +21,10 @@ const User = sequelize.define('User', {
     defaultValue: false
   }
 }, {
-  tableName: 'Users',
-  timestamps: true, // Adiciona colunas createdAt e updatedAt
+  tableName: 'Usuarios',
+  timestamps: true,
+  createdAt: 'criado_em',
+  updatedAt: 'atualizado_em'
 });
 
 module.exports = User;

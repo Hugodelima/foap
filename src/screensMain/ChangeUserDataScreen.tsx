@@ -13,7 +13,6 @@ import xpFaltante_image from '../assets/images/experience/xp_without.png'
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-import {useAuth, useUser} from '@clerk/clerk-expo'
 
 import { useFetchUserData } from '../hooks/useFetchDataUser';
 
@@ -23,14 +22,6 @@ export default function ChangeUserDataScreen(){
   const navigation = useNavigation<NavigationProps>();
   const { userData, error } = useFetchUserData();
 
-  /*
-  <Text> Hello {user?.emailAddresses[0].emailAddress ===null}{user?.fullName} </Text>
-  */
-  //do google
-
-  const {signOut} = useAuth()
-  const { user } = useUser()
-  const loggedGoogle = useAuth().isSignedIn
 
   async function signOutBD(){
     await AsyncStorage.setItem('isLoggedIn','')
@@ -66,7 +57,7 @@ export default function ChangeUserDataScreen(){
         </View>
         <Text className='font-vt323 text-white border-b-2 border-white text-xl'>Sair</Text>
         <View className='ml-4'>
-            <TouchableOpacity onPress={() => loggedGoogle === true ? signOut(): signOutBD()} className='bg-cyan-500 rounded-full p-3 mt-4'>
+            <TouchableOpacity onPress={() => signOutBD()} className='bg-cyan-500 rounded-full p-3 mt-4'>
                 <Text className='font-vt323'>Desconectar-se</Text>
             </TouchableOpacity>
         </View>
