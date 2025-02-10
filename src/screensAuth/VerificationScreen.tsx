@@ -6,6 +6,7 @@ import { API_URL } from '@env';
 import { NavigationProps } from '../navigation/types';
 import { ArrowLeftIcon } from 'react-native-heroicons/solid';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as SecureStore from 'expo-secure-store';
 const inputs = Array(4).fill('');
 
 export default function VerificationScreen() {
@@ -67,7 +68,8 @@ export default function VerificationScreen() {
 
             if (response.status === 200) {
                 Alert.alert(response.data.message);
-
+                await AsyncStorage.setItem('emailVerificationStatus', '')
+                await SecureStore.setItemAsync('userStorageID', '');
                 if (verificationType === 'forgotPassword') {
                     navigation.navigate('ResetPasswordScreen', { email });
                 } else {
