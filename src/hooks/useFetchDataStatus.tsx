@@ -4,7 +4,7 @@ import axios from 'axios';
 
 import { API_URL } from "@env";
 
-export function useFetchUserData() {
+export function useFetchStatusUser() {
   const [userData, setUserData] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -13,7 +13,7 @@ export function useFetchUserData() {
       const userID = await SecureStore.getItemAsync('userStorageID');
       
       if (userID) {
-        const response = await axios.get(`${API_URL}/api/userapi/users/${userID}`);
+        const response = await axios.get(`${API_URL}/api/statusapi/${userID}`);
         setUserData(response.data);
       } else {
         setError('ID do usuário não encontrado.');

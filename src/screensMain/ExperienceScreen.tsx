@@ -10,7 +10,7 @@ import levelUp_image from '../assets/images/home/levelUp_home.png';
 import xp_image from '../assets/images/mission/xp.png';
 import xpFaltante_image from '../assets/images/experience/xp_without.png';
 
-import { useFetchUserData } from '../hooks/useFetchDataUser';
+import { useFetchStatusUser } from '../hooks/useFetchDataStatus';
 import axios from 'axios';
 import { API_URL } from '@env';
 import { getUserId } from '../screensBottom/MissionScreen';
@@ -19,7 +19,7 @@ const screenWidth = Dimensions.get('window').width;
 
 export default function ExperienceScreen() {
   const navigation = useNavigation();
-  const { userData, error } = useFetchUserData();
+  const { userData, error } = useFetchStatusUser();
 
   const [chartData, setChartData] = useState({ labels: [], datasets: [] });
   const [loading, setLoading] = useState(false);
@@ -58,17 +58,14 @@ export default function ExperienceScreen() {
   return (
     <View className="flex-1 bg-neutral-900">
       <SafeAreaView className="bg-neutral-800 rounded-b-lg border-b-8 border-cyan-500 flex-row items-center p-4">
-        <TouchableOpacity onPress={() => navigation.goBack()} className="bg-yellow-400 p-2 rounded-tr-2xl rounded-bl-2x1 ml-4 mt-4">
+        <TouchableOpacity onPress={() => navigation.goBack()} className="bg-blue-400 p-2 rounded-tr-2xl rounded-bl-2x1 ml-4 mt-4">
           <ArrowLeftIcon size={30} color="black" />
         </TouchableOpacity>
         <Text className="font-vt323 text-white mt-4 ml-4 text-xl">Experiência</Text>
       </SafeAreaView>
 
       <View className="items-center m-4">
-        <Image
-          source={{ uri: 'https://static-00.iconduck.com/assets.00/user-icon-1024x1024-dtzturco.png' }}
-          className="w-12 h-12 mr-3"
-        />
+      
         <View className="flex-row items-center mb-2">
           <Image source={levelUp_image} className="w-7 h-7 mr-1" />
           <Text className="text-white font-vt323">Próximo Nível: {userData?.proximo_nivel}</Text>
@@ -94,13 +91,17 @@ export default function ExperienceScreen() {
             width={screenWidth - 32}
             height={220}
             chartConfig={{
-              backgroundColor: '#1e2923',
-              backgroundGradientFrom: '#08130D',
-              backgroundGradientTo: '#1e2923',
+              backgroundGradientFrom: '#22caec',
+              backgroundGradientFromOpacity: 1,
+              backgroundGradientTo: 'blue',
+              backgroundGradientToOpacity: 1,
+              color: () => 'white',
+              barPercentage: 0.8,
+              fillShadowGradient: 'white',
+              fillShadowGradientOpacity: 2,
               decimalPlaces: 1,
-              color: (opacity = 1) => `rgba(26, 255, 146, ${opacity})`,
-              labelColor: (opacity = 1) => `rgba(255, 255, 255, ${opacity})`,
             }}
+            fromZero // Garante que o gráfico começa do zero
             style={{
               borderRadius: 16,
               marginVertical: 8,

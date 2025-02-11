@@ -4,7 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import axios from 'axios';
 import { API_URL } from '@env';
 import { useNavigation } from '@react-navigation/native';
-import { useFetchUserData } from '../hooks/useFetchDataUser';
+import { useFetchStatusUser } from '../hooks/useFetchDataStatus';
 import ModalComponent from '../modal/moreOptions';
 import ModalReward from '../modal/addReward';
 import ModalEditReward from '../modal/editReward'; // Modal para editar a recompensa
@@ -69,7 +69,7 @@ export default function MissionScreen() {
   const [modalVisibleEditPenalty, setModalVisibleEditPenalty] = useState(false)
   const [selectedReward, setSelectedReward] = useState<Reward | null>(null); // Armazena a recompensa selecionada
   const [selectedSection, setSelectedSection] = useState<string>('missao');
-  const { userData, setUserData } = useFetchUserData();
+  const { userData, setUserData } = useFetchStatusUser();
   const [rewards, setRewards] = useState<Reward[]>([]);
   const navigation = useNavigation<NavigationProps>();
   const [filterModalVisible, setFilterModalVisible] = useState(false); // Controla o modal

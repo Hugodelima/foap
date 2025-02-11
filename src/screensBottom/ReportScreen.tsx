@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, Alert, Platform } from 'react-native';
+import { View, Text, TouchableOpacity, Alert, Platform, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import * as Print from 'expo-print';
 import * as IntentLauncher from 'expo-intent-launcher';
@@ -7,9 +7,18 @@ import * as FileSystem from 'expo-file-system'; // Importando expo-file-system
 import { API_URL } from '@env';
 import axios from 'axios';
 import { getUserId } from './MissionScreen';
+import moreOptions_image from '../assets/images/home/more_options.png';
+import ModalComponent from '../modal/moreOptions';
+import { useNavigation } from '@react-navigation/native';
+import { NavigationProps } from '../navigation/types';
 
 export default function ReportScreen() {
   const [isGenerating, setIsGenerating] = useState(false);
+  const [modalVisible, setModalVisible] = useState(false);
+  const navigation = useNavigation<NavigationProps>();
+  const handleNavigate = (screen: any) => {
+    navigation.navigate(screen);
+  };
 
   // Função para buscar os dados e gerar o PDF
   const handleGenerateReport = async (reportType: string) => {
@@ -140,6 +149,7 @@ export default function ReportScreen() {
   return (
     <View style={{ flex: 1, backgroundColor: '#1C1C1E' }}>
       <SafeAreaView className="gap-8 mt-6 p-4">
+        
         <TouchableOpacity
           onPress={() => handleGenerateReport('missionapi')}
           className="bg-cyan-500 rounded-full p-3"
@@ -180,6 +190,21 @@ export default function ReportScreen() {
           <Text className="text-white font-bold text-center">Relatório de Atributos</Text>
         </TouchableOpacity>
       </SafeAreaView>
+      <TouchableOpacity
+        className="absolute right-4 top-12"
+        onPress={() => setModalVisible(true)}
+      >
+        <Image 
+          source={moreOptions_image} 
+          className="w-7 h-7"
+        />
+      </TouchableOpacity>
+
+      <ModalComponent 
+        visible={modalVisible} 
+        onClose={() => setModalVisible(false)} 
+        onNavigate={handleNavigate}
+      />
     </View>
   );
 }

@@ -430,9 +430,9 @@ const getCompletedMissionsLast7Days = async (req, res) => {
     // Buscar missões no modelo 'Mission' com status 'Finalizada' e a data de atualização nos últimos 7 dias
     const missions = await Mission.findAll({
       where: {
-        user_id: userId,
-        status: 'Finalizada',
-        updatedAt: {
+        id_usuario: userId,
+        situacao: 'Finalizada',
+        atualizado_em: {
           [Op.between]: [
             today.clone().subtract(6, 'days').toDate(), // 7 dias atrás
             endOfToday.toDate(), // Fim do dia atual
@@ -440,28 +440,28 @@ const getCompletedMissionsLast7Days = async (req, res) => {
         },
       },
       attributes: [
-        [sequelize.fn('DATE', sequelize.col('updatedAt')), 'date'], // Retorna apenas a data (sem a hora)
+        [sequelize.fn('DATE', sequelize.col('atualizado_em')), 'date'], // Retorna apenas a data (sem a hora)
         [sequelize.fn('COUNT', sequelize.col('id')), 'count'], // Conta as missões por dia
       ],
-      group: [sequelize.fn('DATE', sequelize.col('updatedAt'))],
-      order: [[sequelize.fn('DATE', sequelize.col('updatedAt')), 'ASC']], // Ordena as missões por data ascendente
+      group: [sequelize.fn('DATE', sequelize.col('atualizado_em'))],
+      order: [[sequelize.fn('DATE', sequelize.col('atualizado_em')), 'ASC']], // Ordena as missões por data ascendente
     });
 
     // Agora buscamos o histórico de missões do usuário para verificar se as missões foram concluídas
     const missionHistory = await MissionHistoryDiary.findAll({
       where: {
-        userId: userId,
+        id_usuario: userId,
         prazoAtualizado: { // Alterei para prazoAtualizado, pois é a data de conclusão da missão
           [Op.between]: [
             today.clone().subtract(6, 'days').toDate(), // 7 dias atrás
             endOfToday.toDate(), // Fim do dia atual
           ],
         },
-        completed: true, // Garantir que a missão foi completada
+        completado: true, // Garantir que a missão foi completada
       },
       attributes: [
         [sequelize.fn('DATE', sequelize.col('prazoAtualizado')), 'date'], // Coluna que armazena a data de conclusão
-        [sequelize.fn('COUNT', sequelize.col('missionId')), 'count'], // Conta as missões do histórico
+        [sequelize.fn('COUNT', sequelize.col('id_missao')), 'count'], // Conta as missões do histórico
       ],
       group: [sequelize.fn('DATE', sequelize.col('prazoAtualizado'))],
       order: [[sequelize.fn('DATE', sequelize.col('prazoAtualizado')), 'ASC']], // Ordena por data ascendente
@@ -511,8 +511,8 @@ const getUserMissionsByStatusLast7Days = async (req, res) => {
     // Busca todas as missões do usuário dentro dos últimos 7 dias
     const missions = await Mission.findAll({
       where: {
-        user_id: userId, // Filtra pelo ID do usuário
-        updatedAt: {
+        id_usuario: userId, // Filtra pelo ID do usuário
+        atualizado_em: {
           [Op.between]: [sevenDaysAgo, endOfToday], // Apenas missões atualizadas nos últimos 7 dias
         },
       },
@@ -558,35 +558,35 @@ const getTotalXpGainedPerDay = async (req, res) => {
     // Buscar as missões finalizadas no modelo 'Mission' nos últimos 7 dias com base no createdAt
     const missions = await Mission.findAll({
       where: {
-        user_id: userId,
-        status: 'Finalizada',
-        createdAt: {
+        id_usuario: userId,
+        situacao: 'Finalizada',
+        criado_em: {
           [Op.between]: [sevenDaysAgo.toDate(), today.toDate()],
         },
       },
       attributes: [
-        [sequelize.fn('DATE', sequelize.col('createdAt')), 'date'], // Retorna a data (sem a hora)
-        [sequelize.fn('SUM', sequelize.col('recompensaXp')), 'totalXp'], // Soma o XP das missões
+        [sequelize.fn('DATE', sequelize.col('criado_em')), 'date'], // Retorna a data (sem a hora)
+        [sequelize.fn('SUM', sequelize.col('valorXp')), 'totalXp'], // Soma o XP das missões
       ],
-      group: [sequelize.fn('DATE', sequelize.col('createdAt'))], // Agrupa por dia
-      order: [[sequelize.fn('DATE', sequelize.col('createdAt')), 'ASC']], // Ordena por data
+      group: [sequelize.fn('DATE', sequelize.col('criado_em'))], // Agrupa por dia
+      order: [[sequelize.fn('DATE', sequelize.col('criado_em')), 'ASC']], // Ordena por data
     });
 
     // Buscar o histórico de missões no modelo 'MissionHistoryDiary' nos últimos 7 dias com base no createdAt
     const missionHistory = await MissionHistoryDiary.findAll({
       where: {
-        userId: userId,
-        completed: true, // Considerando que a missão foi completada
-        createdAt: {
+        id_usuario: userId,
+        completado: true, // Considerando que a missão foi completada
+        criado_em: {
           [Op.between]: [sevenDaysAgo.toDate(), today.toDate()],
         },
       },
       attributes: [
-        [sequelize.fn('DATE', sequelize.col('createdAt')), 'date'], // Ajustando para 'createdAt'
-        [sequelize.fn('SUM', sequelize.col('recompensaXp')), 'totalXp'], // Soma o XP do histórico
+        [sequelize.fn('DATE', sequelize.col('criado_em')), 'date'], // Ajustando para 'createdAt'
+        [sequelize.fn('SUM', sequelize.col('valorXp')), 'totalXp'], // Soma o XP do histórico
       ],
-      group: [sequelize.fn('DATE', sequelize.col('createdAt'))], // Agrupa por dia
-      order: [[sequelize.fn('DATE', sequelize.col('createdAt')), 'ASC']], // Ordena por data
+      group: [sequelize.fn('DATE', sequelize.col('criado_em'))], // Agrupa por dia
+      order: [[sequelize.fn('DATE', sequelize.col('criado_em')), 'ASC']], // Ordena por data
     });
 
     // Combina os resultados das missões e do histórico

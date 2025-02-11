@@ -17,7 +17,6 @@ const MainNavigation = () => {
       />
 
       <Stack.Screen name='AttributesScreen' options={{ headerShown: false }} component={AttributesScreen} />
-      <Stack.Screen name='ConfigurationScreen' options={{ headerShown: false }} component={ConfigurationScreen} />
       <Stack.Screen name='ExperienceScreen' options={{ headerShown: false }} component={ExperienceScreen} />
       <Stack.Screen name='ChangeUserDataScreen' options={{ headerShown: false }} component={ChangeUserDataScreen} />
       <Stack.Screen name='HelpStatusScreen' options={{ headerShown: false }} component={HelpStatusScreen} />

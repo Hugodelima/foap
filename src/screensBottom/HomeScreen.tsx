@@ -11,14 +11,15 @@ import levelUp_image from '../assets/images/home/levelUp_home.png';
 import nivel_image from '../assets/images/home/nivel_home.png';
 import rank_image from '../assets/images/home/rank_home.png';
 import moreOptions_image from '../assets/images/home/more_options.png';
+import xp_image from '../assets/images/mission/xp.png';
 
 import { NavigationProps } from '../navigation/types';
-import { useFetchUserData } from '../hooks/useFetchDataUser';
+import { useFetchStatusUser } from '../hooks/useFetchDataStatus'
 import { API_URL } from '@env';
 import axios from 'axios';
 
 export default function HomeScreen() {
-  const { userData } = useFetchUserData();
+  const { userData } = useFetchStatusUser();
   const [modalVisible, setModalVisible] = useState(false);
   const [missionsData, setMissionsData] = useState({ labels: [], datasets: [{ data: [] }] });
   const [pieChartData, setPieChartData] = useState([]); // Estado para armazenar os dados do gráfico de pizza
@@ -124,7 +125,7 @@ export default function HomeScreen() {
             <Text className="text-white font-vt323">Próximo Nível: {userData?.proximo_nivel}</Text>
           </View>
           <View className="flex-row items-center mb-2">
-            <Image source={levelUp_image} className="w-7 h-7 mr-1" />
+            <Image source={xp_image} className="w-7 h-7 mr-1" />
             <Text className="text-white font-vt323">Total de xp: {userData?.total_xp}</Text>
           </View>
           <View className="flex-row items-center">

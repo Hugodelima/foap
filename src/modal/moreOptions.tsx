@@ -21,8 +21,8 @@ export default function ModalComponent({ visible, onClose, onNavigate }: ModalCo
       >
         <Pressable className="w-80 bg-neutral-800 p-6 rounded-xl" onPress={() => {}}>
           <Text className="text-white text-xl font-semibold mb-4 text-center">Opções</Text>
-          <TouchableOpacity onPress={() => { onClose(); onNavigate('ConfigurationScreen'); }}>
-            <Text className="text-white text-lg mb-3">Configurações</Text>
+          <TouchableOpacity onPress={() => { onClose(); onNavigate('ChangeUserDataScreen'); }}>
+            <Text className="text-white text-lg mb-3">Configurações Cadastrais</Text>
           </TouchableOpacity>
           <TouchableOpacity onPress={() => { onClose(); onNavigate('AttributesScreen'); }}>
             <Text className="text-white text-lg mb-3">Atributos</Text>
