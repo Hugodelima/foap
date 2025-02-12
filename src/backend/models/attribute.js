@@ -15,6 +15,10 @@ const Attribute = sequelize.define('Attribute', {
         type: DataTypes.ENUM('Mental', 'Físico'),
         allowNull: false,
     },
+    icone: {
+        type: DataTypes.STRING,
+        allowNull: false,
+    },
     id_usuario: {
         type: DataTypes.INTEGER,
         allowNull: false,

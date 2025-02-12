@@ -38,7 +38,7 @@ export default function HelpStatusScreen() {
   return (
     <View className="flex-1 bg-neutral-900">
       <SafeAreaView className="bg-neutral-800 rounded-b-lg border-b-8 border-cyan-500 flex-row items-center p-4">
-        <TouchableOpacity onPress={() => navigation.goBack()} className="bg-yellow-400 p-2 rounded-tr-2xl rounded-bl-2x1 ml-4 mt-4">
+        <TouchableOpacity onPress={() => navigation.goBack()} className="bg-blue-400 p-2 rounded-tr-2xl rounded-bl-2x1 ml-4 mt-4">
           <ArrowLeftIcon size="30" color="black" />
         </TouchableOpacity>
         <Text className="font-vt323 text-white mt-4 ml-4 text-xl">Atributos</Text>
@@ -46,13 +46,13 @@ export default function HelpStatusScreen() {
 
       <View className="flex-row gap-4 m-4">
         <TouchableOpacity onPress={() => setSelectedSection('mental')}>
-          <Text className={`text-white font-vt323 p-3 rounded-2xl ${selectedSection === 'mental' ? 'bg-fuchsia-700' : 'bg-transparent'}`}>
+          <Text className={`text-white font-vt323 p-3 rounded-2xl ${selectedSection === 'mental' ? 'bg-blue-700' : 'bg-transparent'}`}>
             Mental
           </Text>
         </TouchableOpacity>
 
         <TouchableOpacity onPress={() => setSelectedSection('fisico')}>
-          <Text className={`text-white font-vt323 p-3 rounded-2xl ${selectedSection === 'fisico' ? 'bg-fuchsia-700' : 'bg-transparent'}`}>
+          <Text className={`text-white font-vt323 p-3 rounded-2xl ${selectedSection === 'fisico' ? 'bg-blue-700' : 'bg-transparent'}`}>
             Físico
           </Text>
         </TouchableOpacity>

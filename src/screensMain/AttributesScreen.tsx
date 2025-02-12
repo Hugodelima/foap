@@ -5,7 +5,6 @@ import { ArrowLeftIcon } from 'react-native-heroicons/solid';
 import { useNavigation } from '@react-navigation/native';
 
 import edit_image from '../assets/images/status/edit.png';
-import str_image from '../assets/images/status/str.png';
 import up_image from '../assets/images/status/up.png';
 import bottom_image from '../assets/images/status/bottom.png';
 import help_image from '../assets/images/status/help.png';
@@ -26,7 +25,7 @@ export default function AttributesScreen() {
     const fetchAttributesAndStatus = async () => {
       try {
         const userId = await getUserId();
-        console.log('User ID:', userId); // Verifica o ID do usuário
+        console.log('User ID:', userId);
         if (!userId) throw new Error('Usuário não encontrado.');
   
         // Buscar os atributos
@@ -36,15 +35,17 @@ export default function AttributesScreen() {
         const attributesData = attributesResponse.data;
         const mental = attributesData.filter((attr: any) => attr.tipo === 'Mental');
         const fisico = attributesData.filter((attr: any) => attr.tipo === 'Físico');
-  
+        console.log('fdsfd')
         setAttributes({ mental, fisico });
   
         // Buscar os pontos disponíveis (Status)
+        console.log('fdsfdfdsf')
         const statusResponse = await axios.get(`${API_URL}/api/statusapi/${userId}`);
         console.log('Status Response:', statusResponse.data);
-  
-        const { pd } = statusResponse.data; // Extrai os pontos disponíveis (pd)
-        setAvailablePoints(pd || 0); // Atualiza o estado com pd ou 0 caso seja undefined
+
+        console.log(statusResponse.data)
+        const { pd } = statusResponse.data;
+        setAvailablePoints(pd || 0);
       } catch (error) {
         console.error('Erro ao buscar dados:', error);
       }
@@ -57,7 +58,6 @@ export default function AttributesScreen() {
     try {
       const userId = await getUserId();
   
-      // Validação de pontos disponíveis
       if (operation === 'increment' && availablePoints <= 0) {
         alert('Você não tem pontos disponíveis!');
         return;
@@ -68,7 +68,6 @@ export default function AttributesScreen() {
         operation,
       });
   
-      // Atualiza os atributos no estado local
       const updatedAttribute = response.data;
       setAttributes((prevAttributes: any) => {
         const updatedAttributes = { ...prevAttributes };
@@ -86,7 +85,6 @@ export default function AttributesScreen() {
         return updatedAttributes;
       });
   
-      // Atualiza os pontos disponíveis
       if (operation === 'increment') {
         setAvailablePoints((prevPoints) => prevPoints - 1);
       } else if (operation === 'decrement') {
@@ -97,11 +95,6 @@ export default function AttributesScreen() {
       alert('Erro ao atualizar atributo.');
     }
   };
-  
-  
-  
-  
-  
 
   const toggleArrows = () => {
     setShowArrows(!showArrows);
@@ -111,7 +104,7 @@ export default function AttributesScreen() {
     <View className="flex-1 bg-neutral-900">
       <SafeAreaView className="bg-neutral-800 rounded-b-lg border-b-8 border-cyan-500 flex-row items-center p-4 justify-between">
         <View className="flex-row">
-          <TouchableOpacity onPress={() => navigation.goBack()} className="bg-yellow-400 p-2 rounded-tr-2xl rounded-bl-2x1 ml-4 mt-4">
+          <TouchableOpacity onPress={() => navigation.goBack()} className="bg-blue-400 p-2 rounded-tr-2xl rounded-bl-2x1 ml-4 mt-4">
             <ArrowLeftIcon size={30} color="black" />
           </TouchableOpacity>
           <Text className="font-vt323 text-white mt-4 ml-4 text-xl">Atributos</Text>
@@ -125,13 +118,13 @@ export default function AttributesScreen() {
 
       <View className="flex-row gap-4 m-4">
         <TouchableOpacity onPress={() => setSelectedSection('mental')}>
-          <Text className={`text-white font-vt323 p-3 rounded-2xl ${selectedSection === 'mental' ? 'bg-fuchsia-700' : 'bg-transparent'}`}>
+          <Text className={`text-white font-vt323 p-3 rounded-2xl ${selectedSection === 'mental' ? 'bg-blue-700' : 'bg-transparent'}`}>
             Mental
           </Text>
         </TouchableOpacity>
 
         <TouchableOpacity onPress={() => setSelectedSection('fisico')}>
-          <Text className={`text-white font-vt323 p-3 rounded-2xl ${selectedSection === 'fisico' ? 'bg-fuchsia-700' : 'bg-transparent'}`}>
+          <Text className={`text-white font-vt323 p-3 rounded-2xl ${selectedSection === 'fisico' ? 'bg-blue-700' : 'bg-transparent'}`}>
             Físico
           </Text>
         </TouchableOpacity>
@@ -142,7 +135,7 @@ export default function AttributesScreen() {
           <View className="flex-row flex-wrap ml-7 mr-3 justify-between">
             {attributes.mental.map((attribute: any, index: number) => (
               <View key={index} className="flex-row items-center mb-4">
-                <Image source={str_image} className="w-10 h-10" />
+                <Image source={{ uri: attribute.icone }} className="w-10 h-10" />
                 <Text className="text-white font-vt323 ml-2">
                   {attribute.nome}: {attribute.valor}
                 </Text>
@@ -165,7 +158,7 @@ export default function AttributesScreen() {
           <View className="flex-row flex-wrap ml-7 mr-3 justify-between">
             {attributes.fisico.map((attribute: any, index: number) => (
               <View key={index} className="flex-row items-center mb-4">
-                <Image source={str_image} className="w-10 h-10" />
+                <Image source={{ uri: attribute.icone }} className="w-10 h-10" />
                 <Text className="text-white font-vt323 ml-2">
                   {attribute.nome}: {attribute.valor}
                 </Text>
@@ -184,14 +177,12 @@ export default function AttributesScreen() {
           </View>
         )}
       </View>
-
       <View className="flex-row items-center justify-between m-4">
         <Text className="text-white font-vt323">Pontos Disponíveis: {availablePoints}</Text>
         <TouchableOpacity onPress={toggleArrows}>
           <Image source={edit_image} className="w-10 h-10" />
         </TouchableOpacity>
       </View>
-
     </View>
   ); 
 }

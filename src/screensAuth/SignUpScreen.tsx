@@ -67,22 +67,21 @@ export default function SignUpScreen() {
           Alert.alert('Erro', 'Falha ao criar status.');
         }
         const atributos = [
-          // Atributos mentais
-          { nome: 'Inteligência', tipo: 'Mental', valor: 0 },
-          { nome: 'Criatividade', tipo: 'Mental', valor: 0 },
-          { nome: 'Disciplina', tipo: 'Mental', valor: 0 },
-          { nome: 'Confiança', tipo: 'Mental', valor: 0 },
-          { nome: 'Carisma', tipo: 'Mental', valor: 0 },
-          { nome: 'Empatia', tipo: 'Mental', valor: 0 },
-          { nome: 'Comunicação', tipo: 'Mental', valor: 0 },
-          // Atributos físicos
-          { nome: 'Agilidade', tipo: 'Físico', valor: 0 },
-          { nome: 'Resistência', tipo: 'Físico', valor: 0 },
-          { nome: 'Flexibilidade', tipo: 'Físico', valor: 0 },
-          { nome: 'Equilíbrio', tipo: 'Físico', valor: 0 },
-          { nome: 'Coordenação', tipo: 'Físico', valor: 0 },
-          { nome: 'Reação', tipo: 'Físico', valor: 0 },
-          { nome: 'Velocidade', tipo: 'Físico', valor: 0 },
+          { nome: 'Inteligência', tipo: 'Mental', valor: 0, icone: 'https://cdn-icons-png.flaticon.com/512/1945/1945713.png' },
+          { nome: 'Criatividade', tipo: 'Mental', valor: 0, icone: 'https://cdn-icons-png.flaticon.com/512/1497/1497726.png' },
+          { nome: 'Disciplina', tipo: 'Mental', valor: 0, icone: 'https://cdn-icons-png.flaticon.com/512/4729/4729468.png' },
+          { nome: 'Confiança', tipo: 'Mental', valor: 0, icone: 'https://cdn-icons-png.flaticon.com/512/5828/5828162.png' },
+          { nome: 'Carisma', tipo: 'Mental', valor: 0, icone: 'https://cdn-icons-png.flaticon.com/512/8420/8420287.png' },
+          { nome: 'Empatia', tipo: 'Mental', valor: 0, icone: 'https://cdn-icons-png.flaticon.com/512/5894/5894104.png' },
+          { nome: 'Comunicação', tipo: 'Mental', valor: 0, icone: 'https://cdn-icons-png.flaticon.com/512/5864/5864217.png' },
+        
+          { nome: 'Agilidade', tipo: 'Físico', valor: 0, icone: 'https://cdn-icons-png.flaticon.com/512/1388/1388519.png' },
+          { nome: 'Resistência', tipo: 'Físico', valor: 0, icone: 'https://cdn-icons-png.flaticon.com/512/15888/15888479.png' },
+          { nome: 'Flexibilidade', tipo: 'Físico', valor: 0, icone: 'https://cdn-icons-png.flaticon.com/512/2373/2373008.png' },
+          { nome: 'Equilíbrio', tipo: 'Físico', valor: 0, icone: 'https://cdn-icons-png.flaticon.com/512/2043/2043960.png' },
+          { nome: 'Força', tipo: 'Físico', valor: 0, icone: 'https://cdn-icons-png.flaticon.com/512/3476/3476001.png' },
+          { nome: 'Reação', tipo: 'Físico', valor: 0, icone: 'https://cdn-icons-png.flaticon.com/512/764/764221.png' },
+          { nome: 'Velocidade', tipo: 'Físico', valor: 0, icone: 'https://cdn-icons-png.flaticon.com/512/6534/6534475.png' },
         ];
         try {
           for (const atributo of atributos) {

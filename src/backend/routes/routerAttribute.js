@@ -4,14 +4,14 @@ const Attribute = require('../models/attribute');
 
 // Rota para criar um novo atributo
 router.post('/create', async (req, res) => {
-    const { nome, valor, tipo, id_usuario } = req.body;
+    const { nome, valor, tipo, icone, id_usuario } = req.body;
 
     if (!nome || !tipo || !id_usuario) {
         return res.status(400).json({ error: 'Por favor, preencha todos os campos obrigatórios.' });
     }
 
     try {
-        const newAttribute = await Attribute.create({ nome, valor, tipo, id_usuario });
+        const newAttribute = await Attribute.create({ nome, valor, tipo, icone, id_usuario });
         res.status(201).json({ attribute: newAttribute, message: 'Atributo criado com sucesso.' });
     } catch (error) {
         res.status(400).json({ error: error.message });
