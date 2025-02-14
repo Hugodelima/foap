@@ -12,22 +12,22 @@ export default function ModalFilter({ visible, onClose, onFilter }: ModalFilterP
     <Modal animationType="fade" transparent={true} visible={visible} onRequestClose={onClose}>
       <Pressable onPress={onClose} className="flex-1 justify-center items-center bg-black/60">
         <Pressable className="w-90 bg-neutral-800 p-6 rounded-xl" onPress={() => {}}>
-          <Text className="text-white text-2xl font-semibold mb-6">Filtrar Recompensas</Text>
+          <Text className="text-white text-2xl font-semibold mb-6 font-vt323">Filtrar Recompensas</Text>
 
           <TouchableOpacity onPress={() => onFilter('em aberto')} className='py-3 bg-blue-400 rounded-xl mb-4'>
-            <Text className='font-bold text-center text-white'>Somente em Aberto</Text>
+            <Text className='font-semibold text-center text-white font-vt323'>Somente em Aberto</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity onPress={() => onFilter('comprada')} className='py-3 bg-green-400 rounded-xl mb-4'>
-            <Text className='font-bold text-center text-white'>Somente Comprado</Text>
+          <TouchableOpacity onPress={() => onFilter('comprada')} className='py-3 bg-blue-400 rounded-xl mb-4'>
+            <Text className='font-semibold text-center text-white font-vt323'>Somente Comprado</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity onPress={() => onFilter('todos')} className='py-3 bg-gray-400 rounded-xl mb-4'>
-            <Text className='font-bold text-center text-white'>Todos</Text>
+          <TouchableOpacity onPress={() => onFilter('todos')} className='py-3 bg-blue-400 rounded-xl mb-4'>
+            <Text className='font-semibold text-center text-white font-vt323'>Todos</Text>
           </TouchableOpacity>
 
           <TouchableOpacity onPress={onClose}>
-            <Text className="text-red-600 text-lg text-center mt-2">Fechar</Text>
+            <Text className="text-red-600 text-lg text-center mt-2 font-vt323">Fechar</Text>
           </TouchableOpacity>
         </Pressable>
       </Pressable>

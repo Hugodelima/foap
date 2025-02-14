@@ -73,7 +73,7 @@ export default function MissionScreen() {
   const [rewards, setRewards] = useState<Reward[]>([]);
   const navigation = useNavigation<NavigationProps>();
   const [filterModalVisible, setFilterModalVisible] = useState(false); // Controla o modal
-  const [filterStatus, setFilterStatus] = useState<string | null>('em aberto'); // 'aberta' ou 'comprada'
+  const [filterStatus, setFilterStatus] = useState<string | null>(''); // 'aberta' ou 'comprada'
   const filteredRewards = filterStatus
   ? rewards.filter((reward) => reward.status === filterStatus)
   : rewards;
@@ -100,6 +100,7 @@ export default function MissionScreen() {
   };
 
   const handleFilterSelection = (status: string) => {
+    console.log(filterStatus)
     setFilterStatus(status === 'todos' ? '' : status); // Define como vazio se for "todos"
     setFilterModalVisible(false); // Fecha o modal após a seleção
   };
@@ -248,26 +249,27 @@ const handleDeleteMission = async (missionId: number) => {
   }
 };
 
-  const handleBuyReward = async (rewardId: number, goldCost: number) => {
-    try {
-        const userId = await getUserId(); // Obtém o ID do usuário
-        if (userData?.ouro >= goldCost) {
-            const response = await axios.post(`${API_URL}/api/rewardapi/buy/${rewardId}`, { 
-                userId, // Passa o ID do usuário
-                goldCost // Passa o custo da recompensa
-            });
-            
-            setUserData({ ...userData, ouro: userData?.ouro - goldCost });
-            Alert.alert('Compra realizada com sucesso!');
-            fetchRewards();
-        } else {
-            Alert.alert('Saldo insuficiente de ouro!');
-        }
-    } catch (error: any) {
-        console.error('Erro ao comprar recompensa:', error);
-        Alert.alert('Erro ao comprar recompensa', error.response?.data?.message || 'Erro ao tentar comprar.');
-    }
-  };
+const handleBuyReward = async (rewardId: number, goldCost: number) => {
+  console.log(goldCost)
+  console.log(rewardId)
+  try {
+      const userId = await getUserId(); // Obtém o ID do usuário
+      if (userData?.ouro >= goldCost) {
+          await axios.post(`${API_URL}/api/rewardapi/buy/${rewardId}`, { 
+              id_usuario: userId
+          });
+          
+          setUserData({ ...userData, ouro: userData?.ouro - goldCost });
+          Alert.alert('Compra realizada com sucesso!');
+          fetchRewards();
+      } else {
+          Alert.alert('Saldo insuficiente de ouro!');
+      }
+  } catch (error: any) {
+      console.error('Erro ao comprar recompensa:', error);
+      Alert.alert('Erro ao comprar recompensa', error.response?.data?.message || 'Erro ao tentar comprar.');
+  }
+};
 
   function calculateTimeRemaining(prazo: string): string {
     // Fuso horário de Cuiabá (UTC -4)
@@ -531,17 +533,17 @@ const handleDeleteMission = async (missionId: number) => {
             
 
             <TouchableOpacity onPress={() => setSelectedSection('missao')}>
-              <Text className={`text-white font-vt323 p-3 rounded-2xl ${selectedSection === 'missao' ? 'bg-fuchsia-700' : 'bg-transparent'}`}>
+              <Text className={`text-white font-vt323 p-3 rounded-2xl ${selectedSection === 'missao' ? 'bg-blue-700' : 'bg-transparent'}`}>
                 Missões
               </Text>
             </TouchableOpacity>
             <TouchableOpacity onPress={() => setSelectedSection('penalidade')}>
-              <Text className={`text-white font-vt323 p-3 rounded-2xl ${selectedSection === 'penalidade' ? 'bg-fuchsia-700' : 'bg-transparent'}`}>
+              <Text className={`text-white font-vt323 p-3 rounded-2xl ${selectedSection === 'penalidade' ? 'bg-blue-700' : 'bg-transparent'}`}>
                 Penalidades
               </Text>
             </TouchableOpacity>
             <TouchableOpacity onPress={() => setSelectedSection('recompensa')}>
-              <Text className={`text-white font-vt323 p-3 rounded-2xl ${selectedSection === 'recompensa' ? 'bg-fuchsia-700' : 'bg-transparent'}`}>
+              <Text className={`text-white font-vt323 p-3 rounded-2xl ${selectedSection === 'recompensa' ? 'bg-blue-700' : 'bg-transparent'}`}>
                 Recompensas
               </Text>
             </TouchableOpacity>
@@ -727,11 +729,11 @@ const handleDeleteMission = async (missionId: number) => {
                   renderItem={({ item }) => (
                     <View className='p-4 border-b border-neutral-700'>
                       <Text className='text-white font-vt323'>Titulo: {item.titulo}</Text>
-                      <Text className='text-white font-vt323'>Status: {item.status}</Text>
-                      <Text className='text-white font-vt323'>Ouro: {item.gold}</Text>
+                      <Text className='text-white font-vt323'>Status: {item.situacao}</Text>
+                      <Text className='text-white font-vt323'>Ouro: {item.ouro}</Text>
 
                       {/* Botões para Editar e Excluir */}
-                      {item.status !== 'comprada' && (
+                      {item.situacao !== 'comprada' && (
                         <View className='flex-row justify-between mt-2 mb-2'>
                           
                           <View className='flex-row'>
@@ -747,7 +749,7 @@ const handleDeleteMission = async (missionId: number) => {
                           </View>
                           <View>
                             {/* Botão para Comprar Recompensa, posicionado à direita */}
-                            <TouchableOpacity onPress={() => handleBuyReward(item.id, item.gold)}>
+                            <TouchableOpacity onPress={() => handleBuyReward(item.id, item.ouro)}>
                               <ShoppingCartIcon size={30} color="green" />
                             </TouchableOpacity>
                           </View>

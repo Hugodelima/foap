@@ -40,7 +40,7 @@ router.get('/:id_usuario', async (req, res) => {
 // Rota para editar recompensa
 router.put('/update/:rewardId', async (req, res) => {
     try {
-        const { titulo, ouro, situacao } = req.body;
+        const { titulo, ouro } = req.body;
         const rewardId = req.params.rewardId;
 
         const reward = await Reward.findByPk(rewardId);
@@ -51,7 +51,6 @@ router.put('/update/:rewardId', async (req, res) => {
 
         reward.titulo = titulo || reward.titulo;
         reward.ouro = ouro || reward.ouro;
-        reward.situacao = situacao || reward.situacao;
 
         await reward.save();
 
@@ -80,9 +79,11 @@ router.delete('/delete/:rewardId', async (req, res) => {
 
 // Comprar recompensa (deduz ouro do usuário)
 router.post('/buy/:id', async (req, res) => {
+    const { id } = req.params
+    const { id_usuario,  } = req.body
     try {
-        const reward = await Reward.findByPk(req.params.id);
-        const status = await Status.findOne({ where: { id_usuario: req.body.id_usuario } });
+        const reward = await Reward.findByPk(id);
+        const status = await Status.findOne({ where: { id_usuario: id_usuario } });
 
         if (!reward || !status) {
             return res.status(404).json({ error: 'Recompensa ou status do usuário não encontrado' });

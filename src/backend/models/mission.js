@@ -56,7 +56,8 @@ const Mission = sequelize.define('Mission', {
 });
 
 Mission.hasMany(Penalty, {
-  foreignKey: 'id_missao',  
+  foreignKey: 'id_missao',
+  as:'Penalidades',
   onDelete: 'CASCADE',  
 });
 

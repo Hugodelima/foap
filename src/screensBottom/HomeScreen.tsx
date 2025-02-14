@@ -105,7 +105,6 @@ export default function HomeScreen() {
       fetchMissionsData();
       fetchMissionStatusData(); // Chama a função para buscar os dados de status
     }
-    console.log(userData)
   }, [userData]);
 
   return (

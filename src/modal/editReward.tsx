@@ -8,17 +8,19 @@ interface ModalComponentProps {
   visible: boolean;
   onClose: () => void;
   onSave: () => void;
-  reward: { id: number; titulo: string; gold: number; status: string };
+  reward: { id: number; titulo: string; ouro: number; status: string };
 }
 
 export default function ModalEditReward({ visible, onClose, onSave, reward }: ModalComponentProps) {
   const [title, setTitle] = useState('');
-  const [gold, setGold] = useState('');
+  const [gold, setGold] = useState(0);
 
   useEffect(() => {
     if (reward) {
       setTitle(reward.titulo);
-      setGold(reward.gold.toString());
+      if (reward.ouro != undefined){
+        setGold(reward.ouro.toString());
+      }
     }
   }, [reward]);
 
@@ -29,9 +31,9 @@ export default function ModalEditReward({ visible, onClose, onSave, reward }: Mo
 
         if (userID) {
           await axios.put(`${API_URL}/api/rewardapi/update/${reward.id}`, {
-            title,
-            gold: Number(gold),
-            userId: JSON.parse(userID),  // Certifique-se de que o userID é um número
+            titulo: title,
+            ouro: gold,
+            id_usuario: JSON.parse(userID),  // Certifique-se de que o userID é um número
           });
 
           onSave();
@@ -66,7 +68,7 @@ export default function ModalEditReward({ visible, onClose, onSave, reward }: Mo
           <TextInput
             className="p-4 bg-gray-100 text-gray-700 rounded-2xl mb-3"
             value={gold}
-            onChangeText={setGold}
+            onChangeText={(text) => setGold(parseFloat(text))}
             placeholder="Digite o valor do ouro"
             keyboardType="numeric"
           />

@@ -76,7 +76,7 @@ export default function ReportScreen() {
             <thead>
               <tr>
                 ${Object.keys(data[0])
-                  .filter(key => key !== 'createdAt' && key !== 'updatedAt') // Filtra as colunas createdAt e updatedAt
+                  .filter(key => key !== 'criado_em' && key !== 'atualizado_em') // Filtra as colunas createdAt e updatedAt
                   .map((key) => `
                     <th class="px-4 py-2 text-sm font-semibold text-gray-800">${key}</th>
                   `)

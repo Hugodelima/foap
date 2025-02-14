@@ -159,12 +159,13 @@ const createMission = async (req, res) => {
 };
 
 const allMission = async (req, res) => {
+
   try {
     const missions = await Mission.findAll({
       where: { id_usuario: req.params.userId },
       include: {
         model: Penalty,
-        as: 'Penalties',
+        as: 'Penalidades',
         required: false,
       },
       attributes: {
@@ -172,19 +173,21 @@ const allMission = async (req, res) => {
           [
             sequelize.literal(`
               (SELECT JSON_AGG("penalties"."titulo")
-               FROM "Penalties" AS "penalties"
+               FROM "Penalidades" AS "penalties"
                WHERE "penalties"."id_missao" = "Mission"."id")`),
             'penaltyTitles'
           ],
           [
             sequelize.literal(`
               (SELECT COUNT(*)
-               FROM "Penalties" AS "penalties"
+               FROM "Penalidades" AS "penalties"
                WHERE "penalties"."id_missao" = "Mission"."id")`),
             'penaltyCount'
           ]
         ]
-      }
+        
+      },
+      //tableName:"Missoes"
     });
 
     res.json(missions);

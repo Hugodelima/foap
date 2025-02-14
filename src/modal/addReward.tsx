@@ -23,9 +23,9 @@ export default function ModalReward({ visible, onClose, onSave }: ModalComponent
         if (userID) {
           // Envia o userID junto com a recompensa
           await axios.post(`${API_URL}/api/rewardapi/create`, {
-            title,
-            gold: Number(gold),
-            userId: JSON.parse(userID), // Certifique-se de que o userID é um número
+            titulo: title,
+            ouro: Number(gold),
+            id_usuario: JSON.parse(userID), // Certifique-se de que o userID é um número
           });
           onSave();
           onClose();
@@ -65,7 +65,7 @@ export default function ModalReward({ visible, onClose, onSave }: ModalComponent
             keyboardType="numeric"
           />
 
-          <TouchableOpacity onPress={handleAddReward} className='py-3 bg-yellow-400 rounded-xl'>
+          <TouchableOpacity onPress={handleAddReward} className='py-3 bg-blue-400 rounded-xl'>
             <Text className='font-bold text-center text-gray-700'>Salvar</Text>
           </TouchableOpacity>
 
