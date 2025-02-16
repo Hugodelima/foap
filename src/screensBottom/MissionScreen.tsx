@@ -178,8 +178,8 @@ export default function MissionScreen() {
 
         missions.forEach(async (mission: Mission) => {
           const timeRemaining = calculateTimeRemaining(mission.prazo);
-          if (timeRemaining === 'Missão Expirada' && mission.status === 'Em progresso') {
-            await axios.put(`${API_URL}/api/missionapi/expire/${mission.id}`, { userId });
+          if (timeRemaining === 'Missão Expirada' && mission.situacao === 'Em progresso') {
+            await axios.put(`${API_URL}/api/missionapi/expire/${mission.id}`, { id_usuario: userId });
             Alert.alert('Missão expirada!', `A missão "${mission.titulo}" foi marcada como não finalizada.`);
           }
         });
@@ -272,41 +272,25 @@ const handleBuyReward = async (rewardId: number, goldCost: number) => {
 };
 
   function calculateTimeRemaining(prazo: string): string {
-    // Fuso horário de Cuiabá (UTC -4)
-    const cuiabaOffset = 4 * 60; // UTC-4 = 240 minutos de diferença
 
-    // Dividir a data e hora do prazo recebido
-    const prazoParts = prazo.split("T");
-    const dateParts = prazoParts[0].split("-"); // Ano, mês, dia
-    const timeParts = prazoParts[1].split(":"); // Hora, minuto, segundo
     
-    // Ajustar o prazo para 23:59:59 UTC
-    let prazoUTC = new Date(Date.UTC(
-        parseInt(dateParts[0]), // Ano
-        parseInt(dateParts[1]) - 1, // Mês começa do 0 no JavaScript
-        parseInt(dateParts[2]), // Dia
-        23, // Hora 23
-        59, // Minuto 59
-        59  // Segundo 59
-    ));
+    // Criar a data com base no prazo recebido
+    const prazoDate = new Date(prazo);
+    
+    // Ajustar o prazo subtraindo 4 horas (corrigindo o deslocamento indevido)
+    prazoDate.setHours(prazoDate.getHours() - 4);
 
-
-
-    // Ajustar o horário para Cuiabá (acrescentando 4 horas)
-    prazoUTC.setHours(prazoUTC.getHours()); // Adicionando 4 horas para o horário de Cuiabá
-
-
-    // Obter a data e hora atuais (considerando UTC-4)
+    
+    // Obter a data e hora atuais
     const now = new Date();
     now.setHours(now.getHours() - 4); // Ajustar o horário atual para Cuiabá
 
-
     // Calcular a diferença em milissegundos
-    const diffInMilliseconds = prazoUTC.getTime() - now.getTime();
+    const diffInMilliseconds = prazoDate.getTime() - now.getTime();
 
     // Se a diferença for negativa ou zero, significa que o prazo já passou
     if (diffInMilliseconds <= 0) {
-      return "Missão Expirada";
+        return "Missão Expirada";
     }
 
     // Converter a diferença em minutos
@@ -319,8 +303,8 @@ const handleBuyReward = async (rewardId: number, goldCost: number) => {
     const formattedTime = `${remainingDays > 0 ? `${remainingDays}d ` : ''}${remainingHours}h ${remainingMinutes}m`;
 
     return formattedTime;
-
   }
+
 
     const handleCreateReward = () => {
       setModalVisibleReward(true);
@@ -430,7 +414,7 @@ const handleBuyReward = async (rewardId: number, goldCost: number) => {
 
     const resetDailyMission = async (mission) => {
       const currentTime = new Date();
-      currentTime.setDate(currentTime.getDate() + 4);
+      //currentTime.setDate(currentTime.getDate() + 6);
     
       // Verifica se a missão precisa ser resetada (expiração do prazo)
       const missionDeadline = new Date(mission.prazo);
@@ -481,13 +465,13 @@ const handleBuyReward = async (rewardId: number, goldCost: number) => {
             // Adiciona o histórico para o dia específico
             await axios.post(`${API_URL}/api/missionhistorynapi/create`, {
               id_missao: mission.id,
-              id_usuario: mission.user_id,
+              id_usuario: mission.id_usuario,
               completado: isCompleted, // Marca como completada no primeiro dia
               prazoAnterior: dayStart.toISOString(),
               prazoAtualizado: dayEnd.toISOString(),
-              valorXp: recompensaXp,
-              valorOuro: recompensaOuro,
-              valorPd: recompensaPd,
+              valorXp: mission.valorXp,
+              valorOuro: mission.valorOuro,
+              valorPd: mission.valorPd,
             });
     
             console.log('Histórico registrado para o dia: ' + dayStart.toISOString());

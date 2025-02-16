@@ -331,15 +331,15 @@ const completeMission = async (req, res) => {
 
 const expireMission = async (req, res) => {
   const { id } = req.params;
-  const { userId } = req.body;
+  const { id_usuario } = req.body;
 
   const transaction = await sequelize.transaction();
+  console.log('fsdsfdsf')
   try {
     // Busca missão com as penalidades associadas
     const mission = await Mission.findByPk(id, {
-      include: [{ model: Penalty, as: 'Penalties' }], // Use o alias correto
+      include: [{ model: Penalty, as: 'Penalidades' }], // Use o alias correto
     });
-
     if (!mission) {
       return res.status(404).json({ error: 'Missão não encontrada.' });
     }
@@ -349,13 +349,13 @@ const expireMission = async (req, res) => {
     }
 
     // Buscar as penalidades associadas à missão
-    const penalties = mission.Penalties;
+    const penalties = mission.Penalidades;
     if (!penalties || penalties.length === 0) {
       return res.status(400).json({ error: 'Nenhuma penalidade vinculada à missão.' });
     }
 
     // Buscar usuário e status do usuário
-    const userStatus = await Status.findOne({ where: { id_usuario: userId } });
+    const userStatus = await Status.findOne({ where: { id_usuario: id_usuario } });
     if (!userStatus) {
       return res.status(404).json({ error: 'Status do usuário não encontrado.' });
     }
@@ -412,7 +412,7 @@ const getDailyMissions = async (req, res) => {
 
 const updateMission = async (req, res) => {
   const { id } = req.params;
-  const { prazo, situacao, titulo, dificuldade, rank, penalidadeIds, repeticao } = req.body;
+  let { prazo, situacao, titulo, dificuldade, rank, penalidadeIds, repeticao } = req.body;
 
   try {
 
@@ -423,8 +423,10 @@ const updateMission = async (req, res) => {
     }
 
     if (titulo) mission.titulo = titulo;
-    if (dificuldade) mission.dificuldade = dificuldade else (mission.dificuldade);
-    if (rank) mission.rank = rank;
+    //if (dificuldade) mission.dificuldade = dificuldade else (mission.dificuldade);
+    dificuldade ? mission.dificuldade = dificuldade : dificuldade = mission.dificuldade
+    //if (rank) mission.rank = rank;
+    rank ? mission.rank = rank : rank = mission.rank
     if (situacao) mission.situacao = situacao;
 
     let prazoFinal;
