@@ -430,7 +430,7 @@ const handleBuyReward = async (rewardId: number, goldCost: number) => {
 
     const resetDailyMission = async (mission) => {
       const currentTime = new Date();
-      //currentTime.setDate(currentTime.getDate() + 2);
+      currentTime.setDate(currentTime.getDate() + 4);
     
       // Verifica se a missão precisa ser resetada (expiração do prazo)
       const missionDeadline = new Date(mission.prazo);
@@ -454,14 +454,14 @@ const handleBuyReward = async (rewardId: number, goldCost: number) => {
           // Atualiza o prazo da missão e o status para "Em progresso"
           await axios.put(`${API_URL}/api/missionapi/update/${mission.id}`, {
             prazo: updatedPrazo.toISOString(),
-            status: "Em progresso", // Atualiza o status da missão
+            situacao: "Em progresso", // Atualiza o status da missão
           });
     
           // Resetando o status das penalidades associadas à missão
           await axios.put(`${API_URL}/api/penaltyapi/reset/${mission.id}`);
     
           // Verifica se a missão foi completada anteriormente
-          const missionStatus = mission.status; // Supondo que a missão tenha um status de "Completada" ou "Pendente"
+          const missionStatus = mission.situacao; // Supondo que a missão tenha um status de "Completada" ou "Pendente"
           const completed = missionStatus === 'Finalizada' ? true : false;
     
           // Controla o registro de histórico: apenas o primeiro dia será "completado" se a missão foi finalizada
@@ -480,14 +480,14 @@ const handleBuyReward = async (rewardId: number, goldCost: number) => {
     
             // Adiciona o histórico para o dia específico
             await axios.post(`${API_URL}/api/missionhistorynapi/create`, {
-              missionId: mission.id,
-              userId: mission.user_id,
-              completed: isCompleted, // Marca como completada no primeiro dia
+              id_missao: mission.id,
+              id_usuario: mission.user_id,
+              completado: isCompleted, // Marca como completada no primeiro dia
               prazoAnterior: dayStart.toISOString(),
               prazoAtualizado: dayEnd.toISOString(),
-              recompensaXp: recompensaXp,
-              recompensaOuro: recompensaOuro,
-              recompensaPd: recompensaPd,
+              valorXp: recompensaXp,
+              valorOuro: recompensaOuro,
+              valorPd: recompensaPd,
             });
     
             console.log('Histórico registrado para o dia: ' + dayStart.toISOString());
@@ -574,7 +574,7 @@ const handleBuyReward = async (rewardId: number, goldCost: number) => {
                   renderItem={({ item }) => (
                     <View className="p-4 border-b border-neutral-700">
                       <Text className="text-white font-vt323">Título: {item.titulo}</Text>
-                      <Text className="text-white font-vt323">Status: {item.status}</Text>
+                      <Text className="text-white font-vt323">Situação: {item.situacao}</Text>
                       <Text className="text-white font-vt323">Dificuldade: {item.dificuldade}</Text>
                       <Text className="text-white font-vt323">Rank: {item.rank}</Text>
                       <Text className="text-white font-vt323">
@@ -584,7 +584,7 @@ const handleBuyReward = async (rewardId: number, goldCost: number) => {
                         Repetição: {item.repeticao}
                       </Text>
                       <Text className="text-white font-vt323 mb-4">
-                        Recompensas: XP: {item.recompensaXp}, Ouro: {item.recompensaOuro}, PD: {item.recompensaPd}
+                        Recompensas: XP: {item.valorXp}, Ouro: {item.valorOuro}, PD: {item.valorPd}
                       </Text>
 
                       {/* Exibir Penalidades */}
@@ -614,7 +614,7 @@ const handleBuyReward = async (rewardId: number, goldCost: number) => {
                             <TrashIcon size={30} color="red" />
                           </TouchableOpacity>
                         </View>
-                        {item.status == 'Em progresso' && (
+                        {item.situacao == 'Em progresso' && (
                           <TouchableOpacity onPress={async () => handleCompleteMission(item.id, await getUserId())}>
                             <CheckIcon size={30} color="green" />
                           </TouchableOpacity>
@@ -656,7 +656,7 @@ const handleBuyReward = async (rewardId: number, goldCost: number) => {
                   renderItem={({ item }) => (
                     <View className="p-4 border-b border-neutral-700">
                       <Text className="text-white font-vt323">Título: {item.titulo}</Text>
-                      <Text className="text-white font-vt323">Status: {item.status}</Text>
+                      <Text className="text-white font-vt323">Status: {item.situacao}</Text>
                       <Text className="text-white font-vt323">Dificuldade: {item.dificuldade}</Text>
                       <Text className="text-white font-vt323">Rank: {item.rank}</Text>
                       <Text className="text-white font-vt323 mb-4">
@@ -667,7 +667,7 @@ const handleBuyReward = async (rewardId: number, goldCost: number) => {
 
                       <View className="flex-row justify-between mt-2 mb-2">
                         {/* Botões somente se o status for "Pendente" */}
-                        {item.status === 'Pendente' && (
+                        {item.situacao === 'Pendente' && (
                           <>
                             {/* Botão para Editar Penalidade */}
                             <TouchableOpacity onPress={() => handleEditPenalty(item)} className="mr-4">
@@ -682,7 +682,7 @@ const handleBuyReward = async (rewardId: number, goldCost: number) => {
                         )}
 
                         {/* Botão para Superar Penalidade se o status for 'Em andamento' */}
-                        {item.status === 'Em andamento' && (
+                        {item.situacao === 'Em andamento' && (
                           <TouchableOpacity onPress={() => handleOvercomePenalty(item.id)}>
                             <CheckIcon size={30} color="green" />
                           </TouchableOpacity>

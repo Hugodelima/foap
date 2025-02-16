@@ -30,7 +30,7 @@ const calcularPenalidade = (dificuldade, rank) => {
 
 // Criar uma penalidade
 router.post('/create', async (req, res) => {
-    const { titulo, dificuldade, rank, id_usuario } = req.body;
+    const { titulo, dificuldade, situacao, rank, id_usuario } = req.body;
 
     if (!titulo || !dificuldade || !rank || !id_usuario) {
         return res.status(400).json({ error: 'Preencha todos os campos obrigatórios.' });
@@ -43,6 +43,7 @@ router.post('/create', async (req, res) => {
             titulo,
             dificuldade,
             rank,
+            situacao,
             perdaOuro: ouroPerdido,
             perdaXp: xpPerdido,
             id_usuario,

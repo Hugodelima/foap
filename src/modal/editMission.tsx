@@ -37,10 +37,10 @@
             const userID = await SecureStore.getItemAsync('userStorageID');
             const response = await axios.get(`${API_URL}/api/penaltyapi/all/${userID}`);
             
-            const availablePenalties = response.data.penalties.filter((penalty: Penalty) => !penalty.missionId || penalty.missionId === mission.id);
+            const availablePenalties = response.data.penalties.filter((penalty: Penalty) => !penalty.id_missao || penalty.id_missao === mission.id);
             setPenalties(availablePenalties);
     
-            const linkedPenalties = response.data.penalties.filter((penalty: Penalty) => penalty.missionId === mission.id);
+            const linkedPenalties = response.data.penalties.filter((penalty: Penalty) => penalty.id_missao === mission.id);
             setSelectedPenalties(linkedPenalties.map((penalty: Penalty) => penalty.id));
     
             // Preencher os campos com os dados da missão
@@ -109,7 +109,7 @@
               dificuldade: difficulty,
               repeticao: repetition === 'Diariamente' ? 'Diariamente' : 'Nunca', // Corrigido para enviar string
               penalidadeIds: selectedPenalties,
-              userId: JSON.parse(userID),
+              id_usuario: JSON.parse(userID),
               // Envia o prazo apenas se a repetição não for 'Diariamente'
               ...(repetition !== 'Diariamente' && { prazo: formattedDeadline }),
             });

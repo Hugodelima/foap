@@ -36,7 +36,7 @@ export default function ModalMission({ visible, onClose, onSave }: ModalComponen
           const userID = await SecureStore.getItemAsync('userStorageID');
           const response = await axios.get(`${API_URL}/api/penaltyapi/all/${userID}`);
           
-          const availablePenalties = response.data.penalties.filter((penalty: Penalty) => !penalty.missionId);
+          const availablePenalties = response.data.penalties.filter((penalty: Penalty) => !penalty.id_missao);
           setPenalties(availablePenalties);
         } catch (error) {
           console.error('Erro ao buscar penalidades:', error);
@@ -81,8 +81,8 @@ export default function ModalMission({ visible, onClose, onSave }: ModalComponen
             prazo: formattedDeadline, // Envia sempre um valor válido
             dificuldade: difficulty,
             penalidadeIds: selectedPenalties,
-            repeticao: repetition === 'Diariamente' ? true : false,
-            userId: JSON.parse(userID),
+            repeticao: repetition,
+            id_usuario: JSON.parse(userID),
           });
   
           Alert.alert('Missão Criada', response.data.message);
@@ -227,7 +227,7 @@ export default function ModalMission({ visible, onClose, onSave }: ModalComponen
                     ListEmptyComponent={<Text className="text-gray-400">Nenhuma penalidade disponível</Text>} 
                   />
 
-                  <TouchableOpacity onPress={handleCreateMission} className="py-3 bg-yellow-400 rounded-xl mt-4">
+                  <TouchableOpacity onPress={handleCreateMission} className="py-3 bg-blue-400 rounded-xl mt-4">
                     <Text className="font-bold text-center text-gray-700">Salvar</Text>
                   </TouchableOpacity>
                 </View>

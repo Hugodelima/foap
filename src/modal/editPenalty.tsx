@@ -23,7 +23,7 @@ export default function EditPenaltyModal({ visible, onClose, onSave, penalty }: 
       setTitulo(penalty.titulo);
       setDificuldade(penalty.dificuldade);
       setRank(penalty.rank);
-      setStatus(penalty.status)
+      setStatus(penalty.situacao)
     }
   }, [penalty]);
 
@@ -32,14 +32,13 @@ export default function EditPenaltyModal({ visible, onClose, onSave, penalty }: 
       try {
         const userID = await SecureStore.getItemAsync('userStorageID');
         
-        console.log('f: '+penalty.id)
         if (userID) {
           const response = await axios.put(`${API_URL}/api/penaltyapi/update/${penalty.id}`, {
             titulo,
             dificuldade,
             rank,
-            status,
-            userId: JSON.parse(userID),
+            situacao: status,
+            id_usuario: JSON.parse(userID),
           });
 
           const { message } = response.data;
@@ -101,7 +100,7 @@ export default function EditPenaltyModal({ visible, onClose, onSave, penalty }: 
             </Picker>
           </View>
 
-          <TouchableOpacity onPress={handleEditPenalty} className='py-3 bg-yellow-400 rounded-xl'>
+          <TouchableOpacity onPress={handleEditPenalty} className='py-3 bg-blue-400 rounded-xl'>
             <Text className='font-bold text-center text-gray-700'>Salvar</Text>
           </TouchableOpacity>
 

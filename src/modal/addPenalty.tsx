@@ -27,8 +27,8 @@ export default function ModalPenalty({ visible, onClose, onSave }: ModalComponen
             titulo: title,
             dificuldade: difficulty,
             rank,
-            status: 'Pendente',
-            userId: JSON.parse(userID),
+            situacao: 'Pendente',
+            id_usuario: JSON.parse(userID),
           });
 
           const { message } = response.data;
@@ -91,7 +91,7 @@ export default function ModalPenalty({ visible, onClose, onSave }: ModalComponen
             </Picker>
           </View>
 
-          <TouchableOpacity onPress={handleAddPenalty} className='py-3 bg-yellow-400 rounded-xl'>
+          <TouchableOpacity onPress={handleAddPenalty} className='py-3 bg-blue-400 rounded-xl'>
             <Text className='font-bold text-center text-gray-700'>Salvar</Text>
           </TouchableOpacity>
 
