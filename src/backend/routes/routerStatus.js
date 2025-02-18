@@ -39,11 +39,12 @@ router.get('/:userID', async (req, res) => {
 
   try {
     // Verifica se já existe um status para o usuário
-    let status = await Status.findOne({ where: { id_usuario: userID } });
+    let status = await Status.findAll({ where: { id_usuario: userID } });
 
     if (!status) {
       return res.status(404).json({ message: 'Status não encontrado.' });
     }
+
 
     // Certifica-se de que está retornando o status
     res.status(200).json(status);

@@ -14,7 +14,11 @@ export function useFetchStatusUser() {
       
       if (userID) {
         const response = await axios.get(`${API_URL}/api/statusapi/${userID}`);
-        setUserData(response.data);
+
+        
+
+        // Acessa o primeiro item do array
+        setUserData(response.data[0]); // Aqui você pega o primeiro item do array
       } else {
         setError('ID do usuário não encontrado.');
       }
@@ -23,15 +27,17 @@ export function useFetchStatusUser() {
       console.error(err);
     }
   }
-  useEffect(() =>{
-    fetchUserData()
-    const interval = setInterval(() => {
-      fetchUserData()
-    }, 10000)
-    return () => clearInterval(interval);
-    
-  },[]);
-  
 
+  useEffect(() => {
+    fetchUserData();
+    const interval = setInterval(() => {
+      fetchUserData();
+    }, 10000);
+    
+    return () => clearInterval(interval);
+  }, []);
+  
   return { userData, setUserData, error };
 }
+
+

@@ -12,6 +12,14 @@ import ModalComponent from '../modal/moreOptions';
 import { useNavigation } from '@react-navigation/native';
 import { NavigationProps } from '../navigation/types';
 
+const reportNames: { [key: string]: string } = {
+  missionapi: "Missões",
+  rewardapi: "Recompensas",
+  penaltyapi: "Penalidades",
+  statusapi: "Fases",
+  attributeapi: "Atributos",
+};
+
 export default function ReportScreen() {
   const [isGenerating, setIsGenerating] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
@@ -35,6 +43,7 @@ export default function ReportScreen() {
         setIsGenerating(false);
         return;
       }
+      const reportTitle = reportNames[reportType];
 
       // Gera o HTML do relatório com Tailwind CSS
       const htmlContent = `
@@ -69,7 +78,7 @@ export default function ReportScreen() {
         </head>
         <body class="bg-gray-50 text-gray-800 p-6">
           <div class="text-center mb-8">
-            <h1 class="text-3xl font-extrabold text-teal-600">Relatório de ${reportType.charAt(0).toUpperCase() + reportType.slice(1, reportType.length - 3)}</h1>
+            <h1 class="text-3xl font-extrabold text-teal-600">Relatório de ${reportTitle}</h1>
           </div>
 
           <table class="shadow-lg rounded-lg overflow-hidden">
@@ -88,7 +97,7 @@ export default function ReportScreen() {
                 .map((item) => `
                   <tr class="hover:bg-gray-100">
                     ${Object.keys(item)
-                      .filter(key => key !== 'createdAt' && key !== 'updatedAt') // Filtra as colunas createdAt e updatedAt
+                      .filter(key => key !== 'criado_em' && key !== 'atualizado_em') // Filtra as colunas createdAt e updatedAt
                       .map((key) => `
                         <td class="px-4 py-2 text-sm text-gray-700">${item[key]}</td>
                       `)
@@ -155,7 +164,7 @@ export default function ReportScreen() {
           className="bg-cyan-500 rounded-full p-3"
           disabled={isGenerating}
         >
-          <Text className="text-white font-bold text-center">Relatório de Missões</Text>
+          <Text className="text-white font-semibold text-center font-vt323">Relatório de Missões</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
@@ -163,7 +172,7 @@ export default function ReportScreen() {
           className="bg-cyan-500 rounded-full p-3"
           disabled={isGenerating}
         >
-          <Text className="text-white font-bold text-center">Relatório de Recompensas</Text>
+          <Text className="text-white font-semibold text-center font-vt323">Relatório de Recompensas</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
@@ -171,7 +180,7 @@ export default function ReportScreen() {
           className="bg-cyan-500 rounded-full p-3"
           disabled={isGenerating}
         >
-          <Text className="text-white font-bold text-center">Relatório de Penalidades</Text>
+          <Text className="text-white font-semibold text-center font-vt323">Relatório de Penalidades</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
@@ -179,15 +188,14 @@ export default function ReportScreen() {
           className="bg-cyan-500 rounded-full p-3"
           disabled={isGenerating}
         >
-          <Text className="text-white font-bold text-center">Relatório de Status</Text>
+          <Text className="text-white font-semibold text-center font-vt323">Relatório de Fases</Text>
         </TouchableOpacity>
-
         <TouchableOpacity
           onPress={() => handleGenerateReport('attributeapi')}
           className="bg-cyan-500 rounded-full p-3"
           disabled={isGenerating}
         >
-          <Text className="text-white font-bold text-center">Relatório de Atributos</Text>
+          <Text className="text-white font-semibold text-center font-vt323">Relatório de Atributos</Text>
         </TouchableOpacity>
       </SafeAreaView>
       <TouchableOpacity

@@ -15,11 +15,12 @@ interface Penalty {
 
 interface ModalComponentProps {
   visible: boolean;
+  mission: any | null; // Passar a missão para editar (caso exista)
   onClose: () => void;
   onSave: () => void;
 }
 
-export default function ModalMission({ visible, onClose, onSave }: ModalComponentProps) {
+export default function ModalMission({ visible, mission, onClose, onSave }: ModalComponentProps) {
   const [title, setTitle] = useState('');
   const [difficulty, setDifficulty] = useState('Fácil');
   const [rank, setRank] = useState('F');
@@ -35,18 +36,35 @@ export default function ModalMission({ visible, onClose, onSave }: ModalComponen
         try {
           const userID = await SecureStore.getItemAsync('userStorageID');
           const response = await axios.get(`${API_URL}/api/penaltyapi/all/${userID}`);
-          
+  
+          // Filtrar penalidades vinculadas à missão e as que não têm missionId
+          const linkedPenalties = mission
+            ? response.data.penalties.filter((penalty: Penalty) => penalty.id_missao === mission.id)
+            : [];
           const availablePenalties = response.data.penalties.filter((penalty: Penalty) => !penalty.id_missao);
-          setPenalties(availablePenalties);
+  
+          setPenalties([...linkedPenalties, ...availablePenalties]);
+  
+          // Marcar as penalidades vinculadas como selecionadas
+          setSelectedPenalties(linkedPenalties.map((penalty: Penalty) => penalty.id));
         } catch (error) {
           console.error('Erro ao buscar penalidades:', error);
           Alert.alert('Erro', 'Não foi possível carregar as penalidades.');
         }
       };
+  
       fetchPenalties();
+  
+      if (mission) {
+        setTitle(mission.titulo);
+        setDifficulty(mission.dificuldade);
+        setRank(mission.rank);
+        setRepetition(mission.repeticao);
+        setDeadline(mission.prazo ? new Date(mission.prazo) : new Date());
+      }
     }
-  }, [visible]);
-
+  }, [visible, mission]);
+  
   const togglePenaltySelection = (penaltyId: string) => {
     setSelectedPenalties((prevSelected) =>
       prevSelected.includes(penaltyId)
@@ -55,7 +73,7 @@ export default function ModalMission({ visible, onClose, onSave }: ModalComponen
     );
   };
 
-  const handleCreateMission = async () => {
+  const handleSaveMission = async () => {
     if (title && difficulty && rank && selectedPenalties.length > 0) {
       const tomorrow = moment().add(1, 'day').startOf('day');
   
@@ -74,18 +92,28 @@ export default function ModalMission({ visible, onClose, onSave }: ModalComponen
           const formattedDeadline = repetition === 'Diariamente'
             ? moment().endOf('day').format() // Enviar o fim do dia atual como prazo
             : moment(deadline).format('YYYY-MM-DD');
-  
-          const response = await axios.post(`${API_URL}/api/missionapi/create`, {
+          const missionData = {
             titulo: title,
             rank,
-            prazo: formattedDeadline, // Envia sempre um valor válido
+            prazo: formattedDeadline,
             dificuldade: difficulty,
             penalidadeIds: selectedPenalties,
             repeticao: repetition,
             id_usuario: JSON.parse(userID),
-          });
-  
-          Alert.alert('Missão Criada', response.data.message);
+            // Não envia o prazo se a repetição for 'Diariamente'
+            ...(repetition !== 'Diariamente' && { prazo: formattedDeadline }),
+          };
+
+          let response;
+          if (mission) {
+            // Edição de missão
+            response = await axios.put(`${API_URL}/api/missionapi/update/${mission.id}`, missionData);
+            Alert.alert('Missão Editada', response.data.message);
+          } else {
+            // Criação de missão
+            response = await axios.post(`${API_URL}/api/missionapi/create`, missionData);
+            Alert.alert('Missão Criada', response.data.message);
+          }
   
           setTitle('');
           setDifficulty('Fácil');
@@ -100,8 +128,8 @@ export default function ModalMission({ visible, onClose, onSave }: ModalComponen
           Alert.alert('Erro', 'Usuário não encontrado. Por favor, faça login novamente.');
         }
       } catch (error) {
-        console.error('Erro ao criar missão:', error);
-        Alert.alert('Erro ao criar missão', error.response.data.error || 'Erro desconhecido.');
+        console.error('Erro ao salvar missão:', error);
+        Alert.alert('Erro ao salvar missão', error.response?.data?.message || 'Erro desconhecido.');
       }
     } else {
       Alert.alert(
@@ -112,10 +140,7 @@ export default function ModalMission({ visible, onClose, onSave }: ModalComponen
       );
     }
   };
-  
-  
-  
-  
+
   return (
     <Modal animationType="fade" transparent={true} visible={visible} onRequestClose={onClose}>
       <Pressable onPress={onClose} className="flex-1 justify-center items-center bg-black/60 p-10">
@@ -124,7 +149,7 @@ export default function ModalMission({ visible, onClose, onSave }: ModalComponen
             <TouchableWithoutFeedback onPress={() => Keyboard.dismiss()}>
               <ScrollView contentContainerStyle={{ flexGrow: 1 }} showsVerticalScrollIndicator={false}>
                 <View>
-                  <Text className="text-white text-2xl font-semibold mb-6">Adicionar Nova Missão</Text>
+                  <Text className="text-white text-2xl font-semibold mb-6">{mission ? 'Editar Missão Existente' : 'Adicionar Nova Missão'}</Text>
                   
                   {/* Input Título */}
                   <Text className="text-white mb-1 text-xl">Título</Text>
@@ -171,6 +196,7 @@ export default function ModalMission({ visible, onClose, onSave }: ModalComponen
                       <Picker.Item label="Diariamente" value="Diariamente" />
                     </Picker>
                   </View>
+
                   {/* Campo prazo visível apenas quando repetição != Diariamente */}
                   {repetition !== 'Diariamente' && (
                     <>
@@ -192,42 +218,37 @@ export default function ModalMission({ visible, onClose, onSave }: ModalComponen
                           onChange={(event, selectedDate) => {
                             setShowDatePicker(false);
                             if (selectedDate) {
-                              // Verifica se a repetição é "Nunca" e a data é anterior a amanhã
-                              const tomorrow = moment().add(1, 'day').startOf('day');
-                              if (repetition === 'Não' && moment(selectedDate).isBefore(tomorrow)) {
-                                Alert.alert(
-                                  'Erro',
-                                  'O prazo deve ser a partir de amanhã quando a repetição for "Nunca".'
-                                );
-                              } else {
-                                setDeadline(selectedDate); // Atualiza a data se for válida
-                              }
+                              setDeadline(selectedDate);
                             }
                           }}
-                          minimumDate={moment().add(1, 'day').toDate()} // Data mínima é amanhã
+                          minimumDate={moment().add(1, 'day').toDate()}
                         />
                       )}
                     </>
                   )}
 
-
-                  {/* Campo Penalidades */}
                   <Text className="text-white mb-1 text-xl">Penalidades</Text>
                   <FlatList
                     data={penalties}
                     keyExtractor={(item) => item.id}
                     renderItem={({ item }) => (
                       <TouchableOpacity onPress={() => togglePenaltySelection(item.id)} className="flex-row items-center p-2">
-                        <Text className="text-white">{item.titulo}</Text>
+                        <Text className="text-white">
+                          {item.titulo} {selectedPenalties.includes(item.id) ? '(Vinculada)' : ''}
+                        </Text>
                         <Text className="ml-auto text-white">
                           {selectedPenalties.includes(item.id) ? '✓' : ''}
                         </Text>
                       </TouchableOpacity>
                     )}
-                    ListEmptyComponent={<Text className="text-gray-400">Nenhuma penalidade disponível</Text>} 
+                    ListEmptyComponent={<Text className="text-gray-400">Nenhuma penalidade disponível</Text>}
                   />
 
-                  <TouchableOpacity onPress={handleCreateMission} className="py-3 bg-blue-400 rounded-xl mt-4">
+
+
+                 
+
+                  <TouchableOpacity onPress={handleSaveMission} className="py-3 bg-blue-400 rounded-xl mt-4">
                     <Text className="font-bold text-center text-gray-700">Salvar</Text>
                   </TouchableOpacity>
                 </View>

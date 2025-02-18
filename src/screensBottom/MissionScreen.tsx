@@ -6,9 +6,8 @@ import { API_URL } from '@env';
 import { useNavigation } from '@react-navigation/native';
 import { useFetchStatusUser } from '../hooks/useFetchDataStatus';
 import ModalComponent from '../modal/moreOptions';
-import ModalReward from '../modal/addReward';
-import ModalEditReward from '../modal/editReward'; // Modal para editar a recompensa
-import ModalEditMission from '../modal/editMission'
+import MissionModal from '../modal/MissionModal'
+//import ModalEditMission from '../modal/editMission'
 import gold_image from '../assets/images/home/gold.png';
 import xp_image from '../assets/images/mission/xp.png';
 import moreOptions_image from '../assets/images/home/more_options.png';
@@ -16,12 +15,15 @@ import * as SecureStore from 'expo-secure-store';
 import filter from '../assets/images/mission/filter.png'
 import ModalFilter from '../hooks/modalFilterReward';
 import { PencilIcon, TrashIcon, ShoppingCartIcon, CheckIcon } from 'react-native-heroicons/outline';
-import ModalPenalty from '../modal/addPenalty'
+//import ModalPenalty from '../modal/addPenalty'
 import { NavigationProps } from '../navigation/types';
 import ModalFilterPenalty from '../hooks/modalFilterPenalty';
-import EditPenaltyModal from '../modal/editPenalty';
+//import EditPenaltyModal from '../modal/editPenalty';
 import MissionFilterModal from '../hooks/modalFilterMission';
-import ModalMission from '../modal/addMission';
+//import ModalMission from '../modal/addMission';
+import ConfirmationModal from '../modal/ConfirmationModal';
+import RewardModal from '../modal/RewardModal';
+import PenaltyModal from '../modal/PenaltyModal';
 
 interface Reward {
   id: number;
@@ -90,10 +92,45 @@ export default function MissionScreen() {
   : penalties;
 
 
-  const [selectedMission, setSelectedMission] = useState<Mission | null>(null);
-  const [modalVisibleEditMission, setModalVisibleEditMission] = useState(false)
+
   const [modalVisibleMission, setModalVisibleMission] = useState(false);
   
+  const [modalVisible, setModalVisible] = useState(false);
+  const [deleteAction, setDeleteAction] = useState<(() => void) | null>(null);
+  
+  const [isRewardModalVisible, setRewardModalVisible] = useState(false);
+  const [selectedMission, setSelectedMission] = useState<Mission | null>(null);
+
+
+  const openAddPenaltyModal = () => {
+    setSelectedPenalty(null);
+    setPenaltyModalVisible(true);
+  };
+
+  const openEditPenaltyModal = (penalty) => {
+    setSelectedPenalty(penalty);
+    setPenaltyModalVisible(true);
+  };
+
+
+  const openRewardModal = (reward = null) => {
+    setSelectedReward(reward);
+    setRewardModalVisible(true);
+  };
+
+
+  const confirmDelete = (action: () => void) => {
+    setDeleteAction(() => action);
+    setModalVisible(true);
+  };
+
+  const executeDelete = () => {
+    if (deleteAction) {
+      deleteAction();
+      setModalVisible(false);
+    }
+  };
+
 
   const handleOpenPenaltyFilterModal = () => {
     setFilterModalVisiblePenalty(true);
@@ -221,33 +258,26 @@ const [missions, setMissions] = useState<Mission[]>([]);
 // Filtra as missões com base no status selecionado
 const filteredMissions = filterMissionStatus ? missions.filter((mission) => mission.status === filterMissionStatus) : missions;
 
-const handleCreateMission = () => {
-  setModalVisibleMission(true)
-};
+    const handleCreateMission = () => {
+      setSelectedMission(null);
+      setModalVisibleMission(true)
+    };
 
 const handleMissionCreated = () => {
   setModalVisibleMission(false);
   fetchMissions(); // Atualiza a lista de missões após a criação
 };
-const handleEditMission = (mission: Mission) => {
-  setSelectedMission(mission);
-  setModalVisibleEditMission(true); // abre o modal de edição de missão (caso tenha)
-};
+    const handleEditMission = (mission) => {
+      setSelectedMission(mission);
+      setModalVisibleMission(true);
+    };
+
 
 const handleMissionEdited = () => {
-  setModalVisibleEditMission(false);
+  setModalVisibleMission(false);
   fetchMissions(); // Atualiza a lista de missões após a edição
 };
-const handleDeleteMission = async (missionId: number) => {
-  try {
-    await axios.delete(`${API_URL}/api/missionapi/delete/${missionId}`);
-    Alert.alert('Missão excluída com sucesso!');
-    fetchMissions(); 
-  } catch (error: any) {
-    console.error('Erro ao excluir missão:', error);
-    Alert.alert('Erro ao excluir missão', error.response?.data?.message || 'Erro ao tentar excluir.');
-  }
-};
+
 
 const handleBuyReward = async (rewardId: number, goldCost: number) => {
   console.log(goldCost)
@@ -315,7 +345,8 @@ const handleBuyReward = async (rewardId: number, goldCost: number) => {
       fetchRewards();
     };
     const handleCreatePenalty = () => {
-      setModalVisiblePenalty(true);
+      setSelectedPenalty(null);
+      setPenaltyModalVisible(true);
     };
     
     const handlePenaltyCreated = () => {
@@ -356,7 +387,7 @@ const handleBuyReward = async (rewardId: number, goldCost: number) => {
 
     const handleEditPenalty = (penalty: Penalty) => {
       setSelectedPenalty(penalty)
-      setModalVisibleEditPenalty(true)
+      setPenaltyModalVisible(true)
     };
 
     const handleOvercomePenalty = async (penaltyId: number) => {
@@ -373,26 +404,45 @@ const handleBuyReward = async (rewardId: number, goldCost: number) => {
     };
     
 
-    const handleDeleteReward = async (rewardId: number) => {
-      try {
-        await axios.delete(`${API_URL}/api/rewardapi/delete/${rewardId}`);
-        Alert.alert('Recompensa excluída com sucesso!');
-        fetchRewards(); // Atualiza a lista de recompensas após a exclusão
-      } catch (error: any) {
-        console.error('Erro ao excluir recompensa:', error);
-        Alert.alert('Erro ao excluir recompensa', error.response?.data?.message || 'Erro ao tentar excluir.');
-      }
+    const handleDeleteReward = (rewardId: number) => {
+      confirmDelete(async () => {
+        try {
+          await axios.delete(`${API_URL}/api/rewardapi/delete/${rewardId}`);
+          Alert.alert('Recompensa excluída com sucesso!');
+          fetchRewards();
+        } catch (error: any) {
+          console.error('Erro ao excluir recompensa:', error);
+          Alert.alert('Erro ao excluir recompensa', error.response?.data?.message || 'Erro ao tentar excluir.');
+        }
+      });
     };
-    const handleDeletePenalty = async (penaltyId: number) => {
-      try {
-        await axios.delete(`${API_URL}/api/penaltyapi/delete/${penaltyId}`);
-        Alert.alert('Penalidade excluída com sucesso!');
-        fetchPenalties(); // Atualiza a lista de penalidades após a exclusão
-      } catch (error: any) {
-        console.error('Erro ao excluir penalidade:', error);
-        Alert.alert('Erro ao excluir penalidade', error.response?.data?.message || 'Erro ao tentar excluir.');
-      }
+    
+    const handleDeletePenalty = (penaltyId: number) => {
+      confirmDelete(async () => {
+        try {
+          await axios.delete(`${API_URL}/api/penaltyapi/delete/${penaltyId}`);
+          Alert.alert('Penalidade excluída com sucesso!');
+          fetchPenalties();
+        } catch (error: any) {
+          console.error('Erro ao excluir penalidade:', error);
+          Alert.alert('Erro ao excluir penalidade', error.response?.data?.message || 'Erro ao tentar excluir.');
+        }
+      });
     };
+    
+    const handleDeleteMission = (missionId: number) => {
+      confirmDelete(async () => {
+        try {
+          await axios.delete(`${API_URL}/api/missionapi/delete/${missionId}`);
+          Alert.alert('Missão excluída com sucesso!');
+          fetchMissions();
+        } catch (error: any) {
+          console.error('Erro ao excluir missão:', error);
+          Alert.alert('Erro ao excluir missão', error.response?.data?.message || 'Erro ao tentar excluir.');
+        }
+      });
+    };
+    
 
     useEffect(() => {
       const checkDailyMissions = async () => {
@@ -591,12 +641,18 @@ const handleBuyReward = async (rewardId: number, goldCost: number) => {
 
                       <View className="flex-row justify-between mt-4">
                         <View className="flex-row">
-                          <TouchableOpacity onPress={() => handleEditMission(item)} className="mr-4">
-                            <PencilIcon size={30} color="orange" />
-                          </TouchableOpacity>
-                          <TouchableOpacity onPress={() => handleDeleteMission(item.id)} className="mr-4">
-                            <TrashIcon size={30} color="red" />
-                          </TouchableOpacity>
+                          {item.situacao != 'Finalizada' && (
+                            <>
+                              <TouchableOpacity onPress={() => handleEditMission(item)} className="mr-4">
+                                <PencilIcon size={30} color="orange" />
+                              </TouchableOpacity>
+                              <TouchableOpacity onPress={() => handleDeleteMission(item.id)} className="mr-4">
+                                <TrashIcon size={30} color="red" />
+                              </TouchableOpacity>
+                            </>
+                          )}
+                          
+                          
                         </View>
                         {item.situacao == 'Em progresso' && (
                           <TouchableOpacity onPress={async () => handleCompleteMission(item.id, await getUserId())}>
@@ -608,16 +664,18 @@ const handleBuyReward = async (rewardId: number, goldCost: number) => {
                   )}
                 />
                 
-                <ModalEditMission
-                  visible={modalVisibleEditMission}
-                  mission={selectedMission}
-                  onClose={() => setModalVisibleEditMission(false)}
-                  onSave={handleMissionEdited}
-                /> 
+                
 
                 <TouchableOpacity className='bg-cyan-500 rounded-full p-3 absolute bottom-4 right-5 left-5' onPress={handleCreateMission}>
                   <Text className='text-white text-center font-vt323'>Criar Nova Missão</Text>
                 </TouchableOpacity>
+                <MissionModal
+                  visible={modalVisibleMission}
+                  onClose={() => setModalVisibleMission(false)}
+                  onSave={fetchMissions} // Atualiza a lista após salvar
+                  mission={selectedMission} // Se for edição, passa a missão, senão é null
+                />
+
               </View>
             </>
           )}
@@ -678,21 +736,21 @@ const handleBuyReward = async (rewardId: number, goldCost: number) => {
 
                
 
-                <EditPenaltyModal
-                  visible={modalVisibleEditPenalty}
-                  penalty={selectedPenalty}
-                  onClose={() => setModalVisibleEditPenalty(false)}
-                  onSave={handlePenaltyEdited}
-                />
+                
                 
                 <TouchableOpacity className='bg-cyan-500 rounded-full p-3 absolute bottom-4 right-5 left-5' onPress={handleCreatePenalty}>
                   <Text className='text-white text-center font-vt323'>Criar Nova Penalidade</Text>
                 </TouchableOpacity>
+
+                <PenaltyModal
+                  visible={penaltyModalVisible}
+                  onClose={() => setPenaltyModalVisible(false)}
+                  onSave={fetchPenalties} // Atualizar lista após salvar
+                  penalty={selectedPenalty} // Se for edição, passa o item, senão é undefined
+                />
               </View>
-              
             </>
           )}
-
           
           {selectedSection === 'recompensa' && (
             <>
@@ -722,9 +780,10 @@ const handleBuyReward = async (rewardId: number, goldCost: number) => {
                           
                           <View className='flex-row'>
                             {/* Botão para Editar Recompensa */}
-                            <TouchableOpacity onPress={() => handleEditReward(item)} className='mr-4'>
+                            <TouchableOpacity onPress={() => openRewardModal(item)} className="mr-4">
                               <PencilIcon size={30} color="orange" />
                             </TouchableOpacity>
+
 
                             {/* Botão para Excluir Recompensa */}
                             <TouchableOpacity onPress={() => handleDeleteReward(item.id)}>
@@ -748,24 +807,19 @@ const handleBuyReward = async (rewardId: number, goldCost: number) => {
                 
 
                 
-                {/* Modal de Criação de Recompensa */}
-                <ModalReward
-                  visible={modalVisibleReward}
-                  onClose={() => setModalVisibleReward(false)}
-                  onSave={handleRewardCreated}
-                />
 
-                {/* Modal de Edição de Recompensa */}
-                <ModalEditReward
-                  visible={modalEditVisible}
-                  reward={selectedReward || { id: 0, titulo: '', gold: 0, status: '' }} // Passa a recompensa selecionada
-                  onClose={() => setModalEditVisible(false)}
-                  onSave={handleRewardEdited}
-                />
 
-                <TouchableOpacity className='bg-cyan-500 rounded-full p-3 absolute bottom-4 right-5 left-5' onPress={handleCreateReward}>
-                  <Text className='text-white text-center font-vt323'>Criar Nova Recompensa</Text>
+                <TouchableOpacity onPress={() => openRewardModal()} className="bg-cyan-500 rounded-full p-3 absolute bottom-4 right-5 left-5">
+                  <Text className="text-white text-center font-vt323">Criar Nova Recompensa</Text>
                 </TouchableOpacity>
+                <RewardModal
+                  visible={isRewardModalVisible}
+                  onClose={() => setRewardModalVisible(false)}
+                  onSave={fetchRewards}
+                  reward={selectedReward}
+                />
+
+
               </View>
             </>
           )}
@@ -784,23 +838,22 @@ const handleBuyReward = async (rewardId: number, goldCost: number) => {
           onFilter={handlePenaltyFilterSelection}
         />
 
-        <ModalPenalty
-          visible={modalVisiblePenalty}
-          onClose={() => setModalVisiblePenalty(false)}
-          onSave={handlePenaltyCreated} // Função que deve ser implementada para criar a penalidade
-        />
+      
 
-        <ModalMission
-          visible={modalVisibleMission}
-          onClose={() => setModalVisibleMission(false)}
-          onSave={handleMissionCreated}
-        />
+
 
         <MissionFilterModal
           visible={filterModalVisibleMission}
           onClose={() => setFilterModalVisibleMission(false)}
           onFilter={handleMissionFilterSelection}
         />
+        <ConfirmationModal
+          visible={modalVisible}
+          onClose={() => setModalVisible(false)}
+          onConfirm={executeDelete}
+          message="Tem certeza que deseja excluir este item?"
+        />
+
       </View>
     );
   }

@@ -41,7 +41,6 @@ export default function HomeScreen() {
   const fetchMissionsData = async () => {
     try {
       const response = await axios.get(`${API_URL}/api/missionapi/complete/last7days/${userData?.id}`);
-
       // Usa apenas as chaves do objeto retornado para definir as labels
       const rawData = response.data.missionsPerDay;
       const labels = Object.keys(rawData).map(formatDate); // Formata as datas no formato dd/mm
@@ -101,12 +100,12 @@ export default function HomeScreen() {
   };
 
   useEffect(() => {
+    
     if (userData?.id) {
       fetchMissionsData();
       fetchMissionStatusData(); // Chama a função para buscar os dados de status
     }
   }, [userData]);
-
   return (
     <View className="flex-1 bg-neutral-900">
       <SafeAreaView className="bg-neutral-800 rounded-b-lg border-b-8 border-cyan-500 flex-row items-center p-4">

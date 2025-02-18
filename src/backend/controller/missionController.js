@@ -415,33 +415,33 @@ const updateMission = async (req, res) => {
   let { prazo, situacao, titulo, dificuldade, rank, penalidadeIds, repeticao } = req.body;
 
   try {
-
-    const mission = await Mission.findByPk(id);
+    const mission = await Mission.findByPk(id, {
+      include: [{ model: Penalty, as: 'Penalidades' }]
+    });
 
     if (!mission) {
       return res.status(404).json({ error: 'Missão não encontrada.' });
     }
 
     if (titulo) mission.titulo = titulo;
-    //if (dificuldade) mission.dificuldade = dificuldade else (mission.dificuldade);
-    dificuldade ? mission.dificuldade = dificuldade : dificuldade = mission.dificuldade
-    //if (rank) mission.rank = rank;
-    rank ? mission.rank = rank : rank = mission.rank
+    dificuldade ? mission.dificuldade = dificuldade : dificuldade = mission.dificuldade;
+    rank ? mission.rank = rank : rank = mission.rank;
     if (situacao) mission.situacao = situacao;
 
     let prazoFinal;
     if (repeticao === 'Diariamente') {
       const now = new Date();
-      now.setUTCHours(27, 59, 59, 999); //cuiaba
+      now.setUTCHours(27, 59, 59, 999); // Cuiabá timezone
       prazoFinal = new Date(now).toISOString();
       mission.repeticao = 'Diariamente';
     } else if (prazo) {
-      let prazoInput = new Date(prazo)
-      prazoInput.setUTCHours(27, 59, 59, 999) //cuiaba
+      let prazoInput = new Date(prazo);
+      prazoInput.setUTCHours(27, 59, 59, 999); // Cuiabá timezone
       prazoFinal = prazoInput.toISOString();
     }
 
     if (prazoFinal) mission.prazo = prazoFinal;
+    
     const { recompensaXp, recompensaOuro, recompensaPd } = calcularRecompensas(dificuldade, rank);
     mission.valorXp = recompensaXp;
     mission.valorOuro = recompensaOuro;
@@ -451,6 +451,12 @@ const updateMission = async (req, res) => {
       mission.situacao = 'Em progresso';
     }
 
+    // Atualiza os IDs das penalidades
+    if (penalidadeIds && Array.isArray(penalidadeIds)) {
+      const penalidades = await Penalty.findAll({ where: { id: penalidadeIds } });
+      await mission.setPenalidades(penalidades);
+    }
+
     await mission.save();
     return res.status(200).json({ message: 'Missão atualizada com sucesso!' });
   } catch (error) {
@@ -458,6 +464,7 @@ const updateMission = async (req, res) => {
     return res.status(500).json({ error: 'Erro interno do servidor' });
   }
 };
+
 
 const getCompletedMissionsLast7Days = async (req, res) => {
   const { id: userId } = req.params;
