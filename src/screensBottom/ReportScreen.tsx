@@ -6,7 +6,7 @@ import * as IntentLauncher from 'expo-intent-launcher';
 import * as FileSystem from 'expo-file-system'; // Importando expo-file-system
 import { API_URL } from '@env';
 import axios from 'axios';
-import { getUserId } from './MissionScreen';
+import { getUserId } from './ProgressScreen';
 import moreOptions_image from '../assets/images/home/more_options.png';
 import ModalComponent from '../modal/moreOptions';
 import { useNavigation } from '@react-navigation/native';

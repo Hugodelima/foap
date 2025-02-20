@@ -12,7 +12,7 @@ import help_image from '../assets/images/status/help.png';
 import axios from 'axios';
 import { API_URL } from '@env';
 import { NavigationProps } from '../navigation/types';
-import { getUserId } from '../screensBottom/MissionScreen';
+import { getUserId } from '../screensBottom/ProgressScreen';
 
 export default function AttributesScreen() {
   const navigation = useNavigation<NavigationProps>();

@@ -15,7 +15,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 
 import { useFetchUserData } from '../hooks/useFetchDataUser';
-import { getUserId } from '../screensBottom/MissionScreen';
+import { getUserId } from '../screensBottom/ProgressScreen';
 
 export default function ChangeUserDataScreen(){ 
   

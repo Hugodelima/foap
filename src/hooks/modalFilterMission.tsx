@@ -22,7 +22,7 @@ export default function ModalFilterMission({ visible, onClose, onFilter }: Modal
             <Text className="font-semibold text-center text-white font-vt323">Em Progresso</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity onPress={() => onFilter('Não finalizada font-vt323')} className="py-3 bg-blue-400 rounded-xl mb-4">
+          <TouchableOpacity onPress={() => onFilter('Não finalizada')} className="py-3 bg-blue-400 rounded-xl mb-4">
             <Text className="font-semibold text-center text-white font-vt323">Não Finalizadas</Text>
           </TouchableOpacity>
 

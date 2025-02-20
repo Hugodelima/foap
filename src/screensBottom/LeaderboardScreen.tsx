@@ -3,7 +3,7 @@ import { Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import axios from 'axios';
 import { API_URL } from '@env';
-import { getUserId } from '../screensBottom/MissionScreen';
+import { getUserId } from './ProgressScreen';
 
 export default function LeaderboardScreen() {
   const [leaderboard, setLeaderboard] = useState<any[]>([]);

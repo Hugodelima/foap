@@ -530,7 +530,7 @@ const getCompletedMissionsLast7Days = async (req, res) => {
     // Adicionando missões do histórico 'MissionHistoryDiary'
     missionHistory.forEach((history) => {
       const { date, count } = history.get();
-      if (missionsPerDay.hasOwnProperty(date)) {
+      if (missionsPerDay.hasOwnProperty(date)) {  
         missionsPerDay[date] += parseInt(count, 10); // Soma as missões do histórico
       }
     });
@@ -538,6 +538,7 @@ const getCompletedMissionsLast7Days = async (req, res) => {
     
 
     res.status(200).json({ missionsPerDay });
+
   } catch (error) {
     console.error('Erro ao buscar missões dos últimos 7 dias:', error);
     res.status(500).json({ error: 'Erro ao buscar missões.' });
@@ -571,7 +572,7 @@ const getUserMissionsByStatusLast7Days = async (req, res) => {
     };
 
     missions.forEach((mission) => {
-      switch (mission.status) {
+      switch (mission.situacao) {
         case 'Finalizada':
           missionData.finalizadas.push(mission);
           break;
@@ -593,6 +594,7 @@ const getUserMissionsByStatusLast7Days = async (req, res) => {
     res.status(500).json({ error: 'Erro ao buscar missões do usuário.' });
   }
 };
+
 const getTotalXpGainedPerDay = async (req, res) => {
   const { id: userId } = req.params;
   const today = moment().endOf('day'); // Fim do dia de hoje

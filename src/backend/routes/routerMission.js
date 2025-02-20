@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { createMission, allMission, deleteMission, completeMission, expireMission, getDailyMissions, updateMission, getCompletedMissionsLast7Days, getUserMissionsByStatusLast7Days, getTotalXpGainedPerDay } = require('../controller/missionController');
+const { createMission, allMission, deleteMission, completeMission, expireMission, getDailyMissions, updateMission, getCompletedMissionsLast7Days, getUserMissionsByStatusLast7Days, getTotalXpGainedPerDay } = require('../controllers/missionController');
 
 router.post('/create', createMission);
 router.get('/:userId', allMission);

@@ -13,7 +13,7 @@ import xpFaltante_image from '../assets/images/experience/xp_without.png';
 import { useFetchStatusUser } from '../hooks/useFetchDataStatus';
 import axios from 'axios';
 import { API_URL } from '@env';
-import { getUserId } from '../screensBottom/MissionScreen';
+import { getUserId } from '../screensBottom/ProgressScreen';
 
 const screenWidth = Dimensions.get('window').width;
 
