@@ -130,7 +130,7 @@ const resendForgotPasswordCode = async (req, res) => {
 
 const verifyForgotPasswordCode = async (req, res) => {
     const { email, verificationCode } = req.body;
-
+    console.log('fdf')
     try {
         const user = await User.findOne({ where: { email } });
         if (!user) return res.status(404).json({ message: 'Usuário não encontrado.' });
@@ -149,11 +149,51 @@ const verifyForgotPasswordCode = async (req, res) => {
     }
 };
 
+const generateResetPasswordCode = async (req, res) => {
+    const { userId } = req.params;
+    const { email } = req.body;
+
+    try {
+        if (!userId || !email) return res.status(400).json({ message: 'ID de usuário e e-mail são obrigatórios.' });
+
+        const user = await User.findOne({ where: { id: userId, email } });
+        if (!user) return res.status(404).json({ message: 'Usuário não encontrado ou e-mail inválido.' });
+
+        const verificationCode = generateVerificationCode();
+
+        // Deleta códigos de redefinição anteriores
+        await Verification.destroy({ where: { id_usuario: userId, tipo: 'resetar_senha_email' } });
+
+        const expiration = new Date();
+        expiration.setMinutes(expiration.getMinutes() + 2); // Código expira em 2 minutos
+
+        // Cria o novo código de verificação
+        await Verification.create({
+            id_usuario: userId,
+            codigo: verificationCode,
+            expiracao: expiration,
+            tipo: 'resetar_senha_email'
+        });
+
+        sendEmail(
+            email,
+            'Código de Redefinição de Senha',
+            `Seu código de verificação é: ${verificationCode}. Este código expira em 2 minutos.`
+        );
+
+        res.status(200).json({ message: 'Código de redefinição de senha gerado e enviado com sucesso!' });
+    } catch (error) {
+        console.error("Erro ao gerar código de redefinição de senha:", error);
+        res.status(500).json({ message: 'Erro ao gerar o código de redefinição de senha.', error: error.message });
+    }
+};
+
 module.exports = {
     generateVerificationCodeForUser,
     getVerificationExpiration,
     verifyCode,
     resendVerificationCode,
     resendForgotPasswordCode,
-    verifyForgotPasswordCode
+    verifyForgotPasswordCode,
+    generateResetPasswordCode
 };

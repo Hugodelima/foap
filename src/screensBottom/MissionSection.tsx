@@ -78,7 +78,7 @@ export default function MissionSection(){
 
     const resetDailyMission = async (mission) => {
         const currentTime = new Date();
-        //currentTime.setDate(currentTime.getDate() + 6);
+        //currentTime.setDate(currentTime.getDate() + 2); deixar para testar
       
         // Verifica se a missão precisa ser resetada (expiração do prazo)
         const missionDeadline = new Date(mission.prazo);

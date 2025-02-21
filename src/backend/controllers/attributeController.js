@@ -1,4 +1,5 @@
 const Attribute = require('../models/attribute');
+const Status = require('../models/status');
 
 const createAttribute = async (req, res) => {
     const { nome, valor, tipo, icone, id_usuario } = req.body;
@@ -33,20 +34,33 @@ const updateAttributeValue = async (req, res) => {
 
     try {
         const attribute = await Attribute.findOne({ where: { id: attributeId, id_usuario } });
-
         if (!attribute) {
             return res.status(404).json({ message: 'Atributo não encontrado.' });
         }
 
+        const status = await Status.findOne({ where: { id_usuario } });
+        if (!status) {
+            return res.status(404).json({ message: 'Status não encontrado.' });
+        }
+
         if (operation === 'increment') {
-            attribute.valor += 1;
+            if (status.pd > 0) {
+                attribute.valor += 1;
+                status.pd -= 1; // Diminui os pontos disponíveis
+            } else {
+                return res.status(400).json({ message: 'Pontos insuficientes.' });
+            }
         } else if (operation === 'decrement' && attribute.valor > 0) {
             attribute.valor -= 1;
+            status.pd += 1; // Devolve o ponto disponível ao usuário
         }
 
         await attribute.save();
-        res.status(200).json(attribute);
+        await status.save(); // Salva a atualização do status
+
+        res.status(200).json({ attribute, status });
     } catch (error) {
+        console.error('Erro ao atualizar atributo:', error);
         res.status(500).json({ message: 'Erro ao atualizar atributo.', error: error.message });
     }
 };

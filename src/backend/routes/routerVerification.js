@@ -5,12 +5,14 @@ const {
     verifyCode,
     resendVerificationCode,
     resendForgotPasswordCode,
-    verifyForgotPasswordCode
+    verifyForgotPasswordCode,
+    generateResetPasswordCode
 } = require('../controllers/verificationController');
 
 const router = express.Router();
 
 router.post('/generate/:userId', generateVerificationCodeForUser);
+router.post('/generate/reset/:userId', generateResetPasswordCode);
 router.get('/verification-expiration/:userID', getVerificationExpiration);
 router.post('/verify', verifyCode);
 router.post('/resend-verification-code', resendVerificationCode);

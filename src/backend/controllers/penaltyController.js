@@ -175,6 +175,18 @@ const updateMultiplePenalties = async (req, res) => {
     }
 };
 
+const getAllPenalties = async (req, res) => {
+    const { id_usuario } = req.params;
+
+    try {
+        const penalties = await Penalty.findAll({ where: { id_usuario } });
+
+        res.status(200).json({ penalties });
+    } catch (error) {
+        console.error('Erro ao buscar penalidades:', error);
+        res.status(500).json({ error: 'Erro ao buscar penalidades.' });
+    }
+}
 module.exports = {
     createPenalty,
     getPenaltiesByUser,
@@ -182,5 +194,6 @@ module.exports = {
     updatePenalty,
     overcomePenalty,
     resetPenaltiesByMission,
-    updateMultiplePenalties
+    updateMultiplePenalties,
+    getAllPenalties
 };

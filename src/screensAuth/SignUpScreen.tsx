@@ -103,7 +103,11 @@ export default function SignUpScreen() {
         await AsyncStorage.setItem('emailVerificationData', JSON.stringify({ email, userID })); // Salva email e userID
   
         Alert.alert('Sucesso', 'Registrado com sucesso! Verifique seu e-mail para o código de verificação.');
-        navigation.navigate('VerificationScreen', { email, userID, verificationType: 'signup' });
+        navigation.reset({
+          index: 0,
+          routes: [{ name: 'VerificationScreen', params: { email, userID, verificationType: 'signup' } }],
+        });
+        
 
   
         setUsername('');

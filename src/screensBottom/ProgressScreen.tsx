@@ -38,7 +38,7 @@ export default function MissionScreen() {
           </View>
           <View className='flex-row items-center'>
             <Image source={xp_image} style={{ width: 30, height: 30, marginRight: 5 }} />
-            <Text className='text-white font-vt323'>{userData?.pd}</Text>
+            <Text className='text-white font-vt323'>{userData?.total_xp}</Text>
           </View>
         </View>
 

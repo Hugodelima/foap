@@ -54,36 +54,50 @@ const getLeaderboard = async (req, res) => {
       return res.status(404).json({ message: 'Usuário não encontrado.' });
     }
 
+    let rank;
     let nextRank;
     let levelsToNextRank;
 
     if (userStatus.nivel < 10) {
+      rank = 'F';
       nextRank = 'E';
       levelsToNextRank = 10 - userStatus.nivel;
     } else if (userStatus.nivel < 50) {
+      rank = 'E';
       nextRank = 'D';
       levelsToNextRank = 50 - userStatus.nivel;
     } else if (userStatus.nivel < 100) {
+      rank = 'D';
       nextRank = 'C';
       levelsToNextRank = 100 - userStatus.nivel;
     } else if (userStatus.nivel < 200) {
+      rank = 'C';
       nextRank = 'B';
       levelsToNextRank = 200 - userStatus.nivel;
     } else if (userStatus.nivel < 300) {
+      rank = 'B';
       nextRank = 'A';
       levelsToNextRank = 300 - userStatus.nivel;
     } else if (userStatus.nivel < 400) {
+      rank = 'A';
       nextRank = 'SSS';
       levelsToNextRank = 400 - userStatus.nivel;
     } else {
+      rank = 'SSS';
       nextRank = 'SSS';
       levelsToNextRank = 0;
     }
 
+    userStatus.setDataValue('rank', rank);
     userStatus.setDataValue('nextRank', nextRank);
     userStatus.setDataValue('levelsToNextRank', levelsToNextRank);
 
-    const leaderboard = await Status.findAll({ order: [['nivel', 'DESC']], limit: 5 });
+    // Buscar o top 5 apenas do rank do usuário
+    const leaderboard = await Status.findAll({
+      where: { rank }, // Filtra apenas usuários do mesmo rank
+      order: [['nivel', 'DESC']],
+      limit: 5,
+    });
 
     const leaderboardWithNames = await Promise.all(
       leaderboard.map(async (status) => {
@@ -102,5 +116,6 @@ const getLeaderboard = async (req, res) => {
     res.status(500).json({ message: 'Erro ao buscar o leaderboard.', error: error.message });
   }
 };
+
 
 module.exports = { createStatus, getStatusByUser, getLeaderboard };

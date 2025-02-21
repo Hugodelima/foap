@@ -7,6 +7,9 @@ import { ArrowLeftIcon } from 'react-native-heroicons/solid';
 
 import { NavigationProps } from '../navigation/types';
 
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as SecureStore from 'expo-secure-store';
+
 export default function FindUserScreen() {
     const navigation = useNavigation<NavigationProps>();
     const [email, setEmail] = useState<string>('');
@@ -23,13 +26,17 @@ export default function FindUserScreen() {
         }
         try {
             const response = await axios.get(`${API_URL}/api/userapi/${email}`);
-
+            console.log(response.status)
             if (response.status === 200) {
                 const email_send = await axios.post(`${API_URL}/api/verificationapi/generate/reset/${response.data}`, { email });
                 
                 if (email_send.status === 200) {
                     Alert.alert(email_send.data.message);
-                    navigation.navigate('VerificationScreen', { email_forgot_password: email, verificationType: 'forgotPassword' });
+                    navigation.reset({
+                        index: 0,
+                        routes: [{ name: 'VerificationScreen', params: { email, userID: response.data, verificationType: 'forgotPassword' } }],
+                    });
+                      
 
                 }
             } else {
@@ -51,7 +58,7 @@ export default function FindUserScreen() {
                 </View>
             </SafeAreaView>
 
-            <Text className='text-lg font-bold mb-4'>Encontrar Usuário</Text>
+            <Text className='text-lg font-bold mb-4'>Encontrar Usuário pelo Email</Text>
             <TextInput
                 value={email}
                 onChangeText={setEmail}

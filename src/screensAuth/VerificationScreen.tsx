@@ -14,7 +14,7 @@ export default function VerificationScreen() {
     const route = useRoute();
     const [email, setEmail] = useState<string | undefined>(route.params?.email);
     const [userID, setUserID] = useState<string | undefined>(route.params?.userID);
-    const [verificationType, setVerificationType] = useState<'signup' | 'forgotPassword'>(route.params?.verificationType || 'signup');
+    const [verificationType, setVerificationType] = useState<string | undefined>(route.params?.verificationType);
 
     useEffect(() => {
         const loadVerificationData = async () => {
@@ -135,16 +135,7 @@ export default function VerificationScreen() {
         >
             <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
                 <View className='flex-1 bg-gray-500'>
-                    <SafeAreaView className='absolute top-8'>
-                        {verificationType == 'forgotPassword' 
-                        ?
-                        <TouchableOpacity onPress={() => navigation.goBack()} className='bg-blue-400 p-2 rounded-tr-2xl rounded-bl-2xl ml-4 mt-4 absolute'>
-                            <ArrowLeftIcon size={35} color='black' />
-                        </TouchableOpacity> 
-                        : null}
-                        
-                    </SafeAreaView>
-
+ 
                     <SafeAreaView className='flex'>
                         <View className='flex-row justify-center'>
                             <Image source={{ uri: 'https://png.pngtree.com/png-vector/20221106/ourmid/pngtree-email-icon-blue-for-your-project-clipart-transparent-background-png-image_6401859.png' }}

@@ -25,26 +25,18 @@ export default function AttributesScreen() {
     const fetchAttributesAndStatus = async () => {
       try {
         const userId = await getUserId();
-        console.log('User ID:', userId);
         if (!userId) throw new Error('Usuário não encontrado.');
   
         // Buscar os atributos
         const attributesResponse = await axios.get(`${API_URL}/api/attributeapi/${userId}`);
-        console.log('Atributos Response:', attributesResponse.data);
   
         const attributesData = attributesResponse.data;
         const mental = attributesData.filter((attr: any) => attr.tipo === 'Mental');
         const fisico = attributesData.filter((attr: any) => attr.tipo === 'Físico');
-        console.log('fdsfd')
         setAttributes({ mental, fisico });
-  
-        // Buscar os pontos disponíveis (Status)
-        console.log('fdsfdfdsf')
-        const statusResponse = await axios.get(`${API_URL}/api/statusapi/${userId}`);
-        console.log('Status Response:', statusResponse.data);
 
-        console.log(statusResponse.data)
-        const { pd } = statusResponse.data;
+        const statusResponse = await axios.get(`${API_URL}/api/statusapi/${userId}`);
+        const { pd } = statusResponse.data[0];
         setAvailablePoints(pd || 0);
       } catch (error) {
         console.error('Erro ao buscar dados:', error);
@@ -63,38 +55,39 @@ export default function AttributesScreen() {
         return;
       }
   
-      const response = await axios.put(`${API_URL}/api/attributeapi/${userId}`, {
+      const currentAttribute = [...attributes.mental, ...attributes.fisico].find(
+        (attr: any) => attr.id === attributeId
+      );
+  
+      if (operation === 'decrement' && currentAttribute.valor <= 0) {
+        alert('O atributo já está no valor mínimo!');
+        return;
+      }
+  
+      // Atualiza o atributo no backend
+      await axios.put(`${API_URL}/api/attributeapi/${userId}`, {
         attributeId,
         operation,
       });
   
-      const updatedAttribute = response.data;
-      setAttributes((prevAttributes: any) => {
-        const updatedAttributes = { ...prevAttributes };
+      // Busca os atributos e pontos disponíveis atualizados
+      const statusResponse = await axios.get(`${API_URL}/api/statusapi/${userId}`);
+      const { pd } = statusResponse.data[0];
+      setAvailablePoints(pd || 0);
   
-        if (updatedAttributes.mental.some((attr: any) => attr.id === attributeId)) {
-          updatedAttributes.mental = updatedAttributes.mental.map((attr: any) =>
-            attr.id === attributeId ? { ...attr, valor: updatedAttribute.valor } : attr
-          );
-        } else if (updatedAttributes.fisico.some((attr: any) => attr.id === attributeId)) {
-          updatedAttributes.fisico = updatedAttributes.fisico.map((attr: any) =>
-            attr.id === attributeId ? { ...attr, valor: updatedAttribute.valor } : attr
-          );
-        }
+      const attributesResponse = await axios.get(`${API_URL}/api/attributeapi/${userId}`);
+      const attributesData = attributesResponse.data;
+      const mental = attributesData.filter((attr: any) => attr.tipo === 'Mental');
+      const fisico = attributesData.filter((attr: any) => attr.tipo === 'Físico');
+      setAttributes({ mental, fisico });
   
-        return updatedAttributes;
-      });
-  
-      if (operation === 'increment') {
-        setAvailablePoints((prevPoints) => prevPoints - 1);
-      } else if (operation === 'decrement') {
-        setAvailablePoints((prevPoints) => prevPoints + 1);
-      }
     } catch (error) {
       console.error('Erro ao atualizar atributo:', error);
       alert('Erro ao atualizar atributo.');
     }
   };
+  
+  
 
   const toggleArrows = () => {
     setShowArrows(!showArrows);
