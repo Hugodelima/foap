@@ -39,7 +39,7 @@ export default function VerificationScreen() {
 
     const [OTP, setOTP] = useState<{ [key: number]: string }>({ 0: '', 1: '', 2: '', 3: '' });
     const [nextInputIndex, setNextInputIndex] = useState<number>(0);
-    const [timeLeft, setTimeLeft] = useState<number>(0);
+    const [timeLeft, setTimeLeft] = useState<number>(120000); // 2 minutos
 
     useEffect(() => {
         input.current?.focus();
