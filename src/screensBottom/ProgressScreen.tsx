@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Text, View, Image, TouchableOpacity, FlatList, Modal, Alert } from 'react-native';
+import { Text, View, Image, TouchableOpacity, FlatList, Modal, Alert, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { useFetchStatusUser } from '../hooks/useFetchDataStatus';
@@ -12,6 +12,7 @@ import xp_image from '../assets/images/mission/xp.png';
 import moreOptions_image from '../assets/images/home/more_options.png';
 import * as SecureStore from 'expo-secure-store';
 import { NavigationProps } from '../navigation/types';
+import MissionDiarySection from './MissionDiarySection';
 
 export async function getUserId() {
   const userID = await SecureStore.getItemAsync('userStorageID');
@@ -42,25 +43,31 @@ export default function MissionScreen() {
           </View>
         </View>
 
-        <View className='flex-row gap-4 mb-4'>
-          
+        <ScrollView horizontal={true} showsHorizontalScrollIndicator={false}>
+          <View className="flex-row gap-4 mb-4 mt-1">
+            <TouchableOpacity onPress={() => setSelectedSection('missao')}>
+              <Text className={`text-white font-vt323 p-3 rounded-2xl ${selectedSection === 'missao' ? 'bg-blue-700' : 'bg-transparent'}`}>
+                Missões
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity onPress={() => setSelectedSection('missao_diarias')}>
+              <Text className={`text-white font-vt323 p-3 rounded-2xl ${selectedSection === 'missao_diarias' ? 'bg-blue-700' : 'bg-transparent'}`}>
+                Missões Diárias
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity onPress={() => setSelectedSection('penalidade')}>
+              <Text className={`text-white font-vt323 p-3 rounded-2xl ${selectedSection === 'penalidade' ? 'bg-blue-700' : 'bg-transparent'}`}>
+                Penalidades
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity onPress={() => setSelectedSection('recompensa')}>
+              <Text className={`text-white font-vt323 p-3 rounded-2xl ${selectedSection === 'recompensa' ? 'bg-blue-700' : 'bg-transparent'}`}>
+                Recompensas
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </ScrollView>
 
-          <TouchableOpacity onPress={() => setSelectedSection('missao')}>
-            <Text className={`text-white font-vt323 p-3 rounded-2xl ${selectedSection === 'missao' ? 'bg-blue-700' : 'bg-transparent'}`}>
-              Missões
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity onPress={() => setSelectedSection('penalidade')}>
-            <Text className={`text-white font-vt323 p-3 rounded-2xl ${selectedSection === 'penalidade' ? 'bg-blue-700' : 'bg-transparent'}`}>
-              Penalidades
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity onPress={() => setSelectedSection('recompensa')}>
-            <Text className={`text-white font-vt323 p-3 rounded-2xl ${selectedSection === 'recompensa' ? 'bg-blue-700' : 'bg-transparent'}`}>
-              Recompensas
-            </Text>
-          </TouchableOpacity>
-        </View>
       </SafeAreaView>
 
       <TouchableOpacity className="absolute right-4 top-12" onPress={() => setModalVisibleOption(true)}>
@@ -69,6 +76,7 @@ export default function MissionScreen() {
 
       <View className='flex-1'>
         {selectedSection === 'missao' && <MissionSection />}
+        {selectedSection === 'missao_diarias' && <MissionDiarySection />}
         {selectedSection === 'penalidade' && <PenaltySection />}
         {selectedSection === 'recompensa' && <RewardSection />}
       </View>

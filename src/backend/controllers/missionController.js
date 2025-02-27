@@ -111,46 +111,42 @@ const createMission = async (req, res) => {
     let prazoFinal;
     if (repeticao === 'Diariamente') {
       const now = new Date();
-      console.log(now)
-      now.setUTCHours(27, 59, 59, 999);//ajuste para o fuso horário de cuiaba
-      console.log(now)
+      now.setUTCHours(27, 59, 59, 999); // Ajuste para Cuiabá (-4 UTC)
       prazoFinal = now.toISOString();
-      console.log(prazoFinal)
-      console.log("Prazo final ajustado:", prazoFinal);
     } else {
-      prazoFinal = new Date(prazo + "T00:00:00-04:00"); // Ajusta para o fuso horário 
-      console.log("Antes de ajustar horário:", prazoFinal.toISOString());
+      prazoFinal = new Date(`${prazo}T00:00:00-04:00`); // Ajusta para Cuiabá (-4 UTC)
       prazoFinal.setHours(23, 59, 59, 999);
-      console.log("Depois de ajustar horário:", prazoFinal.toISOString());
       prazoFinal = prazoFinal.toISOString();
     }
 
-    console.log("Dados recebidos do frontend:");
-    console.log("prazo enviado:", prazo);
-    console.log("repeticao:", repeticao);
-    console.log("prazoFinal ajustado:", prazoFinal);
-
-    const repeticaoValor = repeticao === 'Diariamente' ? 'Diariamente' : 'Nunca';
+    // Calcula o prazo mínimo (60% do prazo total)
+    const prazoDate = new Date(prazoFinal);
+    const now = new Date();
+    const totalMilliseconds = prazoDate.getTime() - now.getTime();
+    const minExecutionMilliseconds = totalMilliseconds * 0.6;
+    const prazoMinimoDate = new Date(now.getTime() + minExecutionMilliseconds);
+    const prazoMinimo = prazoMinimoDate.toISOString();
 
     // Calcula recompensas com base na dificuldade e rank
     const { recompensaXp: valorXp, recompensaOuro: valorOuro, recompensaPd: valorPd } = calcularRecompensas(dificuldade, rank);
 
     // Cria a missão
-    console.log('fdfsddsf: '+prazoFinal)
     const novaMissao = await Mission.create({
       titulo,
       rank,
       prazo: prazoFinal,
+      prazoMinimo,  
+      iniciado: false,  
       dificuldade,
       valorXp,
       valorOuro,
       valorPd,
       situacao: 'Em progresso',
-      repeticao: repeticaoValor,
+      repeticao: repeticao === 'Diariamente' ? 'Diariamente' : 'Nunca',
       id_usuario,
     });
 
-    // Verifica se as penalidades existem
+    // Valida se as penalidades existem
     if (!Array.isArray(penalidadeIds) || penalidadeIds.length === 0) {
       return res.status(400).json({ error: 'O campo penalidadeIds deve ser um array não vazio.' });
     }
@@ -163,7 +159,7 @@ const createMission = async (req, res) => {
       return res.status(400).json({ error: 'Nenhuma penalidade encontrada com os IDs fornecidos.' });
     }
 
-    // Atualiza as penalidades para associá-las à missão
+    // Associa penalidades à missão
     await Promise.all(
       penalidadesExistentes.map(async (penalidade) => {
         penalidade.id_missao = novaMissao.id;
@@ -172,7 +168,7 @@ const createMission = async (req, res) => {
     );
 
     return res.status(201).json({
-      message: 'Missão criada com sucesso e penalidades vinculadas!',
+      message: 'Missão criada com sucesso!',
       mission: novaMissao,
       penalidades: penalidadesExistentes,
     });
@@ -181,6 +177,7 @@ const createMission = async (req, res) => {
     return res.status(500).json({ error: 'Erro interno do servidor.' });
   }
 };
+
 
 
 const allMission = async (req, res) => {
@@ -220,6 +217,46 @@ const allMission = async (req, res) => {
     res.status(500).json({ error: 'Failed to fetch missions' });
   }
 };
+
+const getDailyMissionsPenalties = async (req, res) => {
+  try {
+    const dailyMissions = await Mission.findAll({
+      where: {
+        id_usuario: req.params.userId,
+        repeticao: 'Diariamente',
+      },
+      include: {
+        model: Penalty,
+        as: 'Penalidades',
+        required: false,
+      },
+      attributes: {
+        include: [
+          [
+            sequelize.literal(`
+              (SELECT JSON_AGG("penalties"."titulo")
+               FROM "Penalidades" AS "penalties"
+               WHERE "penalties"."id_missao" = "Mission"."id")`),
+            'penaltyTitles'
+          ],
+          [
+            sequelize.literal(`
+              (SELECT COUNT(*)
+               FROM "Penalidades" AS "penalties"
+               WHERE "penalties"."id_missao" = "Mission"."id")`),
+            'penaltyCount'
+          ]
+        ]
+      },
+    });
+
+    res.json(dailyMissions);
+  } catch (error) {
+    console.error('Error fetching daily missions:', error);
+    res.status(500).json({ error: 'Failed to fetch daily missions' });
+  }
+};
+
 
 
 const deleteMission = async (req, res) => {
@@ -662,4 +699,46 @@ const getTotalXpGainedPerDay = async (req, res) => {
   }
 };
 
-module.exports = { createMission, allMission, deleteMission, completeMission, expireMission, getDailyMissions, updateMission, getCompletedMissionsLast7Days, getUserMissionsByStatusLast7Days, getTotalXpGainedPerDay};
+const startMission = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    // Buscar a missão pelo ID
+    const mission = await Mission.findByPk(id);
+    if (!mission) {
+      return res.status(404).json({ error: 'Missão não encontrada.' });
+    }
+
+    // Verificar se a missão já foi iniciada
+    if (mission.iniciado) {
+      return res.status(400).json({ error: 'A missão já foi iniciada.' });
+    }
+
+    // Registrar a data de início
+    const registroInicio = new Date();
+
+    // Calcular prazo mínimo (60% do prazo total)
+    const prazoFinal = new Date(mission.prazo);
+    const prazoMinimo = new Date(registroInicio.getTime() + (prazoFinal - registroInicio) * 0.6);
+
+    // Atualizar a missão
+    mission.iniciado = true;
+    mission.registroInicio = registroInicio;
+    mission.prazoMinimo = prazoMinimo;
+
+    await mission.save();
+
+    return res.status(200).json({
+      message: 'Missão iniciada com sucesso!',
+      mission
+    });
+  } catch (error) {
+    console.error('Erro ao iniciar missão:', error);
+    return res.status(500).json({ error: 'Erro interno do servidor.' });
+  }
+};
+
+
+
+
+module.exports = { createMission, allMission, deleteMission, completeMission, expireMission, getDailyMissions, updateMission, getCompletedMissionsLast7Days, getUserMissionsByStatusLast7Days, getTotalXpGainedPerDay, getDailyMissionsPenalties, startMission};

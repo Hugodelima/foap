@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Text, View, Image, TouchableOpacity, FlatList, Modal, Alert } from 'react-native';
 
 import filter from '../assets/images/mission/filter.png'
-import { PencilIcon, TrashIcon, CheckIcon, PlayIcon } from 'react-native-heroicons/outline';
+import { PencilIcon, TrashIcon, CheckIcon } from 'react-native-heroicons/outline';
 
 import axios from 'axios';
 import { API_URL } from '@env';
@@ -40,7 +40,6 @@ export default function MissionSection(){
     const [missions, setMissions] = useState<Mission[]>([]);
     const [filterMissionStatus, setFilterMissionStatus] = useState<string | null>(null);
     const filteredMissions = filterMissionStatus ? missions.filter((mission) => mission.situacao === filterMissionStatus) : missions;
-
     const [modalVisible, setModalVisible] = useState(false);
 
     const [deleteAction, setDeleteAction] = useState<(() => void) | null>(null);
@@ -53,16 +52,100 @@ export default function MissionSection(){
     };
 
     useEffect(() => {
-        fetchMissions(); // Adicionado para carregar missões
+        fetchMissionsDiary(); // Adicionado para carregar missões
         checkExpiredMissions()
+        checkDailyMissions()
 
         const interval = setInterval(() => {
-          fetchMissions(); // Atualiza periodicamente as missões
+          fetchMissionsDiary(); // Atualiza periodicamente as missões
           checkExpiredMissions()
+          checkDailyMissions()
         }, 10000);
 
         return () => clearInterval(interval);
     }, []);
+
+    const checkDailyMissions = async () => {
+        try {
+          const userId = await getUserId();
+          const { data: missions } = await axios.get(`${API_URL}/api/missionapi/daily-missions/${userId}`);
+          missions.forEach(resetDailyMission);
+        } catch (error) {
+          console.error('Erro ao verificar missões diárias:', error);
+        }
+    };
+
+    const resetDailyMission = async (mission) => {
+        const currentTime = new Date();
+        //currentTime.setDate(currentTime.getDate() + 2); deixar para testar
+      
+        // Verifica se a missão precisa ser resetada (expiração do prazo)
+        const missionDeadline = new Date(mission.prazo);
+        if (currentTime > missionDeadline) {
+          let updatedPrazo = new Date(currentTime); // Usa o currentTime com 1 dia a mais
+          updatedPrazo.setHours(23, 59, 59, 999);
+      
+          // Ajusta o horário para o fuso horário de Cuiabá (UTC-4)
+          const offsetHours = 4; // Horas de diferença para UTC
+          updatedPrazo.setUTCHours(updatedPrazo.getUTCHours() - offsetHours);
+      
+          const prazoAnterior = new Date(mission.prazo);
+          const prazoAtualizado = updatedPrazo;
+      
+          const diffTime = Math.abs(prazoAtualizado - prazoAnterior);
+          const diffDays = Math.ceil(diffTime / (1000 * 3600 * 24)); // Diferença em dias
+      
+          const { recompensaXp, recompensaOuro, recompensaPd } = mission;
+      
+          try {
+            // Atualiza o prazo da missão e o status para "Em progresso"
+            await axios.put(`${API_URL}/api/missionapi/update/${mission.id}`, {
+              prazo: updatedPrazo.toISOString(),
+              situacao: "Em progresso", // Atualiza o status da missão
+            });
+      
+            // Resetando o status das penalidades associadas à missão
+            await axios.put(`${API_URL}/api/penaltyapi/reset/${mission.id}`);
+      
+            // Verifica se a missão foi completada anteriormente
+            const missionStatus = mission.situacao; // Supondo que a missão tenha um status de "Completada" ou "Pendente"
+            const completed = missionStatus === 'Finalizada' ? true : false;
+      
+            // Controla o registro de histórico: apenas o primeiro dia será "completado" se a missão foi finalizada
+            let isCompleted = false;
+      
+            // Verifica se a missão foi completada em um dia específico
+            for (let i = 0; i < diffDays; i++) {
+              const dayStart = new Date(prazoAnterior); // Começa com o prazo anterior
+              dayStart.setDate(dayStart.getDate() + i); // Incrementa 1 dia
+      
+              const dayEnd = new Date(dayStart); // Fim do dia
+              dayEnd.setHours(23, 59, 59, 999);
+      
+              // Define se é o dia em que a missão foi completada
+              isCompleted = (completed && i === 0); // Apenas o primeiro dia será completado se a missão foi completada
+      
+              // Adiciona o histórico para o dia específico
+              await axios.post(`${API_URL}/api/missionhistorynapi/create`, {
+                id_missao: mission.id,
+                id_usuario: mission.id_usuario,
+                completado: isCompleted, // Marca como completada no primeiro dia
+                prazoAnterior: dayStart.toISOString(),
+                prazoAtualizado: dayEnd.toISOString(),
+                valorXp: mission.valorXp,
+                valorOuro: mission.valorOuro,
+                valorPd: mission.valorPd,
+              });
+      
+              console.log('Histórico registrado para o dia: ' + dayStart.toISOString());
+            }
+      
+            console.log('Prazo atualizado: ' + updatedPrazo.toISOString());
+          } catch (error) {
+            console.error('Erro ao atualizar missão:', error);
+          }
+        }
+    };
 
     const checkExpiredMissions = async () => {
         try {
@@ -78,7 +161,7 @@ export default function MissionSection(){
             }
           });
   
-          fetchMissions(); // Atualiza a lista de missões
+          fetchMissionsDiary(); // Atualiza a lista de missões
         } catch (error) {
           console.error('Erro ao verificar missões expiradas:', error);
         }
@@ -93,54 +176,6 @@ export default function MissionSection(){
         setSelectedMission(null);
         setModalVisibleMission(true)
     };
-    function calculateMinimumExecutionTime(prazo: string): string {
-      const prazoDate = new Date(prazo);
-      prazoDate.setHours(prazoDate.getHours() - 4); // Ajuste de fuso
-  
-      const now = new Date();
-      now.setHours(now.getHours() - 4); // Ajuste para Cuiabá
-  
-      const totalMilliseconds = prazoDate.getTime() - now.getTime();
-      const minExecutionMilliseconds = totalMilliseconds * 0.6; // 🔹 60% do prazo total
-  
-      if (minExecutionMilliseconds <= 0) {
-          return "Tempo mínimo atingido";
-      }
-  
-      const minExecutionMinutes = Math.floor(minExecutionMilliseconds / 60000);
-      const hours = Math.floor(minExecutionMinutes / 60);
-      const minutes = minExecutionMinutes % 60;
-  
-      return `${hours}h ${minutes}m`;
-    }
-    function calculateMinimumTimeRemaining(prazo: string, dataInicio?: string): string {
-  
-      const inicioDate = new Date(dataInicio);
-      const prazoDate = new Date(prazo);
-      
-      // Ajustar para o fuso horário de Cuiabá
-      inicioDate.setHours(inicioDate.getHours() - 4);
-      prazoDate.setHours(prazoDate.getHours() - 4);
-  
-      const totalMilliseconds = prazoDate.getTime() - inicioDate.getTime();
-      const minExecutionMilliseconds = totalMilliseconds * 0.6; // 60% do prazo total
-  
-      const prazoMinimo = new Date(inicioDate.getTime() + minExecutionMilliseconds);
-      const now = new Date();
-      now.setHours(now.getHours() - 4);
-  
-      const diffInMilliseconds = prazoMinimo.getTime() - now.getTime();
-  
-      if (diffInMilliseconds <= 0) {
-          return "Tempo mínimo atingido";
-      }
-  
-      const diffInMinutes = Math.floor(diffInMilliseconds / 60000);
-      const hours = Math.floor(diffInMinutes / 60);
-      const minutes = diffInMinutes % 60;
-  
-      return `${hours}h ${minutes}m`;
-    }
 
     function calculateTimeRemaining(prazo: string): string {
         // Criar a data com base no prazo recebido
@@ -184,31 +219,15 @@ export default function MissionSection(){
         setModalVisible(true);
     };
 
-    const fetchMissions = async () => {
+    const fetchMissionsDiary = async () => {
         try {
           const userId = await getUserId();
-          const response = await axios.get(`${API_URL}/api/missionapi/${userId}`);
+          const response = await axios.get(`${API_URL}/api/missionapi/daily-missions-penalties/${userId}`);
           setMissions(response.data);
         } catch (error) {
           console.error('Erro ao buscar missões:', error);
         }
-    };//16 e 48 minutos
-    const handleStartMission = async (missionId: number) => {
-      try {
-        const response = await axios.put(`${API_URL}/api/missionapi/start/${missionId}`);
-        
-        if (response.status === 200) {
-          setMissions((prevMissions) =>
-            prevMissions.map((mission) =>
-              mission.id === missionId ? { ...mission, iniciado: true } : mission
-            )
-          );
-        }
-      } catch (error) {
-        console.error('Erro ao iniciar missão:', error);
-      }
     };
-  
 
     async function handleCompleteMission(missionId, userId) {
 
@@ -221,7 +240,7 @@ export default function MissionSection(){
           Alert.alert('Erro', error.response?.data?.error || 'Não foi possível completar a missão.');
         }
     
-        fetchMissions()
+        fetchMissionsDiary()
     }
 
     const handleDeleteMission = (missionId: number) => {
@@ -229,7 +248,7 @@ export default function MissionSection(){
           try {
             await axios.delete(`${API_URL}/api/missionapi/delete/${missionId}`);
             Alert.alert('Missão excluída com sucesso!');
-            fetchMissions();
+            fetchMissionsDiary();
           } catch (error: any) {
             console.error('Erro ao excluir missão:', error);
             Alert.alert('Erro ao excluir missão', error.response?.data?.message || 'Erro ao tentar excluir.');
@@ -304,23 +323,12 @@ export default function MissionSection(){
                             
                             
                             </View>
-                            {item.situacao === 'Em progresso' && (
-                              item.iniciado ? (
-                                  <TouchableOpacity onPress={async () => handleCompleteMission(item.id, await getUserId())}>
-                                      <CheckIcon size={30} color="green" />
-                                  </TouchableOpacity>
-                              ) : (
-                                  <TouchableOpacity onPress={() => handleStartMission(item.id)}>
-                                      <PlayIcon size={30} color="blue" />
-                                  </TouchableOpacity>
-                              )
+                            {item.situacao == 'Em progresso' && (
+                            <TouchableOpacity onPress={async () => handleCompleteMission(item.id, await getUserId())}>
+                                <CheckIcon size={30} color="green" />
+                            </TouchableOpacity>
                             )}
                         </View>
-                        {item.iniciado && (
-                          <Text className="text-yellow-400 font-vt323">
-                              Tempo mínimo restante (60%): {calculateMinimumTimeRemaining(item.prazo, item.registroInicio)}
-                          </Text>
-                        )}
                     </View>
                 )}
             />
@@ -339,9 +347,9 @@ export default function MissionSection(){
             <MissionModal
                 visible={modalVisibleMission}
                 onClose={() => setModalVisibleMission(false)}
-                onSave={fetchMissions} // Atualiza a lista após salvar
+                onSave={fetchMissionsDiary} // Atualiza a lista após salvar
                 mission={selectedMission} // Se for edição, passa a missão, senão é null
-                diary={false}
+                diary={true}
             />
 
             <ConfirmationModal

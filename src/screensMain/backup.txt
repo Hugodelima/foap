@@ -104,3 +104,8 @@ export default function ChangeUserDataScreen() {
     </View>
   );
 }
+
+
+"react-native-push-notification": "^8.1.1",
+
+"react-native-background-actions": "^4.0.1",

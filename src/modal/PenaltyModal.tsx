@@ -4,6 +4,7 @@ import axios from 'axios';
 import { API_URL } from '@env';
 import * as SecureStore from 'expo-secure-store';
 import { Picker } from '@react-native-picker/picker';
+import { useFetchStatusUser } from '../hooks/useFetchDataStatus';
 
 interface PenaltyModalProps {
   visible: boolean;
@@ -14,11 +15,17 @@ interface PenaltyModalProps {
 
 export default function PenaltyModal({ visible, onClose, onSave, penalty }: PenaltyModalProps) {
   const isEditing = !!penalty;
+  
+  const { userData } = useFetchStatusUser();
 
   const [title, setTitle] = useState('');
   const [difficulty, setDifficulty] = useState('Fácil');
   const [rank, setRank] = useState('F');
   const [status, setStatus] = useState('Pendente');
+
+  const availableRanks = ['F', 'E', 'D', 'C', 'B', 'A', 'S', 'SS', 'SSS', 'SSS+'];
+  const userRankIndex = availableRanks.indexOf(userData?.rank);
+  const userRanks = userRankIndex !== -1 ? availableRanks.slice(0, userRankIndex + 1) : ['F'];
 
   useEffect(() => {
     if (penalty) {
@@ -101,7 +108,7 @@ export default function PenaltyModal({ visible, onClose, onSave, penalty }: Pena
           <Text className="text-white mb-1 text-xl">Rank</Text>
           <View className="bg-gray-100 rounded-2xl mb-3">
             <Picker selectedValue={rank} onValueChange={(itemValue) => setRank(itemValue)}>
-              {['F', 'E', 'D', 'C', 'B', 'A', 'S', 'SS', 'SSS', 'SSS+'].map((level) => (
+              {userRanks.map((level) => (
                 <Picker.Item key={level} label={level} value={level} />
               ))}
             </Picker>

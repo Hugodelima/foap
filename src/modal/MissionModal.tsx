@@ -6,6 +6,7 @@ import * as SecureStore from 'expo-secure-store';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import moment from 'moment';
 import { Picker } from '@react-native-picker/picker';
+import { useFetchStatusUser } from '../hooks/useFetchDataStatus';
 
 interface Penalty {
   id: string;
@@ -18,9 +19,12 @@ interface ModalComponentProps {
   mission: any | null; // Passar a missão para editar (caso exista)
   onClose: () => void;
   onSave: () => void;
+  diary: boolean
 }
 
-export default function ModalMission({ visible, mission, onClose, onSave }: ModalComponentProps) {
+export default function ModalMission({ visible, mission, onClose, onSave, diary }: ModalComponentProps) {
+
+  const { userData } = useFetchStatusUser();
   const [title, setTitle] = useState('');
   const [difficulty, setDifficulty] = useState('Fácil');
   const [rank, setRank] = useState('F');
@@ -28,7 +32,13 @@ export default function ModalMission({ visible, mission, onClose, onSave }: Moda
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [penalties, setPenalties] = useState<Penalty[]>([]);
   const [selectedPenalties, setSelectedPenalties] = useState<string[]>([]);
-  const [repetition, setRepetition] = useState('Não'); 
+  const [repetition, setRepetition] = useState(diary ? 'Diariamente' : 'Nunca' ); 
+
+  const availableRanks = ['F', 'E', 'D', 'C', 'B', 'A', 'S', 'SS', 'SSS', 'SSS+'];
+
+  // Filtrar os ranks disponíveis com base no rank atual do usuário
+  const userRankIndex = availableRanks.indexOf(userData?.rank);
+  const filteredRanks = availableRanks.slice(0, userRankIndex + 1);
 
   useEffect(() => {
     if (visible) {
@@ -78,7 +88,7 @@ export default function ModalMission({ visible, mission, onClose, onSave }: Moda
       const tomorrow = moment().add(1, 'day').startOf('day');
   
       // Validação adicional para o prazo
-      if (repetition === 'Não' && moment(deadline).isBefore(tomorrow)) {
+      if (repetition === 'Nunca' && moment(deadline).isBefore(tomorrow)) {
         Alert.alert(
           'Erro',
           'O prazo deve ser a partir de amanhã quando a repetição for "Nunca".'
@@ -112,7 +122,40 @@ export default function ModalMission({ visible, mission, onClose, onSave }: Moda
           } else {
             // Criação de missão
             response = await axios.post(`${API_URL}/api/missionapi/create`, missionData);
-            Alert.alert('Missão Criada', response.data.message);
+            // Pegamos a data de agora (momento da criação da missão)
+            const now = new Date();
+            now.setHours(now.getHours() - 4);// ajustado para horario de cuiaba
+            console.log("Data atual (now):", now);
+
+            const prazoFinal = new Date(missionData.prazo);
+            prazoFinal.setUTCHours(23, 59, 59, 999); // ajustado para horario de cuiaba
+            console.log("Prazo final (prazoFinal):", prazoFinal);
+
+            const intervaloTotal = prazoFinal - now;
+            console.log("Intervalo total em ms:", intervaloTotal);
+
+            const prazoMinimoMs = now.getTime() + intervaloTotal * 0.6;
+            const prazoMinimo = new Date(prazoMinimoMs);
+            console.log("Prazo mínimo em ms:", prazoMinimoMs);
+            console.log("Prazo mínimo (prazoMinimo):", prazoMinimo);
+
+            // Calculamos a diferença entre o prazo mínimo e agora
+            const diffInMilliseconds = prazoMinimo - now;
+            console.log("Diferença entre agora e o prazo mínimo (ms):", diffInMilliseconds);
+
+            const diffInDays = Math.floor(diffInMilliseconds / (1000 * 60 * 60 * 24));
+            const diffInHours = Math.floor((diffInMilliseconds % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const diffInMinutes = Math.floor((diffInMilliseconds % (1000 * 60 * 60)) / (1000 * 60));
+
+            console.log(`Tempo mínimo para conclusão: ${diffInDays} dias, ${diffInHours} horas e ${diffInMinutes} minutos`);
+
+            // Formatar mensagem do alerta
+            const prazoMinimoString = `${diffInDays} dias, ${diffInHours} horas e ${diffInMinutes} minutos`;
+
+            Alert.alert(
+              'Missão Criada',
+              `${response.data.message}\nVocê precisa esperar pelo menos ${prazoMinimoString} para concluir a missão.`,
+            );
           }
   
           setTitle('');
@@ -175,16 +218,9 @@ export default function ModalMission({ visible, mission, onClose, onSave }: Moda
                   <Text className="text-white mb-1 text-xl">Rank</Text>
                   <View className="bg-gray-100 rounded-2xl mb-3">
                     <Picker selectedValue={rank} onValueChange={(itemValue) => setRank(itemValue)}>
-                      <Picker.Item label="F" value="F" />
-                      <Picker.Item label="E" value="E" />
-                      <Picker.Item label="D" value="D" />
-                      <Picker.Item label="C" value="C" />
-                      <Picker.Item label="B" value="B" />
-                      <Picker.Item label="A" value="A" />
-                      <Picker.Item label="S" value="S" />
-                      <Picker.Item label="SS" value="SS" />
-                      <Picker.Item label="SSS" value="SSS" />
-                      <Picker.Item label="SSS+" value="SSS+" />
+                      {filteredRanks.map((rankOption) => (
+                        <Picker.Item key={rankOption} label={rankOption} value={rankOption} />
+                      ))}
                     </Picker>
                   </View>
 

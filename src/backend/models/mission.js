@@ -15,6 +15,23 @@ const Mission = sequelize.define('Mission', {
     type: DataTypes.DATE,
     allowNull: false,
   },
+  prazoMinimo: {
+    type: DataTypes.DATE,
+    allowNull: false,
+  },
+  registroInicio: {
+    type: DataTypes.DATE,
+    allowNull: true,
+  },
+  registroFim: {
+    type: DataTypes.DATE,
+    allowNull: true,
+  },
+  iniciado: {
+    type: DataTypes.BOOLEAN,
+    allowNull: false,
+    defaultValue: false,
+  },
   dificuldade: {
     type: DataTypes.ENUM('Fácil', 'Médio', 'Difícil', 'Absurdo'),
     allowNull: false,
