@@ -144,12 +144,13 @@ export default function PenaltySection(){
 
                 <View className="flex-row justify-between mt-2 mb-2">
                     {/* Botões somente se o status for "Pendente" */}
-                    {item.situacao === 'Pendente' && (
+                    {item.situacao === 'Pendente' && item.id_missao == null && (
                     <>
                         {/* Botão para Editar Penalidade */}
                         <TouchableOpacity onPress={() => handleEditPenalty(item)} className="mr-4">
                             <PencilIcon size={30} color="orange" />
                         </TouchableOpacity>
+                        
 
                         {/* Botão para Excluir Penalidade */}
                         <TouchableOpacity onPress={() => handleDeletePenalty(item.id)} className="mr-4">

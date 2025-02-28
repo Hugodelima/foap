@@ -114,33 +114,38 @@ export default function MissionSection(){
       return `${hours}h ${minutes}m`;
     }
     function calculateMinimumTimeRemaining(prazo: string, dataInicio?: string): string {
-  
       const inicioDate = new Date(dataInicio);
       const prazoDate = new Date(prazo);
-      
+    
       // Ajustar para o fuso horário de Cuiabá
       inicioDate.setHours(inicioDate.getHours() - 4);
       prazoDate.setHours(prazoDate.getHours() - 4);
-  
+    
       const totalMilliseconds = prazoDate.getTime() - inicioDate.getTime();
-      const minExecutionMilliseconds = totalMilliseconds * 0.6; // 60% do prazo total
-  
+      const minExecutionMilliseconds = totalMilliseconds * 0.6;
+    
       const prazoMinimo = new Date(inicioDate.getTime() + minExecutionMilliseconds);
       const now = new Date();
       now.setHours(now.getHours() - 4);
-  
+    
       const diffInMilliseconds = prazoMinimo.getTime() - now.getTime();
-  
-      if (diffInMilliseconds <= 0) {
-          return "Tempo mínimo atingido";
-      }
-  
-      const diffInMinutes = Math.floor(diffInMilliseconds / 60000);
-      const hours = Math.floor(diffInMinutes / 60);
-      const minutes = diffInMinutes % 60;
-  
-      return `${hours}h ${minutes}m`;
+    
+    
+      const totalMinutes = Math.floor(diffInMilliseconds / 60000);
+      const days = Math.floor(totalMinutes / 1440); // 1440 minutos em um dia
+      const hours = Math.floor((totalMinutes % 1440) / 60);
+      const minutes = totalMinutes % 60;
+    
+      // Monta o retorno apenas com valores diferentes de zero
+      const timeParts = [];
+      if (days > 0) timeParts.push(`${days} dia${days > 1 ? "s" : ""}`);
+      if (hours > 0) timeParts.push(`${hours} hora${hours > 1 ? "s" : ""}`);
+      if (minutes > 0) timeParts.push(`${minutes} minuto${minutes > 1 ? "s" : ""}`);
+    
+      return timeParts.join(", ");
     }
+    
+    
 
     function calculateTimeRemaining(prazo: string): string {
         // Criar a data com base no prazo recebido
@@ -193,35 +198,88 @@ export default function MissionSection(){
           console.error('Erro ao buscar missões:', error);
         }
     };//16 e 48 minutos
-    const handleStartMission = async (missionId: number) => {
+    const handleStartMission = async (missionId: number, prazoFinal: string, criado_em: string) => {
       try {
-        const response = await axios.put(`${API_URL}/api/missionapi/start/${missionId}`);
+        const agora = new Date();
+        //const agora = new Date("2025-02-28T18:28:09-04:00");
+        const prazoFinalDate = new Date(prazoFinal);
+        const criadoEmDate = new Date(criado_em); 
+        //console.log('agora: '+agora)
+        //console.log('prazoFinalDate: '+prazoFinalDate)
+        //console.log('criadoEmDate: '+criadoEmDate)
+    
+        const prazoTotalMs = prazoFinalDate.getTime() - criadoEmDate.getTime();
         
+        const tempoMinimoMs = prazoTotalMs * 0.6;
+    
+        const tempoRestanteMs = prazoFinalDate.getTime() - agora.getTime();
+    
+        //console.log(`Prazo total: ${prazoTotalMs / 1000 / 60 / 60} horas`);
+        //console.log(`Tempo mínimo necessário: ${tempoMinimoMs / 1000 / 60 / 60} horas`);
+        //console.log(`Tempo restante: ${tempoRestanteMs / 1000 / 60 / 60} horas`);
+    
+
+        if (tempoRestanteMs < tempoMinimoMs) {
+          Alert.alert("Tempo restante insuficiente.");
+          return; 
+        }
+    
+        const response = await axios.put(`${API_URL}/api/missionapi/start/${missionId}`);
+    
         if (response.status === 200) {
           setMissions((prevMissions) =>
             prevMissions.map((mission) =>
               mission.id === missionId ? { ...mission, iniciado: true } : mission
             )
           );
+          Alert.alert("Missão iniciada com sucesso!");
         }
       } catch (error) {
-        console.error('Erro ao iniciar missão:', error);
+        console.error("Erro ao iniciar missão:", error);
       }
     };
+    
+
+    
+    
   
 
-    async function handleCompleteMission(missionId, userId) {
-
-        try {
-          const response = await axios.put(`${API_URL}/api/missionapi/complete/${missionId}`, { userId });
-          const { message } = response.data;
-          Alert.alert('Sucesso', message);
-        } catch (error) {
-          console.error('Erro ao completar missão:', error);
-          Alert.alert('Erro', error.response?.data?.error || 'Não foi possível completar a missão.');
+    async function handleCompleteMission(missionId, criadoEm, prazoFinal, userId) {
+      try {
+        const inicioDate = new Date(criadoEm);
+        const prazoDate = new Date(prazoFinal);
+    
+        // Ajustar para o fuso horário de Cuiabá
+        inicioDate.setHours(inicioDate.getHours());
+        prazoDate.setHours(prazoDate.getHours());
+        console.log('inicioDate: '+inicioDate)
+        console.log('prazoDate: '+prazoDate)
+        // Cálculo de 60% do tempo total da missão
+        const totalMilliseconds = prazoDate.getTime() - inicioDate.getTime();
+        const minExecutionMilliseconds = totalMilliseconds * 0.6;
+        const prazoMinimo = new Date(inicioDate.getTime() + minExecutionMilliseconds);
+    
+        const now = new Date();
+        //const now = new Date("2025-02-28T18:28:09-04:00");
+        console.log('now: '+now)
+    
+        // Se ainda não atingiu o tempo mínimo, barrar a conclusão
+        if (now < prazoMinimo) {
+          const tempoRestante = calculateMinimumTimeRemaining(prazoFinal, criadoEm);
+          Alert.alert('Atenção', `Ainda não é possível concluir a missão.\nTempo restante: ${tempoRestante}`);
+          return;
         }
     
-        fetchMissions()
+        // Se passou do tempo mínimo, permite a conclusão
+        const response = await axios.put(`${API_URL}/api/missionapi/complete/${missionId}`, { userId,now });
+        const { message } = response.data;
+        Alert.alert('Sucesso', message);
+        
+        fetchMissions();
+      } catch (error) {
+        console.error('Erro ao completar missão:', error);
+        Alert.alert('Erro', error.response?.data?.error || 'Não foi possível completar a missão.');
+      }
     }
 
     const handleDeleteMission = (missionId: number) => {
@@ -291,7 +349,7 @@ export default function MissionSection(){
 
                     <View className="flex-row justify-between mt-4">
                         <View className="flex-row">
-                          {item.situacao !== "Finalizada" && item.situacao !== "Não finalizada" && (
+                          {item.situacao !== "Finalizada" && item.situacao !== "Não finalizada" && item.iniciado !==  true &&(
                             <>
                               <TouchableOpacity onPress={() => handleEditMission(item)} className="mr-4">
                                 <PencilIcon size={30} color="orange" />
@@ -306,12 +364,12 @@ export default function MissionSection(){
                             </View>
                             {item.situacao === 'Em progresso' && (
                               item.iniciado ? (
-                                  <TouchableOpacity onPress={async () => handleCompleteMission(item.id, await getUserId())}>
+                                  <TouchableOpacity onPress={async () => handleCompleteMission(item.id, item.criado_em, item.prazo, await getUserId())}>
                                       <CheckIcon size={30} color="green" />
                                   </TouchableOpacity>
                               ) : (
-                                  <TouchableOpacity onPress={() => handleStartMission(item.id)}>
-                                      <PlayIcon size={30} color="blue" />
+                                  <TouchableOpacity onPress={() => handleStartMission(item.id, item.prazo, item.criado_em)}>
+                                      <PlayIcon size={30} color="green" />
                                   </TouchableOpacity>
                               )
                             )}

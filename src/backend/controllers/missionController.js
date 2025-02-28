@@ -124,8 +124,6 @@ const createMission = async (req, res) => {
     const now = new Date();
     const totalMilliseconds = prazoDate.getTime() - now.getTime();
     const minExecutionMilliseconds = totalMilliseconds * 0.6;
-    const prazoMinimoDate = new Date(now.getTime() + minExecutionMilliseconds);
-    const prazoMinimo = prazoMinimoDate.toISOString();
 
     // Calcula recompensas com base na dificuldade e rank
     const { recompensaXp: valorXp, recompensaOuro: valorOuro, recompensaPd: valorPd } = calcularRecompensas(dificuldade, rank);
@@ -135,7 +133,6 @@ const createMission = async (req, res) => {
       titulo,
       rank,
       prazo: prazoFinal,
-      prazoMinimo,  
       iniciado: false,  
       dificuldade,
       valorXp,
@@ -287,7 +284,7 @@ const deleteMission = async (req, res) => {
 
 const completeMission = async (req, res) => {
   const { id } = req.params;
-  const { userId } = req.body;
+  const { userId,now } = req.body;
 
   try {
     const mission = await Mission.findByPk(id, {
@@ -303,6 +300,8 @@ const completeMission = async (req, res) => {
     }
 
     mission.situacao = 'Finalizada';
+    mission.iniciado = false;
+    mission.registroFim = now
     await mission.save();
 
     const userStatus = await Status.findOne({ where: { id_usuario: userId } });

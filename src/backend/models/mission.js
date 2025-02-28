@@ -15,10 +15,6 @@ const Mission = sequelize.define('Mission', {
     type: DataTypes.DATE,
     allowNull: false,
   },
-  prazoMinimo: {
-    type: DataTypes.DATE,
-    allowNull: false,
-  },
   registroInicio: {
     type: DataTypes.DATE,
     allowNull: true,
