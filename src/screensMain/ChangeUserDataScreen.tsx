@@ -1,106 +1,68 @@
-import React, { useState, useEffect } from 'react';
-import { Text, View, TouchableOpacity, DevSettings } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import React, { PureComponent } from 'react'
+import { Text, View, Image, Button, TouchableOpacity, FlatList, DevSettings } from 'react-native'
+import { SafeAreaView } from 'react-native-safe-area-context'
+
 import { ArrowLeftIcon } from 'react-native-heroicons/solid';
+
+import { NavigationProps } from '../navigation/types';
 import { useNavigation } from '@react-navigation/native';
+
+import levelUp_image from '../assets/images/home/levelUp_home.png';
+import xp_image from '../assets/images/mission/xp.png';
+import xpFaltante_image from '../assets/images/experience/xp_without.png'
+
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import * as Notifications from 'expo-notifications';
-import DateTimePicker from '@react-native-community/datetimepicker';
+
 
 import { useFetchUserData } from '../hooks/useFetchDataUser';
+import { getUserId } from '../screensBottom/ProgressScreen';
 
-export default function ChangeUserDataScreen() {
-  const navigation = useNavigation();
+export default function ChangeUserDataScreen(){ 
+  
+  const navigation = useNavigation<NavigationProps>();
   const { userData } = useFetchUserData();
-  const [selectedHour, setSelectedHour] = useState(new Date().getHours());
-  const [showPicker, setShowPicker] = useState(false);
 
-  useEffect(() => {
-    Notifications.requestPermissionsAsync();
-    Notifications.setNotificationHandler({
-      handleNotification: async () => ({
-        shouldShowAlert: true,
-        shouldPlaySound: false,
-        shouldSetBadge: false,
-      }),
-    });
-    const loadStoredHour = async () => {
-      const storedHour = await AsyncStorage.getItem('notificationHour');
-      if (storedHour) {
-        setSelectedHour(parseInt(storedHour));
-      }
-    };
 
-    loadStoredHour();
-
-    const checkNotification = async () => {
-      const currentHour = new Date().getHours();
-      if (currentHour === selectedHour) {
-        console.log('f')
-        scheduleNotification();
-      }
-    };
-
-    const interval = setInterval(checkNotification, 3600000); // Verifica a cada hora
-
-    return () => clearInterval(interval);
-  }, [selectedHour]);
-
-  const scheduleNotification = async () => {
-    await Notifications.cancelAllScheduledNotificationsAsync();
-
-    await Notifications.scheduleNotificationAsync({
-      content: {
-        title: 'Lembrete',
-        body: 'Verifique suas atividades',
-        data: { screen: 'Home' },
-      },
-      trigger: null, // Dispara imediatamente
-    });
-  };
-
-  const saveNotificationHour = async () => {
-    await AsyncStorage.setItem('notificationHour', selectedHour.toString());
-  };
+  async function signOutBD(){
+    await AsyncStorage.setItem('isLoggedIn','')
+    DevSettings.reload()
+  }
 
   return (
     <View className="flex-1 bg-neutral-900">
       <SafeAreaView className="bg-neutral-800 rounded-b-lg border-b-8 border-cyan-500 flex-row items-center p-2">
-        <TouchableOpacity onPress={() => navigation.goBack()} className='bg-blue-400 p-2 rounded-tr-2xl rounded-bl-2xl ml-4 mt-4'>
-          <ArrowLeftIcon size={30} color='black' />
-        </TouchableOpacity>
+        <View className=''>
+          <TouchableOpacity onPress={() => navigation.goBack()} className='bg-blue-400 p-2 rounded-tr-2xl rounded-bl-2x1 ml-4 mt-4'>
+              <ArrowLeftIcon size='30' color='black' />
+          </TouchableOpacity>
+          
+        </View>
         <Text className='font-vt323 text-white mt-4 ml-4 text-xl'>Configurações Cadastrais</Text>
       </SafeAreaView>
       <View className='mt-4'>
-        <Text className='font-vt323 text-white border-b-2 border-white text-2xl pl-2'>Notificações</Text>
+        <Text className='font-vt323 text-white border-b-2 border-white text-2xl pl-2'>Conta</Text>
         <View className='ml-4'>
-          <Text className='font-vt323 text-white'>Defina a hora para receber lembretes:</Text>
-          <TouchableOpacity onPress={() => setShowPicker(true)} className='bg-gray-700 rounded p-2 mt-2'>
-            <Text className='text-white'>{`${selectedHour}:00`}</Text>
-          </TouchableOpacity>
-          {showPicker && (
-            <DateTimePicker
-              value={new Date(0, 0, 0, selectedHour, 0)}
-              mode="time"
-              is24Hour={true}
-              display="default"
-              onChange={(event, date) => {
-                setShowPicker(false);
-                if (date) setSelectedHour(date.getHours());
-              }}
-            />
-          )}
-          <TouchableOpacity onPress={saveNotificationHour} className='bg-green-500 rounded p-3 mt-2'>
-            <Text className='text-white text-center'>Salvar Horário</Text>
-          </TouchableOpacity>
+            <View>
+                <Text className='font-vt323 text-white'>Nome de Usuário</Text>
+                <Text className='font-vt323 text-white'>{userData?.nome_usuario}</Text>
+            </View>
+            <View>
+                <Text className='font-vt323 text-white'>E-mail</Text>
+                <Text className='font-vt323 text-white'>{userData?.email}</Text>
+            </View>
+        </View>
+        <Text className='font-vt323 text-white border-b-2 border-white text-xl pl-2'>Sair</Text>
+        <View className='ml-4'>
+            <TouchableOpacity onPress={() => signOutBD()} className='bg-cyan-500 rounded-full p-3 mt-4'>
+                <Text className='font-vt323'>Desconectar-se</Text>
+            </TouchableOpacity>
         </View>
 
-        <Text className='font-vt323 text-white border-b-2 border-white text-xl pl-2'>Conta</Text>
-        <View className='ml-4'>
-          <Text className='font-vt323 text-white'>Nome de Usuário: {userData?.nome_usuario}</Text>
-          <Text className='font-vt323 text-white'>E-mail: {userData?.email}</Text>
-        </View>
+       
+    
       </View>
     </View>
-  );
+  )
+  
 }
+

@@ -11,6 +11,7 @@ const routerStatus = require('../routes/routerStatus')
 const routerMissionHistory = require('../routes/routerMissionHistoryDiary')
 const routerAttribute = require('../routes/routerAttribute')
 const routerVerifications = require('../routes/routerVerification');
+const routerBadge = require('../routes/routerBadge');
 
 const app = express();
 
@@ -27,6 +28,7 @@ app.use('/api/statusapi', routerStatus);
 app.use('/api/missionhistorynapi', routerMissionHistory);
 app.use('/api/attributeapi', routerAttribute);
 app.use('/api/verificationapi', routerVerifications);
+app.use('/api/badgeapi', routerBadge);
 
 
 const PORT = process.env.PORT;

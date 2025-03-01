@@ -30,6 +30,9 @@ export default function ModalComponent({ visible, onClose, onNavigate }: ModalCo
           <TouchableOpacity onPress={() => { onClose(); onNavigate('ExperienceScreen'); }}>
             <Text className="text-white text-lg mb-3">Experiência</Text>
           </TouchableOpacity>
+          <TouchableOpacity onPress={() => { onClose(); onNavigate('BadgeScreen'); }}>
+            <Text className="text-white text-lg mb-3">Medalhas</Text>
+          </TouchableOpacity>
           <TouchableOpacity onPress={onClose}>
             <Text className="text-red-600 text-lg text-center">Fechar</Text>
           </TouchableOpacity>

@@ -10,6 +10,26 @@ import * as SecureStore from 'expo-secure-store';
 import { useBackButtonHandler } from '../hooks/useBackButtonHandler';
 import signup_image from '../assets/images/signup/Sign_Up.png'
 
+import rank_f from '../assets/images/badges/rank_f.png';
+import rank_e from '../assets/images/badges/rank_e.png';
+import rank_d from '../assets/images/badges/rank_d.png';
+import rank_c from '../assets/images/badges/rank_c.png';
+import rank_b from '../assets/images/badges/rank_b.png';
+import rank_a from '../assets/images/badges/rank_a.png';
+import rank_s from '../assets/images/badges/rank_s.png';
+import rank_ss from '../assets/images/badges/rank_ss.png';
+import rank_sss from '../assets/images/badges/rank_sss.png';
+import rank_sss_plus from '../assets/images/badges/rank_sss_plus.png';
+import iniciante from '../assets/images/badges/inciante.jpg';
+import guerreiro_da_rotina from '../assets/images/badges/guerreiro_da_rotina.jpg';
+import mestre_da_disciplina from '../assets/images/badges/mestre_da_disciplina.jpg';
+import maratonista from '../assets/images/badges/maratonista.jpg';
+import imbativel from '../assets/images/badges/imbativel.jpg';
+import cacador_de_ouro from '../assets/images/badges/cacador_de_ouro.jpg';
+import poder_supremo from '../assets/images/badges/poder_supremo.png';
+import estrategista from '../assets/images/badges/estrategista.png';
+import lendario from '../assets/images/badges/lendario.png';
+
 export default function SignUpScreen() {
   const navigation = useNavigation<NavigationProps>();
 
@@ -24,6 +44,64 @@ export default function SignUpScreen() {
     const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return emailPattern.test(email);
   };
+  const crateAttributeAndBadges = async (userID) => {
+    const atributos = [
+      { nome: 'Inteligência', tipo: 'Mental', valor: 0, icone: 'https://cdn-icons-png.flaticon.com/512/1945/1945713.png' },
+      { nome: 'Criatividade', tipo: 'Mental', valor: 0, icone: 'https://cdn-icons-png.flaticon.com/512/1497/1497726.png' },
+      { nome: 'Disciplina', tipo: 'Mental', valor: 0, icone: 'https://cdn-icons-png.flaticon.com/512/4729/4729468.png' },
+      { nome: 'Confiança', tipo: 'Mental', valor: 0, icone: 'https://cdn-icons-png.flaticon.com/512/5828/5828162.png' },
+      { nome: 'Carisma', tipo: 'Mental', valor: 0, icone: 'https://cdn-icons-png.flaticon.com/512/8420/8420287.png' },
+      { nome: 'Empatia', tipo: 'Mental', valor: 0, icone: 'https://cdn-icons-png.flaticon.com/512/5894/5894104.png' },
+      { nome: 'Comunicação', tipo: 'Mental', valor: 0, icone: 'https://cdn-icons-png.flaticon.com/512/5864/5864217.png' },
+      { nome: 'Agilidade', tipo: 'Físico', valor: 0, icone: 'https://cdn-icons-png.flaticon.com/512/1388/1388519.png' },
+      { nome: 'Resistência', tipo: 'Físico', valor: 0, icone: 'https://cdn-icons-png.flaticon.com/512/15888/15888479.png' },
+      { nome: 'Flexibilidade', tipo: 'Físico', valor: 0, icone: 'https://cdn-icons-png.flaticon.com/512/2373/2373008.png' },
+      { nome: 'Equilíbrio', tipo: 'Físico', valor: 0, icone: 'https://cdn-icons-png.flaticon.com/512/2043/2043960.png' },
+      { nome: 'Força', tipo: 'Físico', valor: 0, icone: 'https://cdn-icons-png.flaticon.com/512/3476/3476001.png' },
+      { nome: 'Reação', tipo: 'Físico', valor: 0, icone: 'https://cdn-icons-png.flaticon.com/512/764/764221.png' },
+      { nome: 'Velocidade', tipo: 'Físico', valor: 0, icone: 'https://cdn-icons-png.flaticon.com/512/6534/6534475.png' },
+    ];
+  
+    const badges = [
+      { titulo: "Rank F", descricao: "Alcançou o rank F", conquista: false, icone: rank_f },
+      { titulo: "Rank E", descricao: "Alcançou o rank E", conquista: false, icone: rank_e },
+      { titulo: "Rank D", descricao: "Alcançou o rank D", conquista: false, icone: rank_d },
+      { titulo: "Rank C", descricao: "Alcançou o rank C", conquista: false, icone: rank_c },
+      { titulo: "Rank B", descricao: "Alcançou o rank B", conquista: false, icone: rank_b },
+      { titulo: "Rank A", descricao: "Alcançou o rank A", conquista: false, icone: rank_a },
+      { titulo: "Rank S", descricao: "Alcançou o rank S", conquista: false, icone: rank_s },
+      { titulo: "Rank SS", descricao: "Alcançou o rank SS", conquista: false, icone: rank_ss },
+      { titulo: "Rank SSS", descricao: "Alcançou o rank SSS", conquista: false, icone: rank_sss },
+      { titulo: "Rank SSS+", descricao: "Alcançou o rank SSS+", conquista: false, icone: rank_sss_plus },
+      { titulo: "Iniciante", descricao: "Primeira missão concluída com sucesso.", conquista: false, icone: iniciante },
+      { titulo: "Guerreiro da Rotina", descricao: "Completou 10 missões.", conquista: false, icone: guerreiro_da_rotina },
+      { titulo: "Mestre da Disciplina", descricao: "Completou 50 missões.", conquista: false, icone: mestre_da_disciplina },
+      { titulo: "Lendário", descricao: "Completou 100 missões.", conquista: false, icone: lendario },
+      { titulo: "Maratonista", descricao: "Realizou uma missão diária por 7 dias seguidos.", conquista: false, icone: maratonista },
+      { titulo: "Imbatível", descricao: "Completou uma missão absurda.", conquista: false, icone: imbativel },
+      { titulo: "Caçador de Ouro", descricao: "Acumulou 10.000 de ouro.", conquista: false, icone: cacador_de_ouro },
+      { titulo: "Poder Supremo", descricao: "Acumulou 1.000 pontos de disponíveis.", conquista: false, icone: poder_supremo },
+      { titulo: "Estrategista", descricao: "Usou penalidades de forma eficaz para otimizar missões.", conquista: false, icone: estrategista },
+    ];
+  
+    try {
+      // Criar atributos e badges simultaneamente
+      await Promise.all([
+        Promise.all(atributos.map(atributo =>
+          axios.post(`${API_URL}/api/attributeapi/create`, { ...atributo, id_usuario: userID })
+        )),
+        Promise.all(badges.map(badge =>
+          axios.post(`${API_URL}/api/badgeapi/create`, { ...badge, id_usuario: userID })
+        ))
+      ]);
+  
+      console.log('Atributos e badges criados com sucesso.');
+    } catch (error) {
+      console.error('Erro ao criar atributos ou badges:', error);
+      Alert.alert('Erro', 'Falha ao criar atributos ou badges.');
+    }
+  };
+  
   const handleRegister = async () => {
     if (username.length === 0 || email.length === 0 || password.length === 0 || confirmPassword.length === 0) {
       Alert.alert("Erro", "Preencha todos os campos corretamente");
@@ -66,38 +144,9 @@ export default function SignUpScreen() {
           console.error('Erro ao criar status:', statusError);
           Alert.alert('Erro', 'Falha ao criar status.');
         }
-        const atributos = [
-          { nome: 'Inteligência', tipo: 'Mental', valor: 0, icone: 'https://cdn-icons-png.flaticon.com/512/1945/1945713.png' },
-          { nome: 'Criatividade', tipo: 'Mental', valor: 0, icone: 'https://cdn-icons-png.flaticon.com/512/1497/1497726.png' },
-          { nome: 'Disciplina', tipo: 'Mental', valor: 0, icone: 'https://cdn-icons-png.flaticon.com/512/4729/4729468.png' },
-          { nome: 'Confiança', tipo: 'Mental', valor: 0, icone: 'https://cdn-icons-png.flaticon.com/512/5828/5828162.png' },
-          { nome: 'Carisma', tipo: 'Mental', valor: 0, icone: 'https://cdn-icons-png.flaticon.com/512/8420/8420287.png' },
-          { nome: 'Empatia', tipo: 'Mental', valor: 0, icone: 'https://cdn-icons-png.flaticon.com/512/5894/5894104.png' },
-          { nome: 'Comunicação', tipo: 'Mental', valor: 0, icone: 'https://cdn-icons-png.flaticon.com/512/5864/5864217.png' },
-        
-          { nome: 'Agilidade', tipo: 'Físico', valor: 0, icone: 'https://cdn-icons-png.flaticon.com/512/1388/1388519.png' },
-          { nome: 'Resistência', tipo: 'Físico', valor: 0, icone: 'https://cdn-icons-png.flaticon.com/512/15888/15888479.png' },
-          { nome: 'Flexibilidade', tipo: 'Físico', valor: 0, icone: 'https://cdn-icons-png.flaticon.com/512/2373/2373008.png' },
-          { nome: 'Equilíbrio', tipo: 'Físico', valor: 0, icone: 'https://cdn-icons-png.flaticon.com/512/2043/2043960.png' },
-          { nome: 'Força', tipo: 'Físico', valor: 0, icone: 'https://cdn-icons-png.flaticon.com/512/3476/3476001.png' },
-          { nome: 'Reação', tipo: 'Físico', valor: 0, icone: 'https://cdn-icons-png.flaticon.com/512/764/764221.png' },
-          { nome: 'Velocidade', tipo: 'Físico', valor: 0, icone: 'https://cdn-icons-png.flaticon.com/512/6534/6534475.png' },
-        ];
-        try {
-          for (const atributo of atributos) {
-            await axios.post(`${API_URL}/api/attributeapi/create`, {
-              ...atributo,
-              id_usuario: userID,
-            });
-          }
-          console.log('Atributos criados com sucesso.');
-        } catch (attributeError) {
-          console.error('Erro ao criar atributos:', attributeError);
-          Alert.alert('Erro', 'Falha ao criar atributos.');
-          return;
-        }
   
-        
+        crateAttributeAndBadges(userID);
+
         await SecureStore.setItemAsync('userStorageID', JSON.stringify(userID)); // Salvar ID do usuario
         await AsyncStorage.setItem('emailVerificationStatus', 'true'); // Marca a verificação como pendente
         await AsyncStorage.setItem('emailVerificationData', JSON.stringify({ email, userID })); // Salva email e userID

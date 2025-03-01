@@ -1,4 +1,3 @@
-// controllers/rewardController.js
 const Reward = require('../models/reward');
 const Status = require('../models/status');
 
