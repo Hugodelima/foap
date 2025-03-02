@@ -13,6 +13,7 @@ import MissionModal from '../modal/MissionModal';
 
 import MissionFilterModal from '../hooks/modalFilterMission';
 import ConfirmationModal from '../modal/ConfirmationModal';
+import BadgeModal from '../modal/BadgeModal';
 
 interface Mission{
     id: number;
@@ -45,6 +46,9 @@ export default function MissionSection(){
 
     const [deleteAction, setDeleteAction] = useState<(() => void) | null>(null);
 
+    const [modalVisibleBadge, setModalVisibleBadge] = useState(false)
+    const [badgesWon, setBadgesWon] = useState([]);
+    
     const executeDelete = () => {
         if (deleteAction) {
           deleteAction();
@@ -272,8 +276,14 @@ export default function MissionSection(){
     
         // Se passou do tempo mínimo, permite a conclusão
         const response = await axios.put(`${API_URL}/api/missionapi/complete/${missionId}`, { userId,now });
-        const { message } = response.data;
+        const { message, badgesGanhas } = response.data;
         Alert.alert('Sucesso', message);
+
+        // Se houver badges ganhas, abre o modal
+        if (badgesGanhas.length > 0) {
+          setBadgesWon(badgesGanhas); // Armazena badges no estado
+          setModalVisibleBadge(true); // Abre o modal
+        }
         
         fetchMissions();
       } catch (error) {
@@ -282,7 +292,7 @@ export default function MissionSection(){
       }
     }
 
-    const handleDeleteMission = (missionId: number) => {
+    const handleDeleteMission = (missionId: number) => {  
         confirmDelete(async () => {
           try {
             await axios.delete(`${API_URL}/api/missionapi/delete/${missionId}`);
@@ -408,6 +418,13 @@ export default function MissionSection(){
                 onConfirm={executeDelete}
                 message="Tem certeza que deseja excluir este item?"
             />
+            <BadgeModal
+              visible={modalVisibleBadge}
+              badge={badgesWon}
+              onClose={() => setModalVisibleBadge(false)}
+              //badgeIcons={badgeIcons}
+            />
+
 
 
         </View>

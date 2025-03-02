@@ -2,13 +2,13 @@ const Badge = require('../models/badge');
 
 const createBadge = async (req, res) => {
     try {
-        const { titulo, descricao, icone, conquista = false, id_usuario } = req.body;
+        const { titulo, descricao, icone, conquistado, id_usuario } = req.body;
 
         const badge = await Badge.create({
             titulo,
             descricao,
             icone,
-            conquista,
+            conquistado,
             id_usuario: JSON.parse(id_usuario)
         });
 

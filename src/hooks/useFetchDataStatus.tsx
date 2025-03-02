@@ -22,6 +22,7 @@ export function useFetchStatusUser() {
       } else {
         setError('ID do usuário não encontrado.');
       }
+      
     } catch (err) {
       setError('Erro ao buscar dados do usuário.');
       console.error(err);

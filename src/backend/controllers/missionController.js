@@ -5,93 +5,41 @@ const User = require('../models/user')
 const sequelize = require('../models/database');
 const { Op, fn, col } = require('sequelize');
 const MissionHistoryDiary = require('../models/missionHistoryDiary');
+const Badge = require('../models/badge');
 const moment = require('moment')
 
-const calcularRecompensas = (dificuldade, rank) => {
+const calcularRecompensas = (dificuldade, rank, penalidades) => {
   let recompensaXp = 0;
   let recompensaOuro = 0;
   let recompensaPd = 0;
 
   switch (dificuldade) {
-    case 'Fácil':
-      recompensaXp = 100;
-      recompensaOuro = 50;
-      recompensaPd = 1;
-      break;
-    case 'Médio':
-      recompensaXp = 200;
-      recompensaOuro = 100;
-      recompensaPd = 2;
-      break;
-    case 'Difícil':
-      recompensaXp = 400;
-      recompensaOuro = 200;
-      recompensaPd = 4;
-      break;
-    case 'Absurdo':
-      recompensaXp = 800;
-      recompensaOuro = 400;
-      recompensaPd = 8;
-      break;
-    default:
-      throw new Error('Dificuldade inválida');
+    case 'Fácil': recompensaXp = 100; recompensaOuro = 50; recompensaPd = 1; break;
+    case 'Médio': recompensaXp = 200; recompensaOuro = 100; recompensaPd = 2; break;
+    case 'Difícil': recompensaXp = 400; recompensaOuro = 200; recompensaPd = 4; break;
+    case 'Absurdo': recompensaXp = 800; recompensaOuro = 400; recompensaPd = 8; break;
+    default: throw new Error('Dificuldade inválida');
   }
-
 
   switch (rank) {
-    case 'F':
-      recompensaXp *= 1;
-      recompensaOuro *= 1;
-      recompensaPd *= 1;
-      break;
-    case 'E':
-      recompensaXp *= 1.1;
-      recompensaOuro *= 1.1;
-      recompensaPd *= 1.1;
-      break;
-    case 'D':
-      recompensaXp *= 1.2;
-      recompensaOuro *= 1.2;
-      recompensaPd *= 1.2;
-      break;
-    case 'C':
-      recompensaXp *= 1.4;
-      recompensaOuro *= 1.4;
-      recompensaPd *= 1.4;
-      break;
-    case 'B':
-      recompensaXp *= 1.6;
-      recompensaOuro *= 1.6;
-      recompensaPd *= 1.6;
-      break;
-    case 'A':
-      recompensaXp *= 1.8;
-      recompensaOuro *= 1.8;
-      recompensaPd *= 1.8;
-      break;
-    case 'S':
-      recompensaXp *= 2;
-      recompensaOuro *= 2;
-      recompensaPd *= 2;
-      break;
-    case 'SS':
-      recompensaXp *= 2.2;
-      recompensaOuro *= 2.2;
-      recompensaPd *= 2.2;
-      break;
-    case 'SSS':
-      recompensaXp *= 2.4;
-      recompensaOuro *= 2.4;
-      recompensaPd *= 2.4;
-      break;
-    case 'SSS+':
-      recompensaXp *= 2.6;
-      recompensaOuro *= 2.6;
-      recompensaPd *= 2.6;
-      break;
-    default:
-      throw new Error('Rank inválido');
+    case 'F': break;
+    case 'E': recompensaXp *= 1.1; recompensaOuro *= 1.1; recompensaPd *= 1.1; break;
+    case 'D': recompensaXp *= 1.2; recompensaOuro *= 1.2; recompensaPd *= 1.2; break;
+    case 'C': recompensaXp *= 1.4; recompensaOuro *= 1.4; recompensaPd *= 1.4; break;
+    case 'B': recompensaXp *= 1.6; recompensaOuro *= 1.6; recompensaPd *= 1.6; break;
+    case 'A': recompensaXp *= 1.8; recompensaOuro *= 1.8; recompensaPd *= 1.8; break;
+    case 'S': recompensaXp *= 2; recompensaOuro *= 2; recompensaPd *= 2; break;
+    case 'SS': recompensaXp *= 2.2; recompensaOuro *= 2.2; recompensaPd *= 2.2; break;
+    case 'SSS': recompensaXp *= 2.4; recompensaOuro *= 2.4; recompensaPd *= 2.4; break;
+    case 'SSS+': recompensaXp *= 2.6; recompensaOuro *= 2.6; recompensaPd *= 2.6; break;
+    default: throw new Error('Rank inválido');
   }
+
+  // **Ajuste pela quantidade de penalidades**
+  const penalidadeImpacto = penalidades.length * 0.05; // 5% de aumento por penalidade
+  recompensaXp *= 1 + penalidadeImpacto;
+  recompensaOuro *= 1 + penalidadeImpacto;
+  recompensaPd *= 1 + penalidadeImpacto;
 
   return {
     recompensaXp: Math.round(recompensaXp),
@@ -125,8 +73,16 @@ const createMission = async (req, res) => {
     const totalMilliseconds = prazoDate.getTime() - now.getTime();
     const minExecutionMilliseconds = totalMilliseconds * 0.6;
 
+    const penalidadesExistentes = await Penalty.findAll({
+      where: { id: penalidadeIds },
+    });
+
+    if (penalidadesExistentes.length === 0) {
+      return res.status(400).json({ error: 'Nenhuma penalidade encontrada com os IDs fornecidos.' });
+    }
+
     // Calcula recompensas com base na dificuldade e rank
-    const { recompensaXp: valorXp, recompensaOuro: valorOuro, recompensaPd: valorPd } = calcularRecompensas(dificuldade, rank);
+    const { recompensaXp: valorXp, recompensaOuro: valorOuro, recompensaPd: valorPd } = calcularRecompensas(dificuldade, rank, penalidadesExistentes);
 
     // Cria a missão
     const novaMissao = await Mission.create({
@@ -148,13 +104,7 @@ const createMission = async (req, res) => {
       return res.status(400).json({ error: 'O campo penalidadeIds deve ser um array não vazio.' });
     }
 
-    const penalidadesExistentes = await Penalty.findAll({
-      where: { id: penalidadeIds },
-    });
-
-    if (penalidadesExistentes.length === 0) {
-      return res.status(400).json({ error: 'Nenhuma penalidade encontrada com os IDs fornecidos.' });
-    }
+    
 
     // Associa penalidades à missão
     await Promise.all(
@@ -306,7 +256,7 @@ const completeMission = async (req, res) => {
 
     const userStatus = await Status.findOne({ where: { id_usuario: userId } });
 
-    if (!userStatus) {
+    if (!userStatus) {  
       return res.status(404).json({ error: 'Status do usuário não encontrado.' });
     }
 
@@ -353,11 +303,68 @@ const completeMission = async (req, res) => {
       }
     }
 
+    // Contar missões finalizadas
+    const totalMissoes = await Mission.count({ 
+      where: { id_usuario: userId, situacao: 'Finalizada' } 
+    });
+
+    // Verificar missões consecutivas
+    const seteDiasAtras = new Date();
+    seteDiasAtras.setDate(seteDiasAtras.getDate() - 7);
+
+    const missoesUltimos7Dias = await MissionHistoryDiary.count({
+      where: {
+        id_usuario: userId,
+        completado: true,
+        prazoAnterior: { [Op.gte]: seteDiasAtras },
+      },
+    });
+
+    // Lista de medalhas e critérios
+    const badges = [
+      { titulo: "Rank F", criterio: () => userStatus.rank === 'F' },
+      { titulo: "Rank E", criterio: () => userStatus.rank === 'E' },
+      { titulo: "Rank D", criterio: () => userStatus.rank === 'D' },
+      { titulo: "Rank C", criterio: () => userStatus.rank === 'C' },
+      { titulo: "Rank B", criterio: () => userStatus.rank === 'B' },
+      { titulo: "Rank A", criterio: () => userStatus.rank === 'A' },
+      { titulo: "Rank SSS", criterio: () => userStatus.rank === 'SSS' },
+      { titulo: "Iniciante", criterio: () => totalMissoes >= 1 },
+      { titulo: "Guerreiro da Rotina", criterio: () => totalMissoes >= 10 },
+      { titulo: "Mestre da Disciplina", criterio: () => totalMissoes >= 50 },
+      { titulo: "Lendário", criterio: () => totalMissoes >= 100 },
+      { titulo: "Maratonista", criterio: () => missoesUltimos7Dias >= 7 },
+      { titulo: "Caçador de Ouro", criterio: () => userStatus.ouro >= 10000 },
+      { titulo: "Poder Supremo", criterio: () => userStatus.pd >= 1000 },
+      { titulo: "Estrategista", criterio: () => userStatus.total_xp >= 10000 },
+    ];
+
+    // Verificar e conceder medalhas
+    const badgesGanhas = [];
+    for (const badge of badges) {
+      const badgeExistente = await Badge.findOne({ where: { titulo: badge.titulo, id_usuario: userId } });
+
+      if (badgeExistente) {
+        if (!badgeExistente.conquistado && badge.criterio()) {
+          // Se a badge já existe mas ainda não foi conquistada, marcar como conquistada
+          badgeExistente.conquistado = true;
+          await badgeExistente.save();
+          console.log(badgeExistente)
+          badgesGanhas.push(badgeExistente);
+        }
+      }
+    }
+
+    
+
     await userStatus.save();
+
+    
 
     res.status(200).json({
       message: 'Missão concluída com sucesso, penalidades atualizadas.',
       userStatus,
+      badgesGanhas
     });
   } catch (error) {
     console.error('Erro ao concluir missão:', error);
@@ -472,8 +479,16 @@ const updateMission = async (req, res) => {
     }
 
     if (prazoFinal) mission.prazo = prazoFinal;
+
+    // Se houver penalidades, busque elas no banco de dados
+    let penalidadesExistentes = [];
+    if (penalidadeIds && Array.isArray(penalidadeIds)) {
+      penalidadesExistentes = await Penalty.findAll({ where: { id: penalidadeIds } });
+      await mission.setPenalidades(penalidadesExistentes);
+    }
     
-    const { recompensaXp, recompensaOuro, recompensaPd } = calcularRecompensas(dificuldade, rank);
+    const { recompensaXp, recompensaOuro, recompensaPd } = calcularRecompensas(dificuldade, rank, penalidadesExistentes);
+    
     mission.valorXp = recompensaXp;
     mission.valorOuro = recompensaOuro;
     mission.valorPd = recompensaPd;
@@ -482,11 +497,7 @@ const updateMission = async (req, res) => {
       mission.situacao = 'Em progresso';
     }
 
-    // Atualiza os IDs das penalidades
-    if (penalidadeIds && Array.isArray(penalidadeIds)) {
-      const penalidades = await Penalty.findAll({ where: { id: penalidadeIds } });
-      await mission.setPenalidades(penalidades);
-    }
+    
 
     await mission.save();
     return res.status(200).json({ message: 'Missão atualizada com sucesso!' });

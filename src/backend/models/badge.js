@@ -10,7 +10,7 @@ const Badge = sequelize.define('Badge', {
     type: DataTypes.STRING,
     allowNull: false,
   },
-  conquista: {
+  conquistado: {
     type: DataTypes.BOOLEAN,
     allowNull: false,
   },
