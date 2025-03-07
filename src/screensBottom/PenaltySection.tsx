@@ -71,7 +71,7 @@ export default function PenaltySection(){
     const fetchPenalties = async () => {
         try {
           const userId = await getUserId();
-          const response = await axios.get(`${API_URL}/api/penaltyapi/${userId}`); // Substitua com sua rota
+          const response = await axios.get(`${API_URL}/api/penaltyapi/${userId}`);
           setPenalties(response.data);
         } catch (error) {
           console.error('Erro ao buscar penalidades:', error);

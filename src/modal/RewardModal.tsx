@@ -53,6 +53,9 @@ export default function RewardModal({ visible, onClose, onSave, reward }: Reward
         await axios.post(`${API_URL}/api/rewardapi/create`, payload);
       }
 
+      setTitle('')
+      setGold('')
+
       onSave();
       onClose();
     } catch (error: any) {

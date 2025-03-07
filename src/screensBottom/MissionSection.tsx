@@ -194,13 +194,13 @@ export default function MissionSection(){
     };
 
     const fetchMissions = async () => {
-        try {
-          const userId = await getUserId();
-          const response = await axios.get(`${API_URL}/api/missionapi/${userId}`);
-          setMissions(response.data);
-        } catch (error) {
-          console.error('Erro ao buscar missões:', error);
-        }
+      try {
+        const userId = await getUserId();
+        const response = await axios.get(`${API_URL}/api/missionapi/${userId}`);
+        setMissions(response.data);
+      } catch (error) {
+        console.error('Erro ao buscar missões:', error);
+      }
     };//16 e 48 minutos
     const handleStartMission = async (missionId: number, prazoFinal: string, criado_em: string) => {
       try {

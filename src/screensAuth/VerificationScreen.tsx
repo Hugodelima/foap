@@ -15,10 +15,13 @@ export default function VerificationScreen() {
     const [email, setEmail] = useState<string | undefined>(route.params?.email);
     const [userID, setUserID] = useState<string | undefined>(route.params?.userID);
     const [verificationType, setVerificationType] = useState<string | undefined>(route.params?.verificationType);
+    const [emailVerificationStatus, setEmailVerificationStatus] = useState('')
 
     useEffect(() => {
         const loadVerificationData = async () => {
+            setEmailVerificationStatus(await AsyncStorage.getItem('emailVerificationStatus'))
             if (!email || !userID) {
+
                 try {
                     const storedData = await AsyncStorage.getItem('emailVerificationData');
                     if (storedData) {
@@ -39,7 +42,7 @@ export default function VerificationScreen() {
 
     const [OTP, setOTP] = useState<{ [key: number]: string }>({ 0: '', 1: '', 2: '', 3: '' });
     const [nextInputIndex, setNextInputIndex] = useState<number>(0);
-    const [timeLeft, setTimeLeft] = useState<number>(120000); // 2 minutos
+    const [timeLeft, setTimeLeft] = useState<number>( emailVerificationStatus ? 120000 : 0); // 2 minutos
 
     useEffect(() => {
         input.current?.focus();

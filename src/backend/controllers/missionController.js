@@ -156,6 +156,7 @@ const allMission = async (req, res) => {
         ]
         
       },
+      order: [['criado_em', 'DESC']]
     });
 
     res.json(missions);
@@ -195,6 +196,7 @@ const getDailyMissionsPenalties = async (req, res) => {
           ]
         ]
       },
+      order: [['criado_em', 'DESC']]
     });
 
     res.json(dailyMissions);

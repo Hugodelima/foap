@@ -56,7 +56,7 @@ const getPenaltiesByUser = async (req, res) => {
     const { id_usuario } = req.params;
 
     try {
-        const penalties = await Penalty.findAll({ where: { id_usuario } });
+        const penalties = await Penalty.findAll({ where: { id_usuario }, order: [['criado_em', 'DESC']] });
         res.status(200).json(penalties);
     } catch (error) {
         res.status(500).json({ error: 'Erro ao buscar penalidades.' });

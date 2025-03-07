@@ -71,6 +71,8 @@ export default function PenaltyModal({ visible, onClose, onSave, penalty }: Pena
         Alert.alert('Penalidade aplicada', 'A penalidade foi criada com sucesso.');
       }
 
+      setTitle('')
+
       onSave();
       onClose();
     } catch (error) {
