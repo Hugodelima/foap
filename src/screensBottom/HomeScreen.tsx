@@ -80,14 +80,15 @@ export default function HomeScreen() {
         {
           name: 'Em Progresso',
           population: statusCounts.emProgresso.length,
-          color: '#ff6b6b',
+          color: '#f39c12',
           legendFontColor: '#fff',
           legendFontSize: 15,
         },
+        
         {
           name: 'Não Finalizadas',
           population: statusCounts.naoFinalizadas.length,
-          color: '#f39c12',
+          color: '#ff6b6b',
           legendFontColor: '#fff',
           legendFontSize: 15,
         },

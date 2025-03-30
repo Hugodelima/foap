@@ -22,6 +22,11 @@
         "foregroundImage": "./src/assets/images/app/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
+      "useNextNotificationsApi": true,
+      "networkSecurityConfig": {
+        "allowInsecureConnections": true
+      },
+      "usesCleartextTraffic": true,
       "package": "com.hizup.foap",
       "jsEngine": "hermes"
     },
@@ -31,10 +36,21 @@
     "extra": {
       "eas": {
         "projectId": "9e51a0c0-39bb-4424-a250-6e9e3f6f9f2f"
-      }
+      },
+      "API_URL": "http://18.231.82.111:3000" ,
+      "EMAIL_USER": "suportefoap4@gmail.com",
+      "EMAIL_PASS": "rqqc vtjj demm wzit"
     },
     "plugins": [
-      "expo-secure-store"
+      "expo-secure-store",
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "usesCleartextTraffic": true
+          }
+        }
+      ]
     ]
   }
 }

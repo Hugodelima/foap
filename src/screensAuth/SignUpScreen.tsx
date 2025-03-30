@@ -63,7 +63,6 @@ export default function SignUpScreen() {
     ];
   
     const badges = [
-      { titulo: "Rank F", descricao: "Alcançou o rank F", conquistado: false, icone: '1' },
       { titulo: "Rank E", descricao: "Alcançou o rank E", conquistado: false, icone: '2' },
       { titulo: "Rank D", descricao: "Alcançou o rank D", conquistado: false, icone: '3' },
       { titulo: "Rank C", descricao: "Alcançou o rank C", conquistado: false, icone: '4' },

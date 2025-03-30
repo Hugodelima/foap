@@ -11,11 +11,11 @@ import { getUserId } from '../screensBottom/ProgressScreen';
 import rank_f from '../assets/images/badges/rank_f.png';
 import rank_e from '../assets/images/badges/rank_e.png';
 import rank_d from '../assets/images/badges/rank_d.png';
-import rank_c from '../assets/images/badges/rank_c.png';
+import rank_c from '../assets/images/badges/rank_c.jpg';
 import rank_b from '../assets/images/badges/rank_b.png';
 import rank_a from '../assets/images/badges/rank_a.png';
-import rank_s from '../assets/images/badges/rank_s.png';
-import rank_ss from '../assets/images/badges/rank_ss.png';
+import rank_s from '../assets/images/badges/rank_s.jpg';
+import rank_ss from '../assets/images/badges/rank_ss.jpg';
 import rank_sss from '../assets/images/badges/rank_sss.png';
 import rank_sss_plus from '../assets/images/badges/rank_sss_plus.png';
 import iniciante from '../assets/images/badges/inciante.jpg';
@@ -26,11 +26,10 @@ import imbativel from '../assets/images/badges/imbativel.jpg';
 import cacador_de_ouro from '../assets/images/badges/cacador_de_ouro.jpg';
 import poder_supremo from '../assets/images/badges/poder_supremo.png';
 import estrategista from '../assets/images/badges/estrategista.png';
-import lendario from '../assets/images/badges/lendario.png';
+import lendario from '../assets/images/badges/lendario.jpg';
 import BadgeModal from '../modal/BadgeModal';
 
 export const badgeIcons: Record<string, any> = {
-  1: rank_f,
   2: rank_e,
   3: rank_d,
   4: rank_c,
