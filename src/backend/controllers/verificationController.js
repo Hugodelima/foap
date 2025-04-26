@@ -32,15 +32,39 @@ const generateVerificationCodeForUser = async (req, res) => {
     try {
         if (!userId) return res.status(400).json({ message: 'ID do usuário é obrigatório.' });
 
+        // Obter o usuário para pegar o email
+        const user = await User.findByPk(userId);
+        if (!user) return res.status(404).json({ message: 'Usuário não encontrado.' });
+
         const verificationCode = generateVerificationCode();
         const expiration = new Date();
         expiration.setMinutes(expiration.getMinutes() + 2);
 
-        await Verification.create({ id_usuario: userId, codigo: verificationCode, expiracao: expiration, tipo: 'verificacao_email' });
+        // Criar o registro de verificação
+        await Verification.create({ 
+            id_usuario: userId, 
+            codigo: verificationCode, 
+            expiracao: expiration, 
+            tipo: 'verificacao_email' 
+        });
 
-        res.status(200).json({ message: 'Código de verificação criado com sucesso!', codigo: verificationCode });
+        // Enviar o email com o código
+        sendEmail(
+            user.email,
+            'Código de Verificação de Email',
+            `Seu código de verificação é: ${verificationCode}. Este código expira em 2 minutos.`
+        );
+
+        res.status(200).json({ 
+            message: 'Código de verificação criado e enviado com sucesso!', 
+            codigo: verificationCode 
+        });
     } catch (error) {
-        res.status(500).json({ message: 'Erro ao gerar o código de verificação.', error: error.message });
+        console.error("Erro no generateVerificationCodeForUser:", error);
+        res.status(500).json({ 
+            message: 'Erro ao gerar e enviar o código de verificação.', 
+            error: error.message 
+        });
     }
 };
 
@@ -188,6 +212,52 @@ const generateResetPasswordCode = async (req, res) => {
     }
 };
 
+
+const getverificationexpiration =  async (req, res) => {
+    try {
+        const { userID } = req.query;
+        const verification = await Verification.findOne({
+            where: { id_usuario: userID, tipo: 'verificacao_email' },
+            order: [['expiracao', 'DESC']]
+        });
+
+        if (!verification) {
+            return res.status(404).json({ message: 'Código não encontrado', timeLeft: 0 });
+        }
+
+        const timeLeft = Math.max(0, verification.expiracao - new Date());
+        res.status(200).json({ timeLeft });
+    } catch (error) {
+        res.status(500).json({ message: 'Erro ao buscar expiração', error: error.message });
+    }
+};
+
+const getforgotpasswordexpiration = async (req, res) => {
+    try {
+        const { email } = req.query;
+        const user = await User.findOne({ where: { email } });
+        
+        if (!user) {
+            return res.status(404).json({ message: 'Usuário não encontrado', timeLeft: 0 });
+        }
+
+        const verification = await Verification.findOne({
+            where: { id_usuario: user.id, tipo: 'resetar_senha_email' },
+            order: [['expiracao', 'DESC']]
+        });
+
+        if (!verification) {
+            return res.status(404).json({ message: 'Código não encontrado', timeLeft: 0 });
+        }
+
+        const timeLeft = Math.max(0, verification.expiracao - new Date());
+        res.status(200).json({ timeLeft });
+    } catch (error) {
+        res.status(500).json({ message: 'Erro ao buscar expiração', error: error.message });
+    }
+};
+
+
 module.exports = {
     generateVerificationCodeForUser,
     getVerificationExpiration,
@@ -195,5 +265,7 @@ module.exports = {
     resendVerificationCode,
     resendForgotPasswordCode,
     verifyForgotPasswordCode,
-    generateResetPasswordCode
+    generateResetPasswordCode,
+    getverificationexpiration,
+    getforgotpasswordexpiration
 };

@@ -6,7 +6,9 @@ const {
     resendVerificationCode,
     resendForgotPasswordCode,
     verifyForgotPasswordCode,
-    generateResetPasswordCode
+    generateResetPasswordCode,
+    getverificationexpiration,
+    getforgotpasswordexpiration
 } = require('../controllers/verificationController');
 
 const router = express.Router();
@@ -18,5 +20,8 @@ router.post('/verify', verifyCode);
 router.post('/resend-verification-code', resendVerificationCode);
 router.post('/resend-forgot-password-code', resendForgotPasswordCode);
 router.post('/verify-forgot-password', verifyForgotPasswordCode);
+
+router.get('/get-verification-expiration', getverificationexpiration);
+router.get('/get-forgot-password-expiration', getforgotpasswordexpiration );
 
 module.exports = router;

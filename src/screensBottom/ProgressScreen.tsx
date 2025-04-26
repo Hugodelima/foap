@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { Text, View, Image, TouchableOpacity, FlatList, Modal, Alert, ScrollView } from 'react-native';
+import React, { useState, useEffect, useRef } from 'react';
+import { Text, View, Image, TouchableOpacity, FlatList, Modal, Alert, ScrollView, Animated } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { useFetchStatusUser } from '../hooks/useFetchDataStatus';
@@ -24,7 +24,44 @@ export default function MissionScreen() {
   const [selectedSection, setSelectedSection] = useState<string>('missao');
   const { userData, setUserData } = useFetchStatusUser();
   const navigation = useNavigation<NavigationProps>();
- 
+  
+  const skeletonOpacity = useRef(new Animated.Value(0.3)).current;
+
+  const animateSkeleton = () => {
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(skeletonOpacity, {
+          toValue: 1,
+          duration: 800,
+          useNativeDriver: true,
+        }),
+        Animated.timing(skeletonOpacity, {
+          toValue: 0.3,
+          duration: 800,
+          useNativeDriver: true,
+        }),
+      ])
+    ).start();
+  };
+
+  const SkeletonBox = ({ width, height = 20, radius = 4, style = {} }) => (
+    <Animated.View
+      style={{
+        backgroundColor: '#444',
+        opacity: skeletonOpacity,
+        width,
+        height,
+        borderRadius: radius,
+        marginLeft: 5,
+        ...style,
+      }}
+    />
+  );
+
+  useEffect(() => {
+    animateSkeleton();
+  }, []);
+
   const handleNavigate = (screen: any) => {
     navigation.navigate(screen);
   };
@@ -35,11 +72,19 @@ export default function MissionScreen() {
         <View className='flex-row items-center mb-4'>
           <View className='flex-row items-center'>
             <Image source={gold_image} style={{ width: 30, height: 30, marginRight: 5 }} />
-            <Text className='text-white font-vt323'>{userData?.ouro}</Text>
+            {userData?.ouro === null || userData?.ouro === undefined ? (
+              <SkeletonBox width={60} />
+            ) : (
+              <Text className='text-white font-vt323'>{userData?.ouro}</Text>
+            )}
           </View>
-          <View className='flex-row items-center'>
+          <View className='flex-row items-center ml-4'>
             <Image source={xp_image} style={{ width: 30, height: 30, marginRight: 5 }} />
-            <Text className='text-white font-vt323'>{userData?.total_xp}</Text>
+            {userData?.total_xp === null || userData?.total_xp === undefined ? (
+              <SkeletonBox width={60} />
+            ) : (
+              <Text className='text-white font-vt323'>{userData?.total_xp}</Text>
+            )}
           </View>
         </View>
 
@@ -67,7 +112,6 @@ export default function MissionScreen() {
             </TouchableOpacity>
           </View>
         </ScrollView>
-
       </SafeAreaView>
 
       <TouchableOpacity className="absolute right-4 top-12" onPress={() => setModalVisibleOption(true)}>

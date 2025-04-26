@@ -623,7 +623,8 @@ const getUserMissionsByStatusLast7Days = async (req, res) => {
       naoFinalizadas: [],
     };
 
-    [...missions, ...dailyMissions].forEach((mission) => {
+    // Processa missões regulares
+    missions.forEach((mission) => {
       switch (mission.situacao) {
         case 'Finalizada':
           missionData.finalizadas.push(mission);
@@ -636,6 +637,15 @@ const getUserMissionsByStatusLast7Days = async (req, res) => {
           break;
         default:
           break;
+      }
+    });
+
+    // Processa missões diárias baseado no campo 'completado'
+    dailyMissions.forEach((mission) => {
+      if (mission.completado) {
+        missionData.finalizadas.push(mission);
+      } else {
+        missionData.naoFinalizadas.push(mission);
       }
     });
 
