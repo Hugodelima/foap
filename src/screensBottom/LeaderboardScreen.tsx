@@ -34,7 +34,7 @@ export default function LeaderboardScreen() {
         {userStatus && (
           <>
             <Text className="font-vt323 text-center text-white text-4xl">
-              Classicação do Rank: {userStatus.rank}
+              Classificação do Rank: {userStatus.rank}
             </Text>
             <Text className="font-vt323 text-white text-center text-sm">
               Para avançar para o próximo rank{' '}
