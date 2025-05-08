@@ -60,7 +60,11 @@ const createMission = async (req, res) => {
     if (repeticao === 'Diariamente') {
       const now = new Date();
       now.setUTCHours(27, 59, 59, 999); // Ajuste para Cuiabá (-4 UTC)
+      
+      now.setDate(now.getDate() - 1); // Subtrai 1 dia
+      
       prazoFinal = now.toISOString();
+      
     } else {
       prazoFinal = new Date(`${prazo}T00:00:00-04:00`); // Ajusta para Cuiabá (-4 UTC)
       prazoFinal.setHours(23, 59, 59, 999);
@@ -662,50 +666,60 @@ const getTotalXpGainedPerDay = async (req, res) => {
   const sevenDaysAgo = moment().subtract(7, 'days').startOf('day');
 
   try {
+    // 1. Busca missões FINALIZADAS onde a data de conclusão (registroFim) está dentro do período
     const missions = await Mission.findAll({
       where: {
         id_usuario: userId,
         situacao: 'Finalizada',
-        criado_em: {
+        atualizado_em: { // <-- Alterado de 'criado_em' para 'registroFim'
           [Op.between]: [sevenDaysAgo.toDate(), today.toDate()],
         },
       },
       attributes: [
-        [sequelize.fn('DATE', sequelize.col('criado_em')), 'date'],
+        [sequelize.fn('DATE', sequelize.col('atualizado_em')), 'date'], // <-- Usando registroFim
         [sequelize.fn('SUM', sequelize.col('valorXp')), 'totalXp'],
       ],
-      group: [sequelize.fn('DATE', sequelize.col('criado_em'))],
-      order: [[sequelize.fn('DATE', sequelize.col('criado_em')), 'ASC']],
+      group: [sequelize.fn('DATE', sequelize.col('atualizado_em'))],
+      order: [[sequelize.fn('DATE', sequelize.col('atualizado_em')), 'ASC']],
     });
 
+    // 2. Busca no histórico de missões diárias COMPLETADAS
     const missionHistory = await MissionHistoryDiary.findAll({
       where: {
         id_usuario: userId,
         completado: true,
-        criado_em: {
+        prazoAtualizado: {
           [Op.between]: [sevenDaysAgo.toDate(), today.toDate()],
         },
       },
       attributes: [
-        [sequelize.fn('DATE', sequelize.col('criado_em')), 'date'],
+        [sequelize.fn('DATE', sequelize.col('prazoAtualizado')), 'date'],
         [sequelize.fn('SUM', sequelize.col('valorXp')), 'totalXp'],
       ],
-      group: [sequelize.fn('DATE', sequelize.col('criado_em'))],
-      order: [[sequelize.fn('DATE', sequelize.col('criado_em')), 'ASC']],
+      group: [sequelize.fn('DATE', sequelize.col('prazoAtualizado'))],
+      order: [[sequelize.fn('DATE', sequelize.col('prazoAtualizado')), 'ASC']],
     });
 
+    // 3. Combina os resultados
     let totalXpPerDay = {};
 
+    // Processa missões normais (usando registroFim como data de conclusão)
     missions.forEach((mission) => {
       const { date, totalXp } = mission.get();
-      totalXpPerDay[date] = (totalXpPerDay[date] || 0) + parseInt(totalXp, 10);
+      if (date) {
+        totalXpPerDay[date] = (totalXpPerDay[date] || 0) + parseInt(totalXp, 10);
+      }
     });
 
+    // Processa histórico de missões diárias
     missionHistory.forEach((history) => {
       const { date, totalXp } = history.get();
-      totalXpPerDay[date] = (totalXpPerDay[date] || 0) + parseInt(totalXp, 10);
+      if (date) {
+        totalXpPerDay[date] = (totalXpPerDay[date] || 0) + parseInt(totalXp, 10);
+      }
     });
 
+    // 4. Preenche os últimos 7 dias (incluindo dias sem XP)
     const labels = [];
     const xpData = [];
     for (let i = 6; i >= 0; i--) {

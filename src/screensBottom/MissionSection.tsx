@@ -149,7 +149,7 @@ export default function MissionSection() {
     return `${hours}h ${minutes}m`;
   }
 
-  function calculateMinimumTimeRemaining(prazo: string, dataInicio?: string): string {
+  function calculateMinimumTimeRemaining(prazo: string, dataInicio?: string, situacao?:string): string {
     const inicioDate = new Date(dataInicio);
     const prazoDate = new Date(prazo);
     inicioDate.setHours(inicioDate.getHours() - 4);
@@ -160,7 +160,7 @@ export default function MissionSection() {
     const now = new Date();
     now.setHours(now.getHours() - 4);
     // Verifica se já passou do prazo mínimo de 60%
-    if (now >= prazoMinimo) {
+    if (now >= prazoMinimo && situacao == "Em progresso") {
       return "Parabéns... Pode concluir a qualquer momento!";
     }
   
@@ -402,7 +402,7 @@ export default function MissionSection() {
               </View>
               {item.iniciado && (
                 <Text className="text-yellow-400 font-vt323">
-                  Tempo mínimo restante (60%): {calculateMinimumTimeRemaining(item.prazo, item.registroInicio)}
+                  Tempo mínimo restante (60%): {calculateMinimumTimeRemaining(item.prazo, item.registroInicio, item.situacao)}
                 </Text>
               )}
             </View>

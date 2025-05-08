@@ -8,7 +8,7 @@
         "buildType": "apk"
       },
       "env": {
-        "API_URL": "http://13.218.118.154:7895",
+        "API_URL": "http://3.94.145.113:7895",
         "EMAIL_USER": "suportefoap4@gmail.com",
         "EMAIL_PASS": "rqqc vtjj demm wzit"
       }

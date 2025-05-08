@@ -102,6 +102,7 @@ export default function ModalMission({ visible, mission, onClose, onSave, diary 
           const formattedDeadline = repetition === 'Diariamente'
             ? moment().endOf('day').format() // Enviar o fim do dia atual como prazo
             : moment(deadline).format('YYYY-MM-DD');
+          
           const missionData = {
             titulo: title,
             rank,

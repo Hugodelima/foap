@@ -14,6 +14,8 @@ import { API_URL } from '@env';
 import { NavigationProps } from '../navigation/types';
 import { getUserId } from '../screensBottom/ProgressScreen';
 
+import { Alert } from 'react-native';
+
 export default function AttributesScreen() {
   const navigation = useNavigation<NavigationProps>();
   const [selectedSection, setSelectedSection] = useState<string>('mental');
@@ -51,7 +53,13 @@ export default function AttributesScreen() {
       const userId = await getUserId();
   
       if (operation === 'increment' && availablePoints <= 0) {
-        alert('Você não tem pontos disponíveis!');
+        Alert.alert(
+          "Aviso",
+          "Você não tem pontos disponíveis!",  // Mensagem principal
+          [
+            { text: "OK" }
+          ]
+        );
         return;
       }
   
@@ -60,7 +68,13 @@ export default function AttributesScreen() {
       );
   
       if (operation === 'decrement' && currentAttribute.valor <= 0) {
-        alert('O atributo já está no valor mínimo!');
+        Alert.alert(
+          "Aviso",
+          "O atributo já está no valor mínimo!",  // Mensagem principal
+          [
+            { text: "OK" }
+          ]
+        );
         return;
       }
   
@@ -83,7 +97,13 @@ export default function AttributesScreen() {
   
     } catch (error) {
       console.error('Erro ao atualizar atributo:', error);
-      alert('Erro ao atualizar atributo.');
+      Alert.alert(
+        "Aviso",
+        "Erro ao atualizar atributo.",  // Mensagem principal
+        [
+          { text: "OK" }
+        ]
+      );
     }
   };
   
