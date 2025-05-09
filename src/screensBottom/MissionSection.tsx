@@ -150,6 +150,9 @@ export default function MissionSection() {
   }
 
   function calculateMinimumTimeRemaining(prazo: string, dataInicio?: string, situacao?:string): string {
+    if (!prazo || !dataInicio){
+      return ''
+    }
     const inicioDate = new Date(dataInicio);
     const prazoDate = new Date(prazo);
     inicioDate.setHours(inicioDate.getHours() - 4);
@@ -159,10 +162,6 @@ export default function MissionSection() {
     const prazoMinimo = new Date(inicioDate.getTime() + minExecutionMilliseconds);
     const now = new Date();
     now.setHours(now.getHours() - 4);
-    // Verifica se já passou do prazo mínimo de 60%
-    if (now >= prazoMinimo && situacao == "Em progresso") {
-      return "Parabéns... Pode concluir a qualquer momento!";
-    }
   
     const diffInMilliseconds = prazoMinimo.getTime() - now.getTime();
     const totalMinutes = Math.floor(diffInMilliseconds / 60000);
@@ -174,6 +173,11 @@ export default function MissionSection() {
     if (days > 0) timeParts.push(`${days} dia${days > 1 ? "s" : ""}`);
     if (hours > 0) timeParts.push(`${hours} hora${hours > 1 ? "s" : ""}`);
     if (minutes > 0) timeParts.push(`${minutes} minuto${minutes > 1 ? "s" : ""}`);
+
+    // Verifica se já passou do prazo mínimo de 60%
+    if (now >= prazoMinimo && situacao == "Em progresso") {
+      return "Parabéns... Pode concluir a qualquer momento!";
+    }
 
     return timeParts.join(", ");
   }
