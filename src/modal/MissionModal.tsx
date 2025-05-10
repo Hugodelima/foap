@@ -155,7 +155,7 @@ export default function ModalMission({ visible, mission, onClose, onSave, diary 
 
             Alert.alert(
               'Missão Criada',
-              `${response.data.message} ${diary ? '' : `\nVocê precisa esperar pelo menos ${prazoMinimoString} para concluir a missão.`}`,
+              `${response.data.message}`,
             );
           }
   

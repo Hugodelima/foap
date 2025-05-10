@@ -59,11 +59,11 @@ const createMission = async (req, res) => {
     let prazoFinal;
     if (repeticao === 'Diariamente') {
       const now = new Date();
+      console.log(now)
       now.setUTCHours(27, 59, 59, 999); // Ajuste para Cuiabá (-4 UTC)
-      
-      now.setDate(now.getDate() - 1); // Subtrai 1 dia
-      
+      console.log(now)
       prazoFinal = now.toISOString();
+      console.log(prazoFinal)
       
     } else {
       prazoFinal = new Date(`${prazo}T00:00:00-04:00`); // Ajusta para Cuiabá (-4 UTC)
@@ -420,7 +420,7 @@ const expireMission = async (req, res) => {
 
         // Atualizar status do usuário
         userStatus.ouro -= penalty.perdaOuro;
-        userStatus.pd -= penalty.perdaXp;
+        userStatus.total_xp -= penalty.perdaXp;
       }
     }
 
