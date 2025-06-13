@@ -15,7 +15,10 @@
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.hizup.foap"
+      "bundleIdentifier": "com.hizup.foap",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -37,7 +40,7 @@
       "eas": {
         "projectId": "9e51a0c0-39bb-4424-a250-6e9e3f6f9f2f"
       },
-      "API_URL": "http://13.218.118.154:7895" ,
+      "API_URL": "http://13.218.118.154:7895",
       "EMAIL_USER": "suportefoap4@gmail.com",
       "EMAIL_PASS": "rqqc vtjj demm wzit"
     },
