@@ -15,15 +15,7 @@
     },
     "development": {
       "developmentClient": true,
-      "distribution": "internal",
-      "android": {
-        "buildType": "apk"
-      },
-      "env": {
-        "API_URL": "http://192.168.0.101:3000",
-        "EMAIL_USER": "suportefoap4@gmail.com",
-        "EMAIL_PASS": "rqqc vtjj demm wzit"
-      }
+      "distribution": "internal"
     },
     "preview2": {
       "android": {
