@@ -241,7 +241,7 @@ export default function ModalMission({ visible, mission, onClose, onSave, diary 
                       <TouchableOpacity onPress={() => setShowDatePicker(true)}>
                         <TextInput
                           className="p-4 bg-gray-100 text-gray-700 rounded-2xl mb-3"
-                          value={moment(deadline).format('YYYY-MM-DD')}
+                          value={moment(deadline).format('DD-MM-YYYY')}
                           editable={false}
                         />
                       </TouchableOpacity>

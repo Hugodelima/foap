@@ -8,14 +8,19 @@
         "buildType": "apk"
       },
       "env": {
-        "API_URL": "http://3.94.145.113:7895",
+        "API_URL": "http://192.168.0.106:3000",
         "EMAIL_USER": "suportefoap4@gmail.com",
         "EMAIL_PASS": "rqqc vtjj demm wzit"
       }
     },
     "development": {
       "developmentClient": true,
-      "distribution": "internal"
+      "distribution": "internal",
+      "env": {
+        "API_URL": "http://192.168.0.106:3000",
+        "EMAIL_USER": "suportefoap4@gmail.com",
+        "EMAIL_PASS": "rqqc vtjj demm wzit"
+      }
     },
     "preview2": {
       "android": {

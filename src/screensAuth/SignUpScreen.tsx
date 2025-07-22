@@ -116,6 +116,7 @@ export default function SignUpScreen() {
     try {
       // Registro do usuário
       console.log(API_URL)
+      console.log('api url acima')
       const response = await axios.post(`${API_URL}/api/userapi/register`, {
         nome_usuario: username,
         email,
