@@ -174,42 +174,48 @@ export default function SignUpScreen() {
       </Text>
 
       <Text className="block mb-4">
-        O aplicativo Foap foi desenvolvido para oferecer aos usuários uma forma divertida e eficaz de gerenciar tarefas diárias.{"\n\n"}
+        O aplicativo Foap – Transformando Tarefas em Conquistas foi desenvolvido com o objetivo de oferecer aos usuários uma forma divertida e eficaz de gerenciar tarefas diárias, utilizando elementos de gamificação como missões, recompensas, medalhas e status de RPG.{"\n"}
+        Esta Política de Privacidade tem como objetivo esclarecer como os dados dos usuários são coletados, usados e protegidos.{"\n\n"}
       </Text>
 
       <Text className="font-bold text-base mt-4 mb-2 block">1. Informações Coletadas{"\n"}</Text>
-      <Text className="block mb-2">Coletamos apenas:{"\n"}</Text>
+      <Text className="block mb-2">O Foap coleta apenas os seguintes dados dos usuários:{"\n"}</Text>
+      <Text className="block ml-4 mb-1">- Nome de Usuário{"\n"}</Text>
       <Text className="block ml-4 mb-1">- E-mail{"\n"}</Text>
       <Text className="block ml-4 mb-4">- Senha{"\n\n"}</Text>
+      <Text className="block mb-4">Essas informações são fornecidas voluntariamente pelo usuário no momento do cadastro.{"\n\n"}</Text>
 
       <Text className="font-bold text-base mt-4 mb-2 block">2. Como os Dados São Coletados{"\n"}</Text>
-      <Text className="block mb-4">Através do formulário de cadastro/login.{"\n\n"}</Text>
+      <Text className="block mb-4">Os dados são coletados diretamente através do formulário de cadastro/login do aplicativo.{"\n\n"}</Text>
 
       <Text className="font-bold text-base mt-4 mb-2 block">3. Uso das Informações{"\n"}</Text>
-      <Text className="block mb-2">As informações são usadas para:{"\n"}</Text>
-      <Text className="block ml-4 mb-1">- Autenticação do usuário;{"\n"}</Text>
-      <Text className="block ml-4 mb-4">- Acesso seguro aos recursos do app.{"\n\n"}</Text>
+      <Text className="block mb-2">As informações coletadas são utilizadas exclusivamente para:{"\n"}</Text>
+      <Text className="block ml-4 mb-1">- Autenticação e identificação do usuário;{"\n\n"}</Text>
+      <Text className="block ml-4 mb-4">- Acesso seguro às funcionalidades do aplicativo.{"\n\n"}</Text>
+      <Text className="block mb-4">Não compartilhamos os dados dos usuários com terceiros.{"\n\n"}</Text>
 
       <Text className="font-bold text-base mt-4 mb-2 block">4. Armazenamento de Dados{"\n"}</Text>
-      <Text className="block mb-4">Os dados são armazenados em servidores seguros.{"\n\n"}</Text>
+      <Text className="block mb-4">Os dados são armazenados em servidores seguros da plataforma Render.com. O desenvolvedor do aplicativo adota medidas técnicas razoáveis para garantir a proteção e integridade das informações dos usuários.{"\n\n"}</Text>
 
       <Text className="font-bold text-base mt-4 mb-2 block">5. Direitos dos Usuários{"\n"}</Text>
-      <Text className="block mb-2">Atualmente o app não possui funcionalidades para:{"\n"}</Text>
+      <Text className="block mb-2">Atualmente, o aplicativo não possui funcionalidades internas para:{"\n"}</Text>
       <Text className="block ml-4 mb-1">- Exclusão de conta;{"\n"}</Text>
       <Text className="block ml-4 mb-1">- Solicitação de remoção de dados;{"\n"}</Text>
       <Text className="block ml-4 mb-4">- Acesso aos dados armazenados.{"\n\n"}</Text>
+      <Text className="block mb-1">Entretanto, caso o usuário deseje excluir sua conta ou solicitar a remoção de seus dados, deverá entrar em contato por meio do e-mail suportefoap5@gmail.com.{"\n"}</Text>
+      <Text className="block mb-4">Para mais detalhes sobre esse processo, acesse o seguinte link: [https://drive.google.com/file/d/1vjCtbaPhA0ULgpJSgmtTHzCDf8j5URBz/view?usp=sharing].{"\n"}Caso essas opções venham a ser implementadas diretamente no aplicativo no futuro, esta Política de Privacidade será devidamente atualizada.{"\n\n"}</Text>
 
       <Text className="font-bold text-base mt-4 mb-2 block">6. Crianças e Adolescentes{"\n"}</Text>
-      <Text className="block mb-4">Recomendado para maiores de 13 anos.{"\n\n"}</Text>
+      <Text className="block mb-4">O aplicativo não possui restrição etária, mas é recomendado para uso por maiores de 13 anos, considerando a autonomia necessária para o gerenciamento de tarefas.{"\n\n"}</Text>
 
-      <Text className="font-bold text-base mt-4 mb-2 block">7. Alterações na Política{"\n"}</Text>
-      <Text className="block mb-4">Esta política pode ser atualizada periodicamente.{"\n\n"}</Text>
+      <Text className="font-bold text-base mt-4 mb-2 block">7. Alterações nesta Política{"\n"}</Text>
+      <Text className="block mb-4">Esta Política de Privacidade pode ser atualizada periodicamente. Recomendamos que o usuário consulte esta seção regularmente para se manter informado sobre eventuais mudanças.{"\n\n"}</Text>
 
       <Text className="font-bold text-base mt-4 mb-2 block">8. Contato{"\n"}</Text>
-      <Text className="block mb-6">Para dúvidas, entre em contato pelo app.{"\n\n"}</Text>
+      <Text className="block mb-6">Em caso de dúvidas sobre esta Política de Privacidade, o usuário pode entrar em contato diretamente com o desenvolvedor pelo seguinte email suportefoap5@gmail.com.{"\n\n"}</Text>
 
       <Text className="font-bold text-center block mt-6">
-        Ao usar o Foap, você concorda com esta Política de Privacidade.{"\n"}
+        Ao utilizar o Foap, você concorda com os termos descritos nesta Política de Privacidade.{"\n"}
       </Text>
     </Text>
   );

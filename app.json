@@ -31,7 +31,8 @@
       },
       "usesCleartextTraffic": true,
       "package": "com.hizup.foap",
-      "jsEngine": "hermes"
+      "jsEngine": "hermes",
+      "versionCode": 3
     },
     "web": {
       "favicon": "./assets/favicon.png"
