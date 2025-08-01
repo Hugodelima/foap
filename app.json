@@ -32,7 +32,8 @@
       "usesCleartextTraffic": true,
       "package": "com.hizup.foap",
       "jsEngine": "hermes",
-      "versionCode": 5
+      "versionCode": 5,
+      "targetSdkVersion": 35
     },
     
     "web": {
@@ -52,7 +53,10 @@
         "expo-build-properties",
         {
           "android": {
-            "usesCleartextTraffic": true
+            "usesCleartextTraffic": true,
+            "compileSdkVersion": 35,
+            "targetSdkVersion": 35,
+            "buildToolsVersion": "34.0.0"
           }
         }
       ]

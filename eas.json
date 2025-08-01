@@ -3,7 +3,7 @@
     "version": ">= 10.2.2"
   },
   "build": {
-    "preview": {
+    "production": {
       "env": {
         "API_URL": "https://foap.onrender.com"
       }
@@ -25,8 +25,7 @@
     },
     "preview4": {
       "distribution": "internal"
-    },
-    "production": {}
+    }
   },
   "submit": {
     "production": {}
