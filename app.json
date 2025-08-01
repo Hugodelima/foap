@@ -3,7 +3,7 @@
     "name": "Foap",
     "slug": "foap",
     "scheme": "https://expo.dev",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
@@ -32,8 +32,7 @@
       "usesCleartextTraffic": true,
       "package": "com.hizup.foap",
       "jsEngine": "hermes",
-      "versionCode": 4,
-      "version": "1.0.3" 
+      "versionCode": 5
     },
     
     "web": {

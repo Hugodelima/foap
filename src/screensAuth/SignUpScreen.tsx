@@ -23,6 +23,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as SecureStore from 'expo-secure-store';
 import { useBackButtonHandler } from '../hooks/useBackButtonHandler';
 import signup_image from '../assets/images/signup/Sign_Up.png';
+import { MaterialIcons } from '@expo/vector-icons';
 
 export default function SignUpScreen() {
   const navigation = useNavigation<NavigationProps>();
@@ -34,6 +35,9 @@ export default function SignUpScreen() {
   const [modalVisible, setModalVisible] = useState(false);
   const [privacyRead, setPrivacyRead] = useState(false);
   const [scrolledToBottom, setScrolledToBottom] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const scrollViewRef = useRef<ScrollView>(null);
 
   useBackButtonHandler();
@@ -108,15 +112,18 @@ export default function SignUpScreen() {
   
   const handleRegister = async () => {
     if (!privacyRead) {
-      Alert.alert("Erro", "Você precisa ler e aceitar a política de privacidade para se cadastrar");
+      Alert.alert("Erro", "Você precisa aceitar a política de privacidade para se cadastrar");
       return;
     }
 
     if (username.length === 0 || email.length === 0 || password.length === 0 || confirmPassword.length === 0) {
-      Alert.alert("Erro", "Preencha todos os campos corretamente");
+      Alert.alert("Erro", "Por favor, preencha todos os campos");
       return;
     } else if (!isValidEmail(email)) {
-      Alert.alert("Erro", "O e-mail fornecido não é válido.");
+      Alert.alert("Erro", "Por favor, insira um e-mail válido");
+      return;
+    } else if (password.length < 8) {
+      Alert.alert("Erro", "A senha deve ter no mínimo 8 caracteres");
       return;
     } else if (password !== confirmPassword) {
       Alert.alert("Erro", "As senhas não conferem");
@@ -124,7 +131,7 @@ export default function SignUpScreen() {
     }
   
     try {
-      console.log(API_URL)
+      setIsLoading(true);
       const response = await axios.post(`${API_URL}/api/userapi/register`, {
         nome_usuario: username,
         email,
@@ -161,6 +168,8 @@ export default function SignUpScreen() {
     } catch (error: any) {
       const errorMessage = error.response?.data?.message || 'Erro durante o cadastro, tente novamente.';
       Alert.alert('Erro', errorMessage);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -252,33 +261,51 @@ export default function SignUpScreen() {
                 keyboardType="email-address"
               />
 
-              <Text className="text-gray-700 ml-4">Senha:</Text>
-              <TextInput
-                className="p-4 bg-gray-100 text-gray-700 rounded-2xl"
-                value={password}
-                onChangeText={setPassword}
-                placeholder="Digite sua senha"
-                secureTextEntry
-              />
+              <Text className="text-gray-700 ml-4">Senha (mínimo 8 caracteres):</Text>
+              <View className="relative">
+                <TextInput
+                  className="p-4 bg-gray-100 text-gray-700 rounded-2xl"
+                  value={password}
+                  onChangeText={setPassword}
+                  placeholder="Digite sua senha"
+                  secureTextEntry={!showPassword}
+                />
+                <TouchableOpacity 
+                  className="absolute right-3 top-4"
+                  onPress={() => setShowPassword(!showPassword)}
+                >
+                  <MaterialIcons 
+                    name={showPassword ? 'visibility-off' : 'visibility'} 
+                    size={24} 
+                    color="#6b7280" 
+                  />
+                </TouchableOpacity>
+              </View>
 
               <Text className="text-gray-700 ml-4">Confirmar Senha:</Text>
-              <TextInput
-                className="p-4 bg-gray-100 text-gray-700 rounded-2xl mb-4"
-                value={confirmPassword}
-                onChangeText={setConfirmPassword}
-                placeholder="Confirme sua senha"
-                secureTextEntry
-              />
+              <View className="relative">
+                <TextInput
+                  className="p-4 bg-gray-100 text-gray-700 rounded-2xl mb-4"
+                  value={confirmPassword}
+                  onChangeText={setConfirmPassword}
+                  placeholder="Confirme sua senha"
+                  secureTextEntry={!showConfirmPassword}
+                />
+                <TouchableOpacity 
+                  className="absolute right-3 top-4"
+                  onPress={() => setShowConfirmPassword(!showConfirmPassword)}
+                >
+                  <MaterialIcons 
+                    name={showConfirmPassword ? 'visibility-off' : 'visibility'} 
+                    size={24} 
+                    color="#6b7280" 
+                  />
+                </TouchableOpacity>
+              </View>
 
               <View className="flex-row items-center my-4">
                 <TouchableOpacity 
-                  onPress={() => {
-                    if (!privacyRead) {
-                      setModalVisible(true);
-                    } else {
-                      setPrivacyRead(false);
-                    }
-                  }}
+                  onPress={() => setPrivacyRead(!privacyRead)}
                   className={`w-6 h-6 rounded border ${privacyRead ? 'bg-blue-500 border-blue-500' : 'border-gray-300'} justify-center items-center mr-2`}
                 >
                   {privacyRead && <Text className="text-white">✓</Text>}
@@ -295,12 +322,19 @@ export default function SignUpScreen() {
               </View>
 
               <TouchableOpacity
-                className="py-3 bg-blue-500 rounded-xl"
+                className="py-3 bg-blue-500 rounded-xl flex-row justify-center items-center"
                 onPress={handleRegister}
+                disabled={isLoading}
               >
-                <Text className="font-bold text-center text-white">
-                  Cadastrar
-                </Text>
+                {isLoading ? (
+                  <Text className="font-bold text-center text-white">
+                    Cadastrando...
+                  </Text>
+                ) : (
+                  <Text className="font-bold text-center text-white">
+                    Cadastrar
+                  </Text>
+                )}
               </TouchableOpacity>
             </View>
 
@@ -336,14 +370,11 @@ export default function SignUpScreen() {
                       <Text>Fechar</Text>
                     </Pressable>
                     <Pressable
-                      className={`px-5 py-2 rounded-md ${scrolledToBottom ? 'bg-blue-500' : 'bg-gray-400'}`}
+                      className="px-5 py-2 bg-blue-500 rounded-md"
                       onPress={() => {
-                        if (scrolledToBottom) {
-                          setPrivacyRead(true);
-                          setModalVisible(false);
-                        }
+                        setPrivacyRead(true);
+                        setModalVisible(false);
                       }}
-                      disabled={!scrolledToBottom}
                     >
                       <Text className="text-white font-bold">Aceitar</Text>
                     </Pressable>

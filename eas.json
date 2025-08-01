@@ -12,9 +12,7 @@
       "developmentClient": true,
       "distribution": "internal",
       "env": {
-        "API_URL": "http://192.168.0.106:3000",
-        "EMAIL_USER": "suportefoap4@gmail.com",
-        "EMAIL_PASS": "rqqc vtjj demm wzit"
+        "API_URL": "https://foap.onrender.com"
       }
     },
     "preview2": {
