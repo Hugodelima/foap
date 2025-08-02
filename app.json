@@ -3,7 +3,7 @@
     "name": "Foap",
     "slug": "foap",
     "scheme": "https://expo.dev",
-    "version": "1.0.1",
+    "version": "1.0.2",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
@@ -32,7 +32,7 @@
       "usesCleartextTraffic": true,
       "package": "com.hizup.foap",
       "jsEngine": "hermes",
-      "versionCode": 5,
+      "versionCode": 7,
       "targetSdkVersion": 35
     },
     
@@ -56,7 +56,7 @@
             "usesCleartextTraffic": true,
             "compileSdkVersion": 35,
             "targetSdkVersion": 35,
-            "buildToolsVersion": "34.0.0"
+            "buildToolsVersion": "35.0.0"
           }
         }
       ]

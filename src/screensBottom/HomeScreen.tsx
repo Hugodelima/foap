@@ -73,7 +73,7 @@ function HomeScreenContent() {
 
   const fetchMissionsData = async () => {
     try {
-      const response = await axios.get(`${API_URL}/api/missionapi/complete/last7days/${userData?.id}`);
+      const response = await axios.get(`${API_URL}/api/missionapi/complete/last7days/${userData?.id_usuario}`);
       const rawData = response.data.missionsPerDay;
       const labels = Object.keys(rawData).map(formatDate);
       const data = Object.values(rawData);
@@ -82,6 +82,7 @@ function HomeScreenContent() {
         labels,
         datasets: [{ data }],
       });
+      console.log(data)
     } catch (err) {
       console.error('Erro ao buscar os dados de missões:', err);
     } finally {

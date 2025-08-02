@@ -113,7 +113,7 @@ export default function MissionDiary() {
   const resetDailyMission = async (mission) => {
     //const x = new Date(); // Data atual
     //const currentTime = new Date(x); // Cria uma cópia
-    //currentTime.setDate(x.getDate() + 2); // Adiciona 1 dia
+    //currentTime.setDate(x.getDate() + 1); // Adiciona 1 dia
     const currentTime = new Date();
     const missionDeadline = new Date(mission.prazo);
     
