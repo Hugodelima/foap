@@ -1,4 +1,3 @@
-
 # 🎮 Foap – Transformando Tarefas em Conquistas
 
 Aplicativo mobile gamificado que transforma tarefas cotidianas em missões com recompensas, penalidades e progresso visual. Desenvolvido como TCC no curso de Análise e Desenvolvimento de Sistemas (IFMS – Campus Nova Andradina).
@@ -7,12 +6,19 @@ Aplicativo mobile gamificado que transforma tarefas cotidianas em missões com r
 
 ---
 
+## 📱 Disponível na Play Store
+
+[![Disponível na Google Play](https://img.shields.io/badge/Google_Play-414141?style=for-the-badge&logo=google-play&logoColor=white)](https://play.google.com/store/apps/details?id=com.hizup.foap)
+
+**📥 Download:** [https://play.google.com/store/apps/details?id=com.hizup.foap](https://play.google.com/store/apps/details?id=com.hizup.foap)
+
+---
+
 ## 📽️ Demonstração
 
 - 🔗 Vídeo do Projeto
 
-https://github.com/user-attachments/assets/265aea7d-5586-4482-8a83-dc75d4bc3a8d
-
+https://github.com/user-attachments/assets/3d7a9609-ce8c-42f3-8d14-7de3cc8f38d9
 
 - 🎨 [Protótipo no Figma](https://www.figma.com/design/HvWcCZSI5wI9gxxP3tz8LE/Foap--Copy-?node-id=0-1)
 
@@ -32,12 +38,27 @@ https://github.com/user-attachments/assets/265aea7d-5586-4482-8a83-dc75d4bc3a8d
 
 ## 🧰 Tecnologias Utilizadas
 
-Frontend Mobile
-<p> <img src="https://img.shields.io/badge/React_Native-20232A?style=for-the-badge&logo=react&logoColor=61DAFB" alt="React Native"> <img src="https://img.shields.io/badge/Expo-000020?style=for-the-badge&logo=expo&logoColor=white" alt="Expo"> <img src="https://img.shields.io/badge/TypeScript-007ACC?style=for-the-badge&logo=typescript&logoColor=white" alt="TypeScript"> </p>
-Backend & Infra
-<p> <img src="https://img.shields.io/badge/Node.js-43853D?style=for-the-badge&logo=node.js&logoColor=white" alt="Node.js"> <img src="https://img.shields.io/badge/Express.js-404D59?style=for-the-badge" alt="Express"> <img src="https://img.shields.io/badge/PostgreSQL-316192?style=for-the-badge&logo=postgresql&logoColor=white" alt="PostgreSQL"> <img src="https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white" alt="Docker"> </p>
-Ferramentas & Serviços
-<p> <img src="https://img.shields.io/badge/AWS_EC2-FF9900?style=for-the-badge&logo=amazon-aws&logoColor=white" alt="AWS EC2"> <img src="https://img.shields.io/badge/Figma-F24E1E?style=for-the-badge&logo=figma&logoColor=white" alt="Figma"> <img src="https://img.shields.io/badge/Sequelize-52B0E7?style=for-the-badge&logo=sequelize&logoColor=white" alt="Sequelize"> </p>
+**Frontend Mobile**
+<p> 
+  <img src="https://img.shields.io/badge/React_Native-20232A?style=for-the-badge&logo=react&logoColor=61DAFB" alt="React Native"> 
+  <img src="https://img.shields.io/badge/Expo-000020?style=for-the-badge&logo=expo&logoColor=white" alt="Expo"> 
+  <img src="https://img.shields.io/badge/TypeScript-007ACC?style=for-the-badge&logo=typescript&logoColor=white" alt="TypeScript"> 
+</p>
+
+**Backend & Infra**
+<p> 
+  <img src="https://img.shields.io/badge/Node.js-43853D?style=for-the-badge&logo=node.js&logoColor=white" alt="Node.js"> 
+  <img src="https://img.shields.io/badge/Express.js-404D59?style=for-the-badge" alt="Express"> 
+  <img src="https://img.shields.io/badge/PostgreSQL-316192?style=for-the-badge&logo=postgresql&logoColor=white" alt="PostgreSQL"> 
+  <img src="https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white" alt="Docker"> 
+</p>
+
+**Ferramentas & Serviços**
+<p> 
+  <img src="https://img.shields.io/badge/Render-000000?style=for-the-badge&logo=render&logoColor=white" alt="Render"> 
+  <img src="https://img.shields.io/badge/Figma-F24E1E?style=for-the-badge&logo=figma&logoColor=white" alt="Figma"> 
+  <img src="https://img.shields.io/badge/Sequelize-52B0E7?style=for-the-badge&logo=sequelize&logoColor=white" alt="Sequelize"> 
+</p>
 
 ---
 
@@ -54,9 +75,10 @@ Ferramentas & Serviços
 1. **Clone o repositório:**
 
 ```bash
-git clone https://github.com/seu-usuario/seu-repositorio.git
-cd seu-repositorio
+git clone [https://github.com/seu-usuario/seu-repositorio.git](https://github.com/Hugodelima/foap.git)
+cd foap
 ```
+
 2. **Crie o arquivo .env com as variáveis:**
 ```bash
 EMAIL_USER=XXXX@gmail.com
@@ -72,36 +94,33 @@ FIXED_SALT=dfgdfgdfg2423432
 API_URL=http://192.168.0.105:3000
 PORT=3000
 ```
+
 3. **Suba o banco de dados com Docker:**
-    
 ```bash
 docker-compose up -d
-
 ```
+
 4. **Instale as dependências:**
-   
 ```bash
 npm install
 ```
-5. **Execute as migrations:**
-   
-```bash
-npx sequelize db:migrate
 
-```
 5. **Inicie o servidor:**
 ```bash
 npm start
 ```
+
+---
+
 ## 📊 Avaliação e Resultados
 
 ### ✅ Métricas de Aceitação
 
 | Métrica               | Valor     | Classificação |
-|------------------------|-----------|----------------|
-| **SUS Score**         | 77.9 / 100 | ⭐⭐⭐⭐           |
-| **Utilidade Percebida** | 4.21 / 5   | ⭐⭐⭐⭐⭐          |
-| **Facilidade de Uso** | 4.48 / 5   | ⭐⭐⭐⭐⭐          |
+|-----------------------|-----------|---------------|
+| **SUS Score**         | 77.9 / 100 | ⭐⭐⭐⭐         |
+| **Utilidade Percebida** | 4.21 / 5   | ⭐⭐⭐⭐⭐        |
+| **Facilidade de Uso** | 4.48 / 5   | ⭐⭐⭐⭐⭐        |
 
 ---
 
@@ -117,20 +136,9 @@ npm start
 
 ## 🚧 Melhorias Futuras
 
-### 🔥 Prioridade Alta
 - 🔔 Sistema de notificações para lembretes  
 - 📚 Tutorial interativo para novos usuários  
-- ✏️ Edição de penalidades e recompensas  
-
-### ⚖️ Prioridade Média
 - 📱 Versão para iOS  
-- 👥 Desafios colaborativos em grupo  
-- 📆 Integração com calendários  
-
-### 🧠 Longo Prazo
-- 📊 Análise de padrões de comportamento  
-- 🎯 Sistema de metas compartilhadas  
-- 🛍️ Marketplace de recompensas  
 
 ---
 
